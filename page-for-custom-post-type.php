@@ -1,3 +1,4 @@
+
 <?php
 /**
  * Plugin Name: Page for custom post type
@@ -9,9 +10,9 @@
  */
 
  // Hook before Polylang
-add_action('plugins_loaded', ['Page_For_Post_Type', 'get_instance'], 0);
+add_action('plugins_loaded', ['Page_For_Custom_Post_Type', 'get_instance'], 0);
 
-class Page_For_Post_Type
+class Page_For_Custom_Post_Type
 {
     const PREFIX = 'page_for_';
     const CACHE_KEY = 'pages_for_custom_post_type';
@@ -93,12 +94,21 @@ class Page_For_Post_Type
             add_filter('wpseo_title', [$this, 'fix_yoast_seo_title']);
             add_filter('wpseo_metadesc', [$this, 'fix_yoast_seo_metadesc']);
             add_filter('wpseo_canonical', [$this, 'fix_yoast_seo_canonical']);
-            add_filter('wpseo_adjacent_rel_url', [$this, 'fix_yoast_seo_adjacent_rel_url'], 10, 2);
+            add_filter('wpseo_adjacent_rel_url', [$this, 'fix_yoast_seo_adjacent_rel_url'], 10, 3);
         });
     }
 
-    public function fix_yoast_seo_adjacent_rel_url($url, $rel) {
-        return get_permalink(get_queried_object());
+    public function fix_yoast_seo_adjacent_rel_url($url, $rel, $presenter) {
+        global $wp_query;
+
+        if($rel === 'next') {
+            return get_next_posts_page_link($wp_query->max_num_pages);
+        }
+        if($rel === 'prev') {
+            // return get_prev_posts_page_link($wp_query->max_num_pages);
+        }
+
+        return '';
     }
 
     public function fix_yoast_seo_canonical($canonical) {
@@ -136,7 +146,7 @@ class Page_For_Post_Type
      * @param boolean $query
      * @return boolean
      */
-    private function is_page_for_custom_post_type($query = false) {
+    private function is_query_page_for_custom_post_type($query = false) {
         $q = $query;
         unset($q);
         $_q = $_q ?? $GLOBALS['wp_query'] ?? false;
@@ -207,7 +217,7 @@ class Page_For_Post_Type
      */
     public function page_for_custom_post_type_query($lang, $query)
     {
-        if (!$this->is_page_for_custom_post_type($query)) {
+        if (!$this->is_query_page_for_custom_post_type($query)) {
             return $lang;
         }
 
@@ -254,7 +264,7 @@ class Page_For_Post_Type
         if (!empty($queried_object_id)) {
             $pll = PLL();
             // Page for custom post type
-            if ($this->is_page_for_custom_post_type() && ($id = $pll->model->post->get($queried_object_id, $language))) {
+            if ($this->is_query_page_for_custom_post_type() && ($id = $pll->model->post->get($queried_object_id, $language))) {
                 $url = get_permalink($id);
             }
         }
@@ -332,7 +342,7 @@ class Page_For_Post_Type
      */
     public function posts_where($where, $query)
     {
-        if (!$this->is_page_for_custom_post_type($query)) {
+        if (!$this->is_query_page_for_custom_post_type($query)) {
             return $where;
         }
         $current_page_id = $this->get_page_id_from_query($query);
@@ -496,7 +506,7 @@ class Page_For_Post_Type
      *
      * @return array|bool
      */
-    protected function get_page_ids($language = false)
+    public function get_page_ids($language = false)
     {
         $page_ids = get_transient($this::CACHE_KEY);
         if(false === $page_ids) {
@@ -588,4 +598,32 @@ class Page_For_Post_Type
 
         return 'is_'.$name.'_page';
     }
+
+    public function is_page_for_custom_post_type($post_type = null) {
+        $post_type_page = $this->is_query_page_for_custom_post_type();
+        if(is_null($post_type)) {
+            return !!$post_type_page;
+        }
+
+        if(!is_array($post_type)) {
+            $post_type = [$post_type];
+        }
+
+        return in_array($post_type_page, $post_type, true);
+    }
+}
+
+
+function is_page_for_custom_post_type($post_type = null) {
+    $pfcpt = Page_For_Custom_Post_Type::get_instance();
+    return $pfcpt->is_page_for_custom_post_type($post_type);
+}
+function get_custom_post_type_for_page($post_id) {
+    $pfcpt = Page_For_Custom_Post_Type::get_instance();
+    $page_ids = $pfcpt->get_page_ids();
+
+    if(!in_array($post_id, $page_ids, true)) {
+        return false;
+    }
+    return array_search($post_id, $page_ids, true);
 }

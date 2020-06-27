@@ -1,4 +1,3 @@
-
 <?php
 /**
  * Plugin Name: Page for custom post type

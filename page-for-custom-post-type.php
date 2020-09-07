@@ -90,7 +90,6 @@ class Page_For_Custom_Post_Type
             });
 
             // Yoast SEO
-            add_filter('wpseo_title', [$this, 'fix_yoast_seo_title']);
             add_filter('wpseo_metadesc', [$this, 'fix_yoast_seo_metadesc']);
             add_filter('wpseo_canonical', [$this, 'fix_yoast_seo_canonical']);
             add_filter('wpseo_adjacent_rel_url', [$this, 'fix_yoast_seo_adjacent_rel_url'], 10, 3);
@@ -124,10 +123,6 @@ class Page_For_Custom_Post_Type
 
         return $metadesc;
 
-    }
-
-    public function fix_yoast_seo_title($title) {
-        return WPSEO_Frontend::get_instance()->get_content_title(get_queried_object());
     }
 
     public static function get_instance()

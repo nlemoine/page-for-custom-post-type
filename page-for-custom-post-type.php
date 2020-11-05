@@ -77,6 +77,22 @@ class Page_For_Custom_Post_Type
         add_filter('pll_set_language_from_query', [$this, 'page_for_custom_post_type_query'], 10, 2);
         add_filter('pll_pre_translation_url', [$this, 'translate_page_for_custom_post_type'], 1, 3);
 
+        // Fix Yoast SEO breadcrumbs
+        add_filter('wpseo_breadcrumb_indexables', function($indexables, $context) {
+            if( !is_singular() && !is_tax() ) {
+                return $indexables;
+            }
+            $post_type = get_post_type();
+            $page_id = get_page_for_custom_post_type($post_type);
+            if(!$page_id) {
+                return $indexables;
+            }
+
+            array_splice( $indexables, 1, 0, [YoastSEO()->meta->for_post( $page_id )->context->indexable] );
+
+            return $indexables;
+        }, 10, 2);
+
 
         add_action('template_redirect', function () {
             if (!$this->is_page_for_custom_post_type()) {
@@ -84,6 +100,10 @@ class Page_For_Custom_Post_Type
             }
 
             // Yoast SEO
+            // Make Yoast SEO it's a static page for posts
+            add_filter('pre_option_show_on_front', function() {
+                return 'page';
+            });
             add_filter('pre_option_page_for_posts', function () {
                 return get_queried_object_id();
             });

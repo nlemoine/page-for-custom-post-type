@@ -78,56 +78,22 @@ class Page_For_Custom_Post_Type
         add_filter('pll_pre_translation_url', [$this, 'translate_page_for_custom_post_type'], 1, 3);
 
 
-        add_action('template_redirect', function() {
-            if(!$this->is_page_for_custom_post_type()) {
+        add_action('template_redirect', function () {
+            if (!$this->is_page_for_custom_post_type()) {
                 return;
             }
 
-            // Template hierarchy
-            add_filter('home_template_hierarchy', [$this, 'set_template_hierarchy']);
-            add_filter('frontpage_template_hierarchy', function($templates) {
-                return [];
+            // Yoast SEO
+            add_filter('pre_option_page_for_posts', function () {
+                return get_queried_object_id();
             });
 
-            // Yoast SEO
-            add_filter('wpseo_title', [$this, 'fix_yoast_seo_title']);
-            add_filter('wpseo_metadesc', [$this, 'fix_yoast_seo_metadesc']);
-            add_filter('wpseo_canonical', [$this, 'fix_yoast_seo_canonical']);
-            add_filter('wpseo_adjacent_rel_url', [$this, 'fix_yoast_seo_adjacent_rel_url'], 10, 3);
+            // Template hierarchy
+            add_filter('home_template_hierarchy', [$this, 'set_template_hierarchy']);
+            add_filter('frontpage_template_hierarchy', function ($templates) {
+                return [];
+            });
         });
-    }
-
-    public function fix_yoast_seo_adjacent_rel_url($url, $rel, $presenter) {
-        global $wp_query;
-
-        if($rel === 'next') {
-            return get_next_posts_page_link($wp_query->max_num_pages);
-        }
-        if($rel === 'prev') {
-            // return get_prev_posts_page_link($wp_query->max_num_pages);
-        }
-
-        return '';
-    }
-
-    public function fix_yoast_seo_canonical($canonical) {
-        return get_permalink(get_queried_object());
-    }
-
-    public function fix_yoast_seo_metadesc($metadesc) {
-        $post      = get_queried_object();
-        $post_type = isset( $post->post_type ) ? $post->post_type : '';
-
-        if ( is_object( $post ) ) {
-            $metadesc = WPSEO_Meta::get_value( 'metadesc', $post->ID );
-        }
-
-        return $metadesc;
-
-    }
-
-    public function fix_yoast_seo_title($title) {
-        return WPSEO_Frontend::get_instance()->get_content_title(get_queried_object());
     }
 
     public static function get_instance()
@@ -145,11 +111,12 @@ class Page_For_Custom_Post_Type
      * @param boolean $query
      * @return boolean
      */
-    private function is_query_page_for_custom_post_type($query = false) {
+    private function is_query_page_for_custom_post_type($query = false)
+    {
         $q = $query;
         unset($q);
         $_q = $_q ?? $GLOBALS['wp_query'] ?? false;
-        if(!$_q) {
+        if (!$_q) {
             return false;
         }
         return $_q->is_page_for_custom_post_type;
@@ -508,7 +475,7 @@ class Page_For_Custom_Post_Type
     public function get_page_ids($language = false)
     {
         $page_ids = get_transient($this::CACHE_KEY);
-        if(false === $page_ids) {
+        if (false === $page_ids) {
             $page_ids = [];
         }
 
@@ -598,13 +565,14 @@ class Page_For_Custom_Post_Type
         return 'is_'.$name.'_page';
     }
 
-    public function is_page_for_custom_post_type($post_type = null) {
+    public function is_page_for_custom_post_type($post_type = null)
+    {
         $post_type_page = $this->is_query_page_for_custom_post_type();
-        if(is_null($post_type)) {
+        if (is_null($post_type)) {
             return !!$post_type_page;
         }
 
-        if(!is_array($post_type)) {
+        if (!is_array($post_type)) {
             $post_type = [$post_type];
         }
 
@@ -613,27 +581,31 @@ class Page_For_Custom_Post_Type
 }
 
 
-function is_page_for_custom_post_type($post_type = null) {
+function is_page_for_custom_post_type($post_type = null)
+{
     $pfcpt = Page_For_Custom_Post_Type::get_instance();
     return $pfcpt->is_page_for_custom_post_type($post_type);
 }
-function get_custom_post_type_for_page($post_id) {
+function get_custom_post_type_for_page($post_id)
+{
     $pfcpt = Page_For_Custom_Post_Type::get_instance();
     $page_ids = $pfcpt->get_page_ids();
 
     $post_id = (int) $post_id;
 
-    if(!in_array($post_id, $page_ids, true)) {
+    if (!in_array($post_id, $page_ids, true)) {
         return false;
     }
     return array_search($post_id, $page_ids, true);
 }
-function get_page_for_custom_post_type($post_type) {
+function get_page_for_custom_post_type($post_type)
+{
     $pfcpt = Page_For_Custom_Post_Type::get_instance();
     $page_ids = $pfcpt->get_page_ids();
     return $page_ids[$post_type] ?? false;
 }
-function get_page_for_custom_post_type_link($post_type) {
+function get_page_for_custom_post_type_link($post_type)
+{
     $page_id = get_page_for_custom_post_type($post_type);
     return $page_id ? get_permalink($page_id) : false;
 }

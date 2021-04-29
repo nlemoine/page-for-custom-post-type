@@ -68,7 +68,7 @@ class Page_For_Custom_Post_Type
                     add_action('option_'.$option_name, function ($value) use ($post_type, $option_name) {
                         $pll = PLL();
 
-                        return isset($pll->curlang->{$option_name}) && !doing_action('switch_blog') ? $pll->curlang->{$option_name} : $v;
+                        return isset($pll->curlang->{$option_name}) && !doing_action('switch_blog') ? $pll->curlang->{$option_name} : $value;
                     });
                 }
             }, PHP_INT_MAX);

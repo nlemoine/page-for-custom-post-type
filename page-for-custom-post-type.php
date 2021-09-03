@@ -33,7 +33,8 @@ class Page_For_Custom_Post_Type
             }
             remove_rewrite_tag("%{$post_type_object->name}%");
             // Exclude page from regex so pagination works
-            add_rewrite_tag("%{$post_type_object->name}%", '(\b(?!page\b)[^/]+)', "{$post_type_object->name}=");
+            // add_rewrite_tag("%{$post_type_object->name}%", '(\b(?!page\b)[^/]+)', "{$post_type_object->name}=");
+            add_rewrite_tag("%{$post_type_object->name}%", '(?!page)([^/]+)', "{$post_type_object->name}=");
         }, 10, 2);
 
         // edit.php view
@@ -427,7 +428,9 @@ class Page_For_Custom_Post_Type
         if (in_array($post->ID, $page_ids)) {
             $post_type = array_search($post->ID, $page_ids);
             $name = $this->get_option_name($post_type);
-            $post_states[$name] = esc_html($post_types[$post_type]->labels->archives);
+            if (isset($post_types[$name])) {
+                $post_states[$name] = esc_html($post_types[$post_type]->labels->archives);
+            }
         }
 
         return $post_states;

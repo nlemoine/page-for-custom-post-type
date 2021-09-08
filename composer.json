@@ -20,6 +20,13 @@
 	"require": {
 		"composer/installers": "^1.0"
 	},
+	"require-dev": {
+		"symplify/easy-coding-standard": "^9.4"
+	},
+	"scripts": {
+		"lint": "ecs check",
+		"lint:fix": "ecs check --fix"
+	},
 	"support": {
 		"issues": "https://github.com/nlemoine/page-for-post-type/issues",
 		"source": "https://github.com/nlemoine/page-for-post-type"

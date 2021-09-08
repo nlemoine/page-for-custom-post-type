@@ -5,7 +5,7 @@
  * Description: Allows you to set pages for any custom post type archive
  * Version: 0.2.0
  * Author: Nicolas Lemoine
- * Author URI: https://hellonic.co/.
+ * Author URI: https://niconico.fr/
  */
 
 namespace HelloNico\PageForCustomPostType;
@@ -81,43 +81,28 @@ class Plugin
         \add_filter('pll_set_language_from_query', [$this, 'page_for_custom_post_type_query'], 10, 2);
         \add_filter('pll_pre_translation_url', [$this, 'translate_page_for_custom_post_type'], 1, 3);
 
-        // Fix Yoast SEO breadcrumbs
-        \add_filter('wpseo_breadcrumb_indexables', function($indexables, $context) {
-            if( !\is_singular() && !\is_tax() ) {
-                return $indexables;
-            }
-            $post_type = \get_post_type();
-            $page_id = \get_page_for_custom_post_type($post_type);
-            if(!$page_id) {
-                return $indexables;
-            }
+        \add_action('template_redirect', [$this, 'on_template_redirect']);
+    }
 
-            \array_splice( $indexables, 1, 0, [\YoastSEO()->meta->for_post( $page_id )->context->indexable] );
+    public function on_template_redirect()
+    {
+        if (!$this->is_page_for_custom_post_type()) {
+            return;
+        }
 
-            return $indexables;
-        }, 10, 2);
-
-
-        \add_action('template_redirect', function () {
-            if (!$this->is_page_for_custom_post_type()) {
-                return;
-            }
-
-            // Yoast SEO
-            // Make Yoast SEO it's a static page for posts
-            \add_filter('pre_option_show_on_front', function() {
-                return 'page';
-            });
-            \add_filter('pre_option_page_for_posts', function () {
-                return \get_queried_object_id();
-            });
-
-            // Template hierarchy
-            \add_filter('home_template_hierarchy', [$this, 'set_template_hierarchy']);
-            \add_filter('frontpage_template_hierarchy', function ($templates) {
-                return [];
-            });
+        // Yoast SEO
+        // Make Yoast SEO think it's a static page for posts
+        \add_filter('pre_option_show_on_front', function() {
+            return 'page';
         });
+        // And give it the right page ID
+        \add_filter('pre_option_page_for_posts', function () {
+            return \get_queried_object_id();
+        });
+
+        // Template hierarchy
+        \add_filter('home_template_hierarchy', [$this, 'set_template_hierarchy']);
+        \add_filter('frontpage_template_hierarchy', '__return_empty_array');
     }
 
     public static function get_instance()
@@ -544,14 +529,14 @@ class Plugin
      *
      * @return array|bool
      */
-    public function get_page_ids($language = false)
+    public function get_page_ids($language = false): array
     {
         $page_ids = \get_transient($this::CACHE_KEY);
         if (false === $page_ids) {
-            $page_ids = [];
+            return [];
         }
 
-        return \array_map(function ($id) use ($language) {
+        return \array_filter(\array_map(function ($id) use ($language) {
             if (\function_exists('pll_get_post')) {
                 $default_lang = \pll_default_language();
                 $current_language = !$language ? \pll_current_language() : $language;
@@ -561,7 +546,7 @@ class Plugin
             }
 
             return \is_numeric($id) && $id > 0 ? (int) $id : (bool) $id;
-        }, $page_ids);
+        }, $page_ids));
     }
 
     /**

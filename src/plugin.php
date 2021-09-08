@@ -10,6 +10,8 @@
 
 namespace HelloNico\PageForCustomPostType;
 
+use WP_Post;
+
 class Plugin
 {
     const PREFIX = 'page_for_';

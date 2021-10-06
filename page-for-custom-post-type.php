@@ -10,8 +10,14 @@
 
 require_once __DIR__ . '/src/plugin.php';
 require_once __DIR__ . '/src/functions.php';
+add_action('plugins_loaded', function() {
+    if (!function_exists('PLL')) {
+        return;
+    }
+    require_once __DIR__ . '/src/integrations/polylang.php';
+});
 require_once __DIR__ . '/src/integrations/wordpress-seo.php';
 require_once __DIR__ . '/src/integrations/acf/acf.php';
 
-  // Hook before Polylang
+// Hook before Polylang
 add_action('plugins_loaded', [HelloNico\PageForCustomPostType\Plugin::class, 'get_instance'], 0);

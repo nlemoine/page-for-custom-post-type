@@ -3,7 +3,7 @@
  * Plugin Name: Page for custom post type
  * Plugin URI: https://github.com/nlemoine/page-for-custom-post-type
  * Description: Allows you to set pages for any custom post type archive
- * Version: 0.2.0
+ * Version: 1.0.0
  * Author: Nicolas Lemoine
  * Author URI: https://niconico.fr/
  */
@@ -11,103 +11,17 @@
 namespace HelloNico\PageForCustomPostType;
 
 use WP_Post;
+use WP_Post_Type;
+use WP_Admin_Bar;
 
 class Plugin
 {
-    const PREFIX = 'page_for_';
-    const CACHE_KEY = 'pages_for_custom_post_type';
+    public const PREFIX = 'page_for_';
+    public const OPTION_PAGE_IDS = 'pages_for_custom_post_type';
 
     protected static $instance;
 
-    public function __construct()
-    {
-        // admin init
-        \add_action('admin_init', [$this, 'admin_init']);
-
-        \add_action('admin_menu', [$this, 'add_post_type_submenus']);
-
-        \add_action('admin_bar_menu', [$this, 'add_admin_bar_archive_link'], 80);
-
-        // update post type objects
-        \add_filter('register_post_type_args', [$this, 'update_post_type_args'], 11, 2);
-
-        // Replace rewrite tag
-        \add_action('registered_post_type', function ($post_type, $post_type_object) {
-            if (!\in_array($post_type, \array_keys($this->get_page_ids()))) {
-                return;
-            }
-            \remove_rewrite_tag("%{$post_type_object->name}%");
-            // Exclude page from regex so pagination works
-            // add_rewrite_tag("%{$post_type_object->name}%", '(\b(?!page\b)[^/]+)', "{$post_type_object->name}=");
-            \add_rewrite_tag("%{$post_type_object->name}%", '(?!page)([^/]+)', "{$post_type_object->name}=");
-        }, 10, 2);
-
-        // edit.php view
-        \add_filter('display_post_states', [$this, 'display_post_states'], 100, 2);
-
-        // post status changes / deletion
-        \add_action('transition_post_status', [$this, 'action_transition_post_status'], 10, 3);
-        \add_action('deleted_post', [$this, 'action_deleted_post'], 10);
-
-        if (!\is_admin()) {
-            \add_filter('parse_query', [$this, 'set_page_for_custom_post_type_query'], 1);
-            \add_filter('posts_where', [$this, 'posts_where'], 10, 2);
-        }
-
-        // Update cache
-        \add_action('admin_init', function () {
-            foreach ($this->get_post_types() as $post_type) {
-                \add_action('update_option_'.$this->get_option_name($post_type), function ($old_value, $value, $option) use ($post_type) {
-                    $this->update_cache($value, $post_type->name);
-                }, 10, 3);
-                \add_action('add_option_'.$this->get_option_name($post_type), function ($option, $value) use ($post_type) {
-                    $this->update_cache($value, $post_type->name);
-                }, 10, 3);
-            }
-        }, PHP_INT_MAX);
-
-        // Polylang
-        if (!\is_admin()) {
-            \add_action('init', function () {
-                foreach ($this->get_post_types() as $post_type) {
-                    $option_name = $this->get_option_name($post_type);
-                    \add_action('option_'.$option_name, function ($value) use ($post_type, $option_name) {
-                        $pll = \PLL();
-
-                        return isset($pll->curlang->{$option_name}) && !\doing_action('switch_blog') ? $pll->curlang->{$option_name} : $value;
-                    });
-                }
-            }, PHP_INT_MAX);
-        }
-        \add_filter('pll_languages_list', [$this, 'add_post_for_page_to_language'], 10, 2);
-        \add_filter('pll_set_language_from_query', [$this, 'page_for_custom_post_type_query'], 10, 2);
-        \add_filter('pll_pre_translation_url', [$this, 'translate_page_for_custom_post_type'], 1, 3);
-
-        \add_action('template_redirect', [$this, 'on_template_redirect']);
-    }
-
-    public function on_template_redirect()
-    {
-        if (!$this->is_page_for_custom_post_type()) {
-            return;
-        }
-
-        // Yoast SEO
-        // Make Yoast SEO think it's a static page for posts
-        \add_filter('pre_option_show_on_front', function() {
-            return 'page';
-        });
-        // And give it the right page ID
-        \add_filter('pre_option_page_for_posts', function () {
-            return \get_queried_object_id();
-        });
-
-        // Template hierarchy
-        \add_filter('home_template_hierarchy', [$this, 'set_template_hierarchy']);
-        \add_filter('frontpage_template_hierarchy', '__return_empty_array');
-    }
-
-    public static function get_instance()
+    public static function get_instance(): self
     {
         if (null === self::$instance) {
             self::$instance = new self();
@@ -116,50 +30,489 @@ class Plugin
         return self::$instance;
     }
 
-    public function add_admin_bar_archive_link($admin_bar)
+    public function __construct()
     {
-        if (! \is_admin()) {
-            return $admin_bar;
+        if (\is_admin()) {
+            \add_action('admin_menu', [$this, 'add_post_type_submenus']);
+            \add_action('admin_init', [$this, 'add_reading_settings']);
+            \add_action('admin_bar_menu', [$this, 'add_admin_bar_archive_link'], 80);
+            \add_filter('display_post_states', [$this, 'display_post_states'], 100, 2);
+            \add_action('registered_post_type', [$this, 'watch_options'], 10, 2);
+        } else {
+            \add_filter('parse_query', [$this, 'set_page_for_custom_post_type_query'], 1);
+            \add_filter('posts_where', [$this, 'posts_where'], 10, 2);
         }
-        $current_screen = \get_current_screen();
-        $post_type_object = null;
-        if ('edit' !== $current_screen->base) {
-            return $admin_bar;
+
+        // Template hierarchy
+        \add_action('template_redirect', [$this, 'on_template_redirect']);
+
+        // Update post type args
+        \add_filter('register_post_type_args', [$this, 'update_post_type_args'], 10, 2);
+
+        // Update rewrite tags
+        \add_action('registered_post_type', [$this, 'add_pagination_rewrite_tags'], 10, 2);
+
+        // post status changes / deletion
+        // \add_action('transition_post_status', [$this, 'on_transition_post_status'], 10, 3);
+        \add_action('delete_post', [$this, 'on_deleted_post']); // Do use `deleted_post` because we can't mutualize with trashed hook
+        \add_action('wp_trash_post', [$this, 'on_deleted_post']);
+        // On slug change
+        \add_action('post_updated', [$this, 'on_slug_change'], 10, 3);
+    }
+
+    /**
+     * Enable pagination rules on page for CPT
+     *
+     * @param string $post_type
+     * @param WP_Post_Type $post_type_object
+     * @return void
+     */
+    public function add_pagination_rewrite_tags(string $post_type, WP_Post_Type $post_type_object): void
+    {
+        // Don't even try on those post types
+        if(!$this->should_consider_post_type($post_type_object)) {
+            return;
         }
-        $post_type_object = \get_post_type_object($current_screen->post_type);
+
+        if(!$this->get_page_id_from_post_type($post_type)) {
+            return;
+        }
+        // \add_rewrite_tag("%{$post_type}%", '(?!page)([^/]+)', "{$post_type}=");
+        // global $wp, $wp_rewrite, $post_type_meta_caps;
+        // foreach ( $wp_rewrite->extra_rules_top as $regex => $query ) {
+        //     if ( false !== strpos( $query, "index.php?post_type=$post_type_object->name" ) ) {
+        //         unset( $wp_rewrite->extra_rules_top[ $regex ] );
+        //     }
+        // }
+
+        // \remove_rewrite_tag("%{$post_type_object->name}%");
+        // Exclude page from regex so pagination works
+        // add_rewrite_tag("%{$post_type_object->name}%", '(\b(?!page\b)[^/]+)', "{$post_type_object->name}=");
+        // \add_rewrite_tag("%{$post_type_object->name}%", '(?!page)([^/]+)', "{$post_type_object->name}=");
+
+        $this->add_rewrite_tags($post_type_object->name);
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param string $post_type
+     * @return void
+     */
+    protected function add_rewrite_tags(string $post_type){
+        // return;
+        \remove_rewrite_tag("%{$post_type}%");
+        // Exclude page from regex so pagination works
+        // add_rewrite_tag("%{$post_type_object->name}%", '(\b(?!page\b)[^/]+)', "{$post_type_object->name}=");
+        \add_rewrite_tag("%{$post_type}%", '(?!page)([^/]+)', "{$post_type}=");
+    }
+
+    /**
+     * Flush rewrite rules
+     *
+     * @param string $post_type
+     * @return void
+     */
+    protected function flush_rewrite_rules(string $post_type) {
+
+        do_action('pfcpt/flush_rewrite_rules', $post_type);
+
+        delete_transient($this->get_page_slug_cache_key($post_type));
+        // delete_option( 'rewrite_rules' );
+        // return;
+
+        // Remove existing rewrite rules
+        $post_type_object_current = \get_post_type_object($post_type);
+        if($post_type_object_current instanceof WP_Post_Type) {
+            $post_type_object_current->remove_rewrite_rules();
+        }
+
+        if(!empty($this->original_args[$post_type])) {
+            // Trigger post type registration hooks before flushing rewrite rules
+            $post_type_object = new WP_Post_Type($post_type, $this->original_args[$post_type]);
+            $post_type_object->add_rewrite_rules();
+            do_action( 'registered_post_type', $post_type, $post_type_object );
+        }
+
+        // $this->add_rewrite_tags($post_type);
+
+        // Flush rewrite rules
+        \flush_rewrite_rules();
+    }
+
+    /**
+     * Modify post type object before it is registered.
+     *
+     * @param array  $args
+     * @param string $name
+     * @param mixed  $post_type
+     *
+     * @return array
+     */
+    public function update_post_type_args($args, $post_type)
+    {
+        // Don't even try on those post types
         if(
-            ( $post_type_object )
-            && ( $post_type_object->public )
-            && ( $post_type_object->show_in_admin_bar )
-            && ( \get_page_for_custom_post_type_link( $post_type_object->name ) )
+            !empty($args['_builtin'])
+            || (isset($args['public']) && !$args['public'])
+            || (isset($args['publicly_queryable']) && !$args['publicly_queryable'])
         ) {
-            $admin_bar->add_menu([
-                'id'    => 'archive',
-                'title' => $post_type_object->labels->view_items,
-                'href'  => \get_page_for_custom_post_type_link( $post_type_object->name ),
-                'meta'  => [
-                    'target' => '_blank',
-                ]
+            return $args;
+        }
+
+        // @todo Object cache?
+        $this->original_args[$post_type] = $args;
+
+        $page_id_for_post_type = $this->get_page_id_from_post_type($post_type);
+        if(empty($page_id_for_post_type)) {
+            return $args;
+        }
+
+
+        $post_type_slug = \get_transient($this->get_page_slug_cache_key($post_type));
+        if( $post_type_slug === false) {
+
+            // Make sure it's published
+            if ('publish' !== \get_post_status($page_id_for_post_type)) {
+                return $args;
+            }
+
+            // Get the page slug
+            $page_url = \get_permalink($page_id_for_post_type);
+            $post_type_slug = \trim(\parse_url($page_url, PHP_URL_PATH), '/');
+            // \set_transient($this->get_page_slug_cache_key($post_type), $post_type_slug);
+        }
+
+        // Set page slug
+        $args['rewrite']['slug'] = $post_type_slug;
+
+        // Disable archive
+        $args['has_archive'] = false;
+
+        return $args;
+    }
+
+    /**
+     * Get cache key for page slug
+     *
+     * @param string $post_type
+     * @return string
+     */
+    protected function get_page_slug_cache_key(string $post_type): string {
+        return $this::PREFIX . $post_type . '_slug';
+    }
+
+    /**
+     * Remove page id condition.
+     *
+     * @param string   $where
+     * @param WP_Query $query
+     */
+    public function posts_where($where, $query): string
+    {
+        if (!$this->is_query_page_for_custom_post_type($query)) {
+            return $where;
+        }
+        $current_page_id = $this->get_page_id_from_query($query);
+        if (!$current_page_id) {
+            return $where;
+        }
+
+        if (!\in_array($current_page_id, $this->get_page_ids(), true)) {
+            return $where;
+        }
+
+        global $wpdb;
+
+        return \str_replace("AND ({$wpdb->posts}.ID = '{$current_page_id}')", '', $where);
+    }
+
+    /**
+     * Add option to Settings > Reading
+     *
+     * @return void
+     */
+    public function add_reading_settings(): void
+    {
+        $post_types = $this->get_post_types();
+
+        \add_settings_section('page_for_custom_post_type', \__('Pages for post type', 'pfpt'), '__return_false', 'reading');
+
+        foreach ($post_types as $post_type) {
+            if (!$post_type->has_archive) {
+                // continue;
+            }
+
+            $id = $this->get_option_name($post_type);
+            $value = \get_option($id);
+
+            // flush rewrite rules when the option is changed
+            \register_setting('reading', $id, [
+                'type'              => 'integer',
+                'sanitize_callback' => 'absint',
+                'default_value'     => false,
             ]);
+
+            \add_settings_field(
+                $id,
+                $post_type->labels->name,
+                [$this, 'page_for_post_type_field'],
+                'reading',
+                'page_for_custom_post_type',
+                [
+                    'name'      => $id,
+                    'post_type' => $post_type,
+                    'value'     => $value,
+                    'label_for' => $id.'_dropdown',
+                ]
+            );
         }
     }
 
-    public function add_post_type_submenus()
+    /**
+     * Display the dropdown for selecting a page.
+     *
+     * @param array $args
+     * @return void
+     */
+    public function page_for_post_type_field(array $args): void
     {
-        $page_ids = $this->get_page_ids();
-        if (empty($page_ids)) {
+        $value = \intval($args['value']);
+
+        $post_type = $args['post_type']->name;
+        $default_label = null;
+
+        if (!empty($this->original_args[$post_type])) {
+            remove_filter('register_post_type_args', [$this, 'update_post_type_args'], 10);
+            $post_type_object = new WP_Post_Type($post_type, $this->original_args[$post_type]);
+            add_filter('register_post_type_args', [$this, 'update_post_type_args'], 10, 2);
+
+            global $wp_rewrite;
+            if ($post_type_object->has_archive) {
+                $archive_slug = true === $post_type_object->has_archive ? $post_type_object->rewrite['slug'] : $post_type_object->has_archive;
+                if ($post_type_object->rewrite['with_front']) {
+                    $archive_slug = substr($wp_rewrite->front, 1) . $archive_slug;
+                } else {
+                    $archive_slug = $wp_rewrite->root . $archive_slug;
+                }
+                $default_label = \sprintf(\__('Default archive slug (/%s/)'), $archive_slug);
+            } else {
+                $default_label = \__('No archive', 'pfpt');
+            }
+        }
+
+        $dropdown_pages_args = apply_filters('pfcpt/dropdown_page_args', [
+            'name'             => \esc_attr($args['name']),
+            'id'               => \esc_attr($args['name'].'_dropdown'),
+            'selected'         => $value,
+            'show_option_none' => $default_label ?? __('Unset'),
+        ]);
+
+        \wp_dropdown_pages($dropdown_pages_args); ?>
+
+        <p class="description">
+            <?php \printf(\esc_html__('Be extremely carefull, setting or changing the page for the "%s" custom post type will change all your "%s" URLs and may hurt SEO.'), \mb_strtolower($args['post_type']->labels->singular_name), \mb_strtolower($args['post_type']->labels->name)); ?>
+        </p>
+        <?php
+    }
+
+    /**
+     * Add an indicator to show if a page is set as a post type archive.
+     *
+     * @param array   $post_states an array of post states to display after the post title
+     * @param WP_Post $post        the current post object
+     *
+     * @return array
+     */
+    public function display_post_states($post_states, $post): array
+    {
+        if ('page' !== $post->post_type) {
+            return $post_states;
+        }
+
+        $post_type = $this->get_post_type_from_page_id($post->ID);
+        if(!$post_type) {
+            return $post_states;
+        }
+
+        $post_type_object = \get_post_type_object($post_type);
+        $name = $this->get_option_name($post_type);
+        $post_states[$name] = \esc_html($post_type_object->labels->archives);
+
+        return $post_states;
+    }
+
+    /**
+     * Delete the setting for the corresponding post type if the page status
+     * is transitioned to anything other than published.
+     *
+     * @param $new_status
+     * @param $old_status
+     */
+    public function on_transition_post_status($new_status, $old_status, WP_Post $post): void
+    {
+        if($post->post_type !== 'page') {
             return;
         }
-        foreach ($page_ids as $post_type => $page_id) {
-            $post_type_object = \get_post_type_object($post_type);
-            \add_submenu_page(
-                'edit.php?post_type=' . $post_type,
-                $post_type_object->labels->archives,
-                $post_type_object->labels->archives,
-                'edit_pages',
-                \get_edit_post_link($page_id)
-            );
+
+        if ('publish' !== $new_status) {
+            $post_type = $this->get_post_type_from_page_id($post->ID);
+            if (!$post_type) {
+                return;
+            }
+
+            $this->delete_option($post_type);
         }
+    }
+
+    /**
+     * Delete relevant option if a page for post type is deleted or trashed
+     *
+     * @param int $post_id
+     * @param ?WP_Post $post
+     */
+    public function on_deleted_post($post_id, ?WP_Post $post = null): void
+    {
+        if ( is_null( $post ) ) {
+            $post = get_post( $post_id );
+        }
+
+        if ( ! is_object( $post ) ) {
+            return;
+        }
+
+        if($post->post_type !== 'page') {
+            return;
+        }
+
+        $post_type = $this->get_post_type_from_page_id($post_id);
+        if (!$post_type) {
+            return;
+        }
+
+        $this->delete_option($post_type);
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param WP_Post_Type $post_type
+     * @return boolean
+     */
+    private function should_consider_post_type(WP_Post_Type $post_type) : bool {
+        if($post_type->_builtin || !$post_type->publicly_queryable) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Watch options for post types
+     *
+     * @param string $post_type
+     * @param WP_Post_Type $post_type_object
+     * @return void
+     */
+    public function watch_options(string $post_type, WP_Post_Type $post_type_object): void
+    {
+        // Don't even try on those post types
+        if(!$this->should_consider_post_type($post_type_object)) {
+            return;
+        }
+
+        \add_action('update_option_'.$this->get_option_name($post_type), [$this, 'on_option_update'], 10, 3);
+        \add_action('add_option_'.$this->get_option_name($post_type), [$this, 'on_option_add'], 10, 2);
+        \add_action('delete_option_'.$this->get_option_name($post_type), [$this, 'on_option_delete'], 10, 2);
+    }
+
+    /**
+     * On individual option update
+     *
+     * @param mixed $old_value
+     * @param mixed $new_value
+     * @param string $name
+     * @return void
+     */
+    public function on_option_update($old_value, $new_value, $name): void {
+        if($old_value === $new_value) {
+            return;
+        }
+        $this->on_option_change($name, $new_value);
+    }
+
+    /**
+     * On individual option add
+     *
+     * @param string $name
+     * @param mixed $value
+     * @return void
+     */
+    public function on_option_add(string $name, $value): void {
+        $this->on_option_change($name, $value);
+    }
+
+    /**
+     * On individual option delete
+     *
+     * @param string $name
+     * @return void
+     */
+    public function on_option_delete(string $name): void {
+        $this->on_option_change($name, null);
+    }
+
+    /**
+     * On individual option change
+     *
+     * @param string $post_type
+     * @return void
+     */
+    protected function on_option_change(string $name, $value): void {
+        $post_type = \str_replace(self::PREFIX, '', $name);
+
+        $page_ids = \get_option($this::OPTION_PAGE_IDS, []);
+        $page_ids[$post_type] = $value;
+
+        // Update main options
+        \update_option($this::OPTION_PAGE_IDS, \array_filter($page_ids));
+
+        $this->flush_rewrite_rules($post_type);
+    }
+
+
+    /**
+     * Clear transients when a page slug changes
+     *
+     * @param integer $post_ID
+     * @param WP_Post $post_after
+     * @param WP_Post $post_before
+     * @return void
+     */
+    public function on_slug_change(int $post_ID, WP_Post $post_after, WP_Post $post_before): void{
+        if($post_after->post_type !== 'page') {
+            return;
+        }
+        if($post_after->post_name === $post_before->post_name) {
+            return;
+        }
+
+        $post_type = $this->get_post_type_from_page_id($post_ID);
+        if(!$post_type) {
+            return;
+        }
+
+        $this->flush_rewrite_rules($post_type);
+    }
+
+    /**
+     * Clear page for post type cache
+     *
+     * @param string $post_type
+     * @return void
+     */
+    private function delete_option(string $post_type): void
+    {
+        \delete_option($this->get_option_name($post_type));
     }
 
     /**
@@ -168,7 +521,7 @@ class Plugin
      * @param boolean $query
      * @return boolean
      */
-    private function is_query_page_for_custom_post_type($query = false)
+    public function is_query_page_for_custom_post_type($query = false)
     {
         $q = $query;
         unset($q);
@@ -184,7 +537,7 @@ class Plugin
      *
      * @param [type] $templates
      */
-    public function set_template_hierarchy($templates)
+    public function set_template_hierarchy($templates): array
     {
         $temps = \array_merge(["home-{$GLOBALS['wp_query']->is_page_for_custom_post_type}.php"], $templates);
         return $temps;
@@ -195,7 +548,7 @@ class Plugin
      *
      * @param WP_Query $query
      */
-    public function set_page_for_custom_post_type_query($query)
+    public function set_page_for_custom_post_type_query($query): void
     {
         if (!$query->is_main_query()) {
             return;
@@ -231,277 +584,21 @@ class Plugin
     }
 
     /**
-     * Handle Polylang translations.
+     * On template redirect
      *
-     * @param PLL_Language $lang
-     * @param WP_Query     $query
-     *
-     * @see https://github.com/polylang/polylang/blob/master/frontend/frontend-static-pages.php#L220-L244
+     * Set template hierarchy
      */
-    public function page_for_custom_post_type_query($lang, $query)
+    public function on_template_redirect(): void
     {
-        if (!$this->is_query_page_for_custom_post_type($query)) {
-            return $lang;
-        }
-
-        if (!empty($lang)) {
-            return $lang;
-        }
-
-        $current_post_type = $query->is_page_for_custom_post_type;
-        $current_page_id = $this->get_page_id_from_query($query);
-
-        $page_ids = $this->get_page_ids();
-        if (!\in_array($current_page_id, $page_ids, true)) {
+        if (!$this->is_page_for_custom_post_type()) {
             return;
         }
 
-        $page_for_name = $this->get_option_name($current_post_type);
+        \do_action('pfcpt/template_redirect');
 
-        $pll = \PLL();
-        if ($pll->curlang->{$page_for_name}) {
-            $pages = $pll->model->get_languages_list(['fields' => $page_for_name]);
-            if (!empty($current_page_id) && \in_array($current_page_id, $pages)) {
-                // Fill the cache with all pages for post type to avoid one query per page later
-                // The posts_per_page limit is a trick to avoid splitting the query
-                \get_posts(['posts_per_page' => 999, 'post_type' => 'page', 'post__in' => $pages, 'lang' => '']);
-
-                $lang = $pll->model->post->get_language($current_page_id);
-            }
-        }
-
-        return $lang;
-    }
-
-    /**
-     * Translates the url of the page on front and page for posts.
-     *
-     * @param string $url               not used
-     * @param object $language          language in which we want the translation
-     * @param int    $queried_object_id id of the queried object
-     *
-     * @return string
-     */
-    public function translate_page_for_custom_post_type($url, $language, $queried_object_id)
-    {
-        if (!empty($queried_object_id)) {
-            $pll = \PLL();
-            // Page for custom post type
-            if ($this->is_query_page_for_custom_post_type() && ($id = $pll->model->post->get($queried_object_id, $language))) {
-                $url = \get_permalink($id);
-            }
-        }
-
-        return $url;
-    }
-
-    /**
-     * Add post type for page to Polylang languages list.
-     *
-     * @param array     $languages
-     * @param PLL_Model $model
-     *
-     * @return array
-     */
-    public function add_post_for_page_to_language($languages, $model)
-    {
-        foreach ($languages as $k => $language) {
-            foreach ($this->get_page_ids() as $post_type => $page_id) {
-                $name = $this->get_option_name($post_type);
-                $languages[$k]->{$name} = $model->post->get(\get_option($name), $language);
-            }
-        }
-
-        return $languages;
-    }
-
-    /**
-     * Modify post type object before it is registered.
-     *
-     * @param array  $args
-     * @param string $name
-     * @param mixed  $post_type
-     *
-     * @return array
-     */
-    public function update_post_type_args($args, $post_type)
-    {
-        if (!\in_array($post_type, \array_keys($this->get_page_ids()))) {
-            return $args;
-        }
-
-        $post_type_page = \get_option($this->get_option_name($post_type));
-
-        // Make sure we have a page for this post type
-        if (!$post_type_page) {
-            return $args;
-        }
-
-        // Make sure it's published
-        if ('publish' !== \get_post_status($post_type_page)) {
-            return $args;
-        }
-
-        // Get the page slug
-        $page_url = \get_permalink($post_type_page);
-        $page_slug = \trim(\parse_url($page_url, PHP_URL_PATH), '/');
-
-        // Set page slug
-        $args['rewrite']['slug'] = $page_slug;
-
-        // Disable archive
-        if (isset($args['has_archive']) && $args['has_archive']) {
-            $args['has_archive'] = false;
-        }
-
-        return $args;
-    }
-
-    /**
-     * Remove page id condition.
-     *
-     * @param string   $where
-     * @param WP_Query $query
-     */
-    public function posts_where($where, $query)
-    {
-        if (!$this->is_query_page_for_custom_post_type($query)) {
-            return $where;
-        }
-        $current_page_id = $this->get_page_id_from_query($query);
-        if (!$current_page_id) {
-            return $where;
-        }
-
-        if (!\in_array($current_page_id, $this->get_page_ids(), true)) {
-            return $where;
-        }
-
-        global $wpdb;
-
-        return \str_replace("AND ({$wpdb->posts}.ID = '{$current_page_id}')", '', $where);
-    }
-
-    public function admin_init()
-    {
-        $post_types = $this->get_post_types();
-
-        \add_settings_section('page_for_custom_post_type', \__('Pages for post type archives', 'pfpt'), '__return_false', 'reading');
-
-        foreach ($post_types as $post_type) {
-            if (!$post_type->has_archive) {
-                // continue;
-            }
-
-            $id = $this->get_option_name($post_type);
-            $value = \get_option($id);
-
-            // flush rewrite rules when the option is changed
-            \register_setting('reading', $id, [
-                'type'              => 'integer',
-                'sanitize_callback' => 'absint',
-                'default_value'     => false,
-            ]);
-
-            \add_settings_field(
-                $id,
-                $post_type->labels->name,
-                [$this, 'custom_post_type_field'],
-                'reading',
-                'page_for_custom_post_type',
-                [
-                    'name'      => $id,
-                    'post_type' => $post_type,
-                    'value'     => $value,
-                    'label_for' => $id.'_dropdown',
-                ]
-            );
-        }
-    }
-
-    public function custom_post_type_field($args)
-    {
-        $value = \intval($args['value']);
-
-        $default = $args['post_type']->name;
-
-        if (isset($this->original_slugs[$args['post_type']->name])) {
-            $default = $this->original_slugs[$args['post_type']->name];
-        }
-
-        \wp_dropdown_pages([
-            'name'             => \esc_attr($args['name']),
-            'id'               => \esc_attr($args['name'].'_dropdown'),
-            'selected'         => $value,
-            'show_option_none' => \sprintf(\__('Default (/%s/)'), $default),
-        ]); ?>
-        <p class="description"><?php \printf(\esc_html__('Be extremely carefull, setting or changing the page for the %s custom post type will change all your %s URLs and may hurt SEO.'), \mb_strtolower($args['post_type']->labels->singular_name), \mb_strtolower($args['post_type']->labels->name)); ?></p>
-        <?php
-    }
-
-    /**
-     * Add an indicator to show if a page is set as a post type archive.
-     *
-     * @param array   $post_states an array of post states to display after the post title
-     * @param WP_Post $post        the current post object
-     *
-     * @return array
-     */
-    public function display_post_states($post_states, $post)
-    {
-        if ('page' !== $post->post_type) {
-            return $post_states;
-        }
-
-        $post_types = $this->get_post_types();
-        $language = false;
-        if (\function_exists('pll_get_post_language')) {
-            $language = \pll_get_post_language($post->ID);
-        }
-
-        $page_ids = $this->get_page_ids($language);
-
-        if (\in_array($post->ID, $page_ids, true)) {
-            $post_type = \array_search($post->ID, $page_ids);
-            $name = $this->get_option_name($post_type);
-            if (isset($post_types[$post_type])) {
-                $post_states[$name] = \esc_html($post_types[$post_type]->labels->archives);
-            }
-        }
-
-        return $post_states;
-    }
-
-    /**
-     * Delete the setting for the corresponding post type if the page status
-     * is transitioned to anything other than published.
-     *
-     * @param $new_status
-     * @param $old_status
-     */
-    public function action_transition_post_status($new_status, $old_status, WP_Post $post)
-    {
-        if ('publish' !== $new_status) {
-            $post_type = \array_search($post->ID, $this->get_page_ids());
-            if ($post_type) {
-                \delete_option("page_for_{$post_type}");
-                \flush_rewrite_rules();
-            }
-        }
-    }
-
-    /**
-     * Delete relevant option if a page for the archive is deleted.
-     *
-     * @param int $post_id
-     */
-    public function action_deleted_post($post_id)
-    {
-        $post_type = \array_search($post_id, $this->get_page_ids());
-        if ($post_type) {
-            \delete_option("page_for_{$post_type}");
-            \flush_rewrite_rules();
-        }
+        // Template hierarchy
+        \add_filter('home_template_hierarchy', [$this, 'set_template_hierarchy']);
+        \add_filter('frontpage_template_hierarchy', '__return_empty_array');
     }
 
     /**
@@ -511,7 +608,7 @@ class Plugin
      *
      * @return int
      */
-    protected function get_page_id_from_query($query)
+    public function get_page_id_from_query($query): int
     {
         if (!empty($query->query_vars['pagename']) && isset($query->queried_object_id)) {
             return $query->queried_object_id;
@@ -527,51 +624,14 @@ class Plugin
     /**
      * Get page ids.
      *
-     * @param mixed $language
+     * Caches the result with transient.
      *
-     * @return array|bool
+     * @return array
      */
-    public function get_page_ids($language = false): array
+    public function get_page_ids(): array
     {
-        $page_ids = \get_transient($this::CACHE_KEY);
-        if (false === $page_ids) {
-            return [];
-        }
-
-        return \array_filter(\array_map(function ($id) use ($language) {
-            if (\function_exists('pll_get_post')) {
-                $default_lang = \pll_default_language();
-                $current_language = !$language ? \pll_current_language() : $language;
-                if ($default_lang !== $current_language) {
-                    $id = \pll_get_post($id, $current_language);
-                }
-            }
-
-            return \is_numeric($id) && $id > 0 ? (int) $id : (bool) $id;
-        }, $page_ids));
-    }
-
-    /**
-     * Updates mapping cache.
-     *
-     * @param int    $page_id
-     * @param string $post_type_name
-     */
-    private function update_cache($page_id, $post_type_name)
-    {
-        $mapping = \get_transient($this::CACHE_KEY);
-        if (empty($mapping)) {
-            $mapping = [];
-        }
-        $mapping[$post_type_name] = $page_id;
-        \set_transient($this::CACHE_KEY, $mapping);
-
-        \flush_rewrite_rules();
-
-        // Clean languages cache
-        if (\function_exists('PLL')) {
-            \PLL()->clean_languages_cache();
-        }
+        $page_ids = \get_option(self::OPTION_PAGE_IDS, []);
+        return array_map(fn($id) => (int) $id, \apply_filters('pfcpt/page_ids', $page_ids));
     }
 
     /**
@@ -579,7 +639,7 @@ class Plugin
      *
      * @return array
      */
-    private function get_post_types()
+    private function get_post_types(): array
     {
         return \get_post_types(
             [
@@ -595,7 +655,7 @@ class Plugin
      *
      * @param string|WP_Post_Type $post_type
      */
-    private function get_option_name($post_type)
+    public function get_option_name($post_type)
     {
         if (\is_string($post_type)) {
             $name = $post_type;
@@ -624,6 +684,12 @@ class Plugin
         return 'is_'.$name.'_page';
     }
 
+    /**
+     * Is page for post type.
+     *
+     * @param mixed $post_type
+     * @return boolean
+     */
     public function is_page_for_custom_post_type($post_type = null)
     {
         $post_type_page = $this->is_query_page_for_custom_post_type();
@@ -636,5 +702,83 @@ class Plugin
         }
 
         return \in_array($post_type_page, $post_type, true);
+    }
+
+    /**
+     * Add archive link to admin bar
+     *
+     * @param [type] $admin_bar
+     * @return void
+     */
+    public function add_admin_bar_archive_link(WP_Admin_Bar $admin_bar)
+    {
+        $current_screen = \get_current_screen();
+        $post_type_object = null;
+        if ('edit' !== $current_screen->base) {
+            return $admin_bar;
+        }
+        $post_type_object = \get_post_type_object($current_screen->post_type);
+        if(
+            ( $post_type_object )
+            && ( $post_type_object->public )
+            && ( $post_type_object->show_in_admin_bar )
+            && ( \get_page_for_custom_post_type_link( $post_type_object->name ) )
+        ) {
+            $admin_bar->add_menu([
+                'id'    => 'archive',
+                'title' => $post_type_object->labels->view_items,
+                'href'  => \get_page_for_custom_post_type_link( $post_type_object->name ),
+                'meta'  => [
+                    'target' => '_blank',
+                ]
+            ]);
+        }
+    }
+
+    /**
+     * Add submenu link to archive under each post type
+     *
+     * @return void
+     */
+    public function add_post_type_submenus()
+    {
+        $page_ids = $this->get_page_ids();
+        if (empty($page_ids)) {
+            return;
+        }
+        foreach ($page_ids as $post_type => $page_id) {
+            $post_type_object = \get_post_type_object($post_type);
+            \add_submenu_page(
+                'edit.php?post_type=' . $post_type,
+                $post_type_object->labels->archives,
+                $post_type_object->labels->archives,
+                'edit_pages',
+                \get_edit_post_link($page_id)
+            );
+        }
+    }
+
+    /**
+     * Get page id for post type
+     *
+     * @param string $post_type
+     * @return integer|null
+     */
+    public function get_page_id_from_post_type(string $post_type): ?int
+    {
+        $page_ids = $this->get_page_ids();
+        return $page_ids[$post_type] ?? null;
+    }
+
+    /**
+     * Get page id for post type
+     *
+     * @param string $post_type
+     * @return integer|null
+     */
+    public function get_post_type_from_page_id(int $page_id): ?string
+    {
+        $page_ids = $this->get_page_ids();
+        return array_search($page_id, $page_ids, true) ?: null;
     }
 }

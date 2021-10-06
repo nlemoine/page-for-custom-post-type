@@ -6,28 +6,26 @@ function is_page_for_custom_post_type(?string $post_type = null): bool
     return $pfcpt->is_page_for_custom_post_type($post_type);
 }
 
-function get_custom_post_type_for_page($post_id)
+function get_custom_post_type_for_page($post_id): ?string
 {
     $pfcpt = \HelloNico\PageForCustomPostType\Plugin::get_instance();
-    $page_ids = $pfcpt->get_page_ids();
+    return $pfcpt->get_post_type_from_page_id((int) $post_id);
+}
 
-    $post_id = (int) $post_id;
-
-    if (!in_array($post_id, $page_ids, true)) {
-        return false;
+function get_page_for_custom_post_type(?string $post_type): ?int
+{
+    if(is_null($post_type)) {
+        return null;
     }
-    return array_search($post_id, $page_ids, true);
-}
-
-function get_page_for_custom_post_type($post_type)
-{
     $pfcpt = \HelloNico\PageForCustomPostType\Plugin::get_instance();
-    $page_ids = $pfcpt->get_page_ids();
-    return $page_ids[$post_type] ?? false;
+    return $pfcpt->get_page_id_from_post_type($post_type);
 }
 
-function get_page_for_custom_post_type_link($post_type)
+function get_page_for_custom_post_type_link(?string $post_type): ?string
 {
+    if(is_null($post_type)) {
+        return null;
+    }
     $page_id = get_page_for_custom_post_type($post_type);
-    return $page_id ? get_permalink($page_id) : false;
+    return $page_id ? get_permalink($page_id) : null;
 }

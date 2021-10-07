@@ -15,7 +15,7 @@ namespace HelloNico\PageForCustomPostType\Integrations;
 function fix_yoast_seo_breadcrumbs(array $indexables, $context)
 {
     $pfcpt = \HelloNico\PageForCustomPostType\Plugin::get_instance();
-    $post_types = \array_keys($pfcpt->get_page_ids());
+    $post_types = \array_keys($pfcpt->get_page_ids(false));
     if (empty($post_types)) {
         return $indexables;
     }

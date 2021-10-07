@@ -20,22 +20,22 @@ function fix_yoast_seo_breadcrumbs(array $indexables, $context)
         return $indexables;
     }
 
-    if( !\is_singular($post_types) && !\is_tax() ) {
+    if (!\is_singular($post_types) && !\is_tax()) {
         return $indexables;
     }
 
     $post_type = \get_post_type();
     $post_type_object = \get_post_type_object($post_type);
-    if($post_type_object->has_archive) {
+    if ($post_type_object->has_archive) {
         return $indexables;
     }
 
     $page_id = \get_page_for_custom_post_type($post_type);
-    if(!$page_id) {
+    if (!$page_id) {
         return $indexables;
     }
 
-    \array_splice( $indexables, 1, 0, [\YoastSEO()->meta->for_post( $page_id )->context->indexable] );
+    \array_splice($indexables, 1, 0, [\YoastSEO()->meta->for_post($page_id)->context->indexable]);
 
     return $indexables;
 }
@@ -45,9 +45,10 @@ function fix_yoast_seo_breadcrumbs(array $indexables, $context)
  *
  * @return void
  */
-function set_page_for_custom_post_type(): void {
+function set_page_for_custom_post_type(): void
+{
     // This will make Yoast SEO think it's a static page
-    \add_filter('pre_option_show_on_front', function() {
+    \add_filter('pre_option_show_on_front', function () {
         return 'page';
     });
 

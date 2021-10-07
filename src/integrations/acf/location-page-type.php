@@ -6,10 +6,10 @@ use ACF_Location_Page_Type;
 
 class Location_Page_Type extends ACF_Location_Page_Type
 {
-
     private $pfcpt;
 
-    public function initialize() {
+    public function initialize()
+    {
         parent::initialize();
         $this->pfcpt = \HelloNico\PageForCustomPostType\Plugin::get_instance();
     }
@@ -24,15 +24,15 @@ class Location_Page_Type extends ACF_Location_Page_Type
             return $match;
         }
         // Check screen args.
-        if ( isset( $screen['post_id'] ) ) {
+        if (isset($screen['post_id'])) {
             $post_id = $screen['post_id'];
         } else {
             return false;
         }
 
         // Get post.
-        $post = \get_post( $post_id );
-        if ( !$post ) {
+        $post = \get_post($post_id);
+        if (!$post) {
             return false;
         }
 
@@ -43,7 +43,7 @@ class Location_Page_Type extends ACF_Location_Page_Type
 
         foreach ($page_ids as $post_type => $page_id) {
             if ($rule['value'] === $post_type . '_page') {
-                $result = ( $page_id === $post->ID );
+                $result = ($page_id === $post->ID);
                 break;
             }
         }
@@ -53,7 +53,7 @@ class Location_Page_Type extends ACF_Location_Page_Type
         }
 
         // Reverse result for "!=" operator.
-        if ( $rule['operator'] === '!=' ) {
+        if ($rule['operator'] === '!=') {
             return !$result;
         }
         return $result;
@@ -62,8 +62,9 @@ class Location_Page_Type extends ACF_Location_Page_Type
     /**
      * @inheritDoc
      */
-    public function get_values( $rule ) {
-        $values = parent::get_values( $rule );
+    public function get_values($rule)
+    {
+        $values = parent::get_values($rule);
         $post_types = \array_keys($this->pfcpt->get_page_ids());
         if (empty($post_types)) {
             return $values;
@@ -76,5 +77,4 @@ class Location_Page_Type extends ACF_Location_Page_Type
 
         return $values;
     }
-
 }

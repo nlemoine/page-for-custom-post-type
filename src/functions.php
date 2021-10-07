@@ -14,7 +14,7 @@ function get_custom_post_type_for_page($post_id): ?string
 
 function get_page_for_custom_post_type(?string $post_type): ?int
 {
-    if(is_null($post_type)) {
+    if (is_null($post_type)) {
         return null;
     }
     $pfcpt = \HelloNico\PageForCustomPostType\Plugin::get_instance();
@@ -23,7 +23,7 @@ function get_page_for_custom_post_type(?string $post_type): ?int
 
 function get_page_for_custom_post_type_link(?string $post_type): ?string
 {
-    if(is_null($post_type)) {
+    if (is_null($post_type)) {
         return null;
     }
     $page_id = get_page_for_custom_post_type($post_type);

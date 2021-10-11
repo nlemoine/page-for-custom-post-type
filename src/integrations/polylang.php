@@ -32,12 +32,18 @@ function get_translated_page_id_cache_key(string $language_slug): string
  */
 function set_is_posts_page($url, $language, $queried_object_id)
 {
+    if (!\is_home()) {
+        return $url;
+    }
     $GLOBALS['pfcpt_is_posts_page'] = $GLOBALS['wp_query']->is_posts_page;
     $GLOBALS['wp_query']->is_posts_page = true;
     return $url;
 }
 function reset_is_posts_page($url, $language, $queried_object_id)
 {
+    if (!\is_home()) {
+        return $url;
+    }
     $GLOBALS['wp_query']->is_posts_page = $GLOBALS['pfcpt_is_posts_page'];
     unset($GLOBALS['pfcpt_is_posts_page']);
     return $url;

@@ -3,7 +3,7 @@
  * Plugin Name: Page for custom post type
  * Plugin URI: https://github.com/nlemoine/page-for-custom-post-type
  * Description: Allows you to set pages for any custom post type archive
- * Version: 0.2.0
+ * Version: 0.3.0
  * Author: Nicolas Lemoine
  * Author URI: https://hellonic.co/.
  */

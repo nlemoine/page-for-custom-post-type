@@ -621,7 +621,7 @@ class Plugin
      */
     public function set_template_hierarchy($templates): array
     {
-        $temps = \array_merge(["home-{$GLOBALS['wp_query']->is_page_for_custom_post_type}.php"], $templates);
+        $temps = \array_merge(["home-{$GLOBALS['wp_query']->is_page_for_custom_post_type}"], $templates);
         return $temps;
     }
 

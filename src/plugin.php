@@ -40,7 +40,7 @@ class Plugin
             \add_filter('display_post_states', [$this, 'display_post_states'], 100, 2);
             \add_action('registered_post_type', [$this, 'watch_options'], 10, 2);
         } else {
-            \add_filter('parse_query', [$this, 'set_page_for_custom_post_type_query'], 1);
+            \add_action('parse_query', [$this, 'set_page_for_custom_post_type_query'], 1);
             \add_filter('posts_where', [$this, 'posts_where'], 10, 2);
         }
 
@@ -621,7 +621,7 @@ class Plugin
      */
     public function set_template_hierarchy($templates): array
     {
-        $temps = \array_merge(["home-{$GLOBALS['wp_query']->is_page_for_custom_post_type}.php"], $templates);
+        $temps = \array_merge(["home-{$GLOBALS['wp_query']->is_page_for_custom_post_type}"], $templates);
         return $temps;
     }
 
@@ -632,10 +632,6 @@ class Plugin
      */
     public function set_page_for_custom_post_type_query($query): void
     {
-        if (!$query->is_main_query()) {
-            return;
-        }
-
         $current_page_id = $this->get_page_id_from_query($query);
         if (!$current_page_id) {
             return;
@@ -663,6 +659,9 @@ class Plugin
         $query->{$this->get_conditional_name($post_type)} = true;
         $query->set('post_type', $post_type);
         $query->is_page_for_custom_post_type = $post_type;
+
+        \add_filter('home_template_hierarchy', [$this, 'set_template_hierarchy']);
+        \add_filter('frontpage_template_hierarchy', '__return_empty_array');
     }
 
     /**
@@ -677,10 +676,6 @@ class Plugin
         }
 
         \do_action('pfcpt/template_redirect');
-
-        // Template hierarchy
-        \add_filter('home_template_hierarchy', [$this, 'set_template_hierarchy']);
-        \add_filter('frontpage_template_hierarchy', '__return_empty_array');
     }
 
     /**

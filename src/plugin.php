@@ -794,7 +794,7 @@ class Plugin
         $current_screen = \get_current_screen();
         $post_type_object = null;
         if ('edit' !== $current_screen->base) {
-            return $admin_bar;
+            return;
         }
         $post_type_object = \get_post_type_object($current_screen->post_type);
         if (

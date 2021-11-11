@@ -13,6 +13,7 @@ namespace HelloNico\PageForCustomPostType;
 use WP_Admin_Bar;
 use WP_Post;
 use WP_Post_Type;
+use WP_Query;
 
 class Plugin
 {
@@ -600,10 +601,10 @@ class Plugin
     /**
      * Undocumented function
      *
-     * @param boolean $query
-     * @return boolean
+     * @param WP_Query|null $query
+     * @return bool
      */
-    public function is_query_page_for_custom_post_type($query = false)
+    public function is_query_page_for_custom_post_type(?WP_Query $query = null)
     {
         $q = $query;
         unset($q);
@@ -633,6 +634,7 @@ class Plugin
     public function set_page_for_custom_post_type_query($query): void
     {
         $current_page_id = $this->get_page_id_from_query($query);
+
         if (!$current_page_id) {
             return;
         }
@@ -732,7 +734,7 @@ class Plugin
      *
      * @param string|WP_Post_Type $post_type
      */
-    public function get_option_name($post_type)
+    public function get_option_name($post_type): string
     {
         if (\is_string($post_type)) {
             $name = $post_type;
@@ -749,7 +751,7 @@ class Plugin
      *
      * @param string|WP_Post_Type $post_type
      */
-    private function get_conditional_name($post_type)
+    private function get_conditional_name($post_type): string
     {
         if (\is_string($post_type)) {
             $name = $post_type;
@@ -764,10 +766,10 @@ class Plugin
     /**
      * Is page for post type.
      *
-     * @param mixed $post_type
+     * @param ?string $post_type
      * @return boolean
      */
-    public function is_page_for_custom_post_type($post_type = null)
+    public function is_page_for_custom_post_type(?string $post_type = null): bool
     {
         $post_type_page = $this->is_query_page_for_custom_post_type();
         if (\is_null($post_type)) {
@@ -787,7 +789,7 @@ class Plugin
      * @param [type] $admin_bar
      * @return void
      */
-    public function add_admin_bar_archive_link(WP_Admin_Bar $admin_bar)
+    public function add_admin_bar_archive_link(WP_Admin_Bar $admin_bar): void
     {
         $current_screen = \get_current_screen();
         $post_type_object = null;
@@ -817,7 +819,7 @@ class Plugin
      *
      * @return void
      */
-    public function add_post_type_submenus()
+    public function add_post_type_submenus(): void
     {
         $page_ids = $this->get_page_ids();
 

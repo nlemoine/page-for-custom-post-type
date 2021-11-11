@@ -1,11 +1,12 @@
 {
 	"name": "hellonico/page-for-custom-post-type",
 	"type": "wordpress-plugin",
-	"description": "Allows you to set pages for any custom post type archive",
+	"description": "Page for custom post types, just like page for posts",
 	"keywords": [
 		"wordpress",
 		"custom post type",
-		"custom post type archive"
+		"custom post type archive",
+		"page for custom post type"
 	],
 	"homepage": "https://github.com/nlemoine/page-for-custom-post-type",
 	"version": "0.2.0",
@@ -13,7 +14,7 @@
 	"authors": [
 		{
 			"name": "Nicolas Lemoine",
-			"email": "dev@helloni.co",
+			"email": "dev@niconico.fr",
 			"homepage": "https://github.com/nlemoine"
 		}
 	],

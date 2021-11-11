@@ -2,40 +2,86 @@
 
 namespace HelloNico\PageForCustomPostType\Integrations;
 
+use HelloNico\PageForCustomPostType\Plugin;
+use Yoast\WP\SEO\Context\Meta_Tags_Context;
+use Yoast\WP\SEO\Repositories\Indexable_Repository;
+
 // Fix Yoast SEO breadcrumbs
-\add_filter('wpseo_breadcrumb_indexables', __NAMESPACE__ . '\\fix_yoast_seo_breadcrumbs', 10, 2);
+\add_filter('wpseo_breadcrumb_indexables', __NAMESPACE__ . '\\fix_home_breadcrumbs', 10, 2);
+\add_filter('wpseo_breadcrumb_indexables', __NAMESPACE__ . '\\fix_post_breadcrumbs', 10, 2);
 
 /**
  * Fix Yoast breadcrumbs
  *
- * @param [type] $indexables
- * @param [type] $context
- * @return void
+ * @param array $indexables
+ * @param Meta_Tags_Context $context
+ * @return array
  */
-function fix_yoast_seo_breadcrumbs(array $indexables, $context)
+function fix_post_breadcrumbs(array $indexables, $context)
 {
-    $pfcpt = \HelloNico\PageForCustomPostType\Plugin::get_instance();
-    $post_types = \array_keys($pfcpt->get_page_ids(false));
-    if (empty($post_types)) {
+    $current_post_type = $context->indexable->object_sub_type ?? null;
+    if (!\is_singular($current_post_type)) {
         return $indexables;
     }
 
-    if (!\is_singular($post_types) && !\is_tax()) {
+    $pfcpt = Plugin::get_instance();
+    $page_for_post_type_id = $pfcpt->get_page_id_from_post_type($current_post_type, false);
+    if (empty($page_for_post_type_id)) {
         return $indexables;
     }
 
-    $post_type = \get_post_type();
-    $post_type_object = \get_post_type_object($post_type);
-    if ($post_type_object->has_archive) {
+    $yoast = \YoastSEO();
+
+    /** @var Indexable_Repository $indexable_repository */
+    $indexable_repository = $yoast->classes->get(Indexable_Repository::class);
+    $page_for_post_type_indexable = $indexable_repository->find_by_id_and_type($page_for_post_type_id, 'post');
+    if (!$page_for_post_type_indexable) {
         return $indexables;
     }
 
-    $page_id = \get_page_for_custom_post_type($post_type);
-    if (!$page_id) {
+    \array_splice($indexables, $yoast->helpers->options->get('breadcrumbs-home') ? 1 : 0, 0, [$page_for_post_type_indexable]);
+
+    return $indexables;
+}
+
+/**
+ * Fix Yoast breadcrumbs
+ *
+ * @param array $indexables
+ * @param Meta_Tags_Context $context
+ * @return array
+ */
+function fix_home_breadcrumbs(array $indexables, $context)
+{
+    $pfcpt = Plugin::get_instance();
+    if (!$pfcpt->is_query_page_for_custom_post_type()) {
         return $indexables;
     }
 
-    \array_splice($indexables, 1, 0, [\YoastSEO()->meta->for_post($page_id)->context->indexable]);
+    $yoast = \YoastSEO();
+
+    /** @var Indexable_Repository $indexable_repository */
+    $indexable_repository = $yoast->classes->get(Indexable_Repository::class);
+    $static_ancestors = [];
+
+    // Push home to breadcrumbs because our PFCPT page is considered a Home_Page type
+    // @see https://github.com/Yoast/wordpress-seo/blob/250d40f33bc5423fa3a937bf5734085c57035718/src/generators/breadcrumbs-generator.php#L97-L108
+    if ($yoast->helpers->options->get('breadcrumbs-home')) {
+        $front_page_id = $yoast->helpers->current_page->get_front_page_id();
+
+        if ($front_page_id === 0) {
+            $static_ancestors[] = $indexable_repository->find_for_home_page();
+        } else {
+            $static_ancestor = $indexable_repository->find_by_id_and_type($front_page_id, 'post');
+            if ($static_ancestor->post_status !== 'unindexed') {
+                $static_ancestors[] = $static_ancestor;
+            }
+        }
+    }
+
+    if (!empty($static_ancestors)) {
+        \array_unshift($indexables, ...$static_ancestors);
+    }
 
     return $indexables;
 }
@@ -47,12 +93,23 @@ function fix_yoast_seo_breadcrumbs(array $indexables, $context)
  */
 function set_page_for_custom_post_type(): void
 {
-    // This will make Yoast SEO think it's a static page
+    $pfcpt = Plugin::get_instance();
+    if (!$pfcpt->is_query_page_for_custom_post_type()) {
+        return;
+    }
+
+    /**
+     * Hijack Yoast SEO for_current_page logic which determines the current indexable
+     * @see \Yoast\WP\SEO\Repositories\Indexable_Repository::for_current_page
+     */
     \add_filter('pre_option_show_on_front', function () {
         return 'page';
     });
 
-    // Give it the right ID
+    /**
+     * Hijack Yoast SEO for_current_page logic which determines the current indexable
+     * @see \Yoast\WP\SEO\Repositories\Indexable_Repository::for_current_page
+     */
     \add_filter('pre_option_page_for_posts', function () {
         return \get_queried_object_id();
     });

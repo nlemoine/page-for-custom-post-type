@@ -8,10 +8,11 @@ use Yoast\WP\SEO\Repositories\Indexable_Repository;
 
 // Fix Yoast SEO breadcrumbs
 \add_filter('wpseo_breadcrumb_indexables', __NAMESPACE__ . '\\fix_home_breadcrumbs', 10, 2);
+\add_filter('wpseo_breadcrumb_indexables', __NAMESPACE__ . '\\fix_taxonomy_breadcrumbs', 10, 2);
 \add_filter('wpseo_breadcrumb_indexables', __NAMESPACE__ . '\\fix_post_breadcrumbs', 10, 2);
 
 /**
- * Fix Yoast breadcrumbs
+ * Fix Yoast breadcrumbs on post
  *
  * @param array $indexables
  * @param Meta_Tags_Context $context
@@ -25,8 +26,10 @@ function fix_post_breadcrumbs(array $indexables, $context)
     }
 
     $pfcpt = Plugin::get_instance();
+
+    // Check if current post type has a page for custom post type
     $page_for_post_type_id = $pfcpt->get_page_id_from_post_type($current_post_type, false);
-    if (empty($page_for_post_type_id)) {
+    if(!$page_for_post_type_id) {
         return $indexables;
     }
 
@@ -45,7 +48,60 @@ function fix_post_breadcrumbs(array $indexables, $context)
 }
 
 /**
- * Fix Yoast breadcrumbs
+ * Fix Yoast breadcrumbs on taxonomy
+ *
+ * @param array $indexables
+ * @param Meta_Tags_Context $context
+ * @return array
+ */
+function fix_taxonomy_breadcrumbs(array $indexables, $context)
+{
+    $current_taxonomy = $context->indexable->object_sub_type ?? null;
+    if (!\is_tax($current_taxonomy)) {
+        return $indexables;
+    }
+
+    $current_post_type = get_post_type();
+    if(!$current_post_type) {
+        return $indexables;
+    }
+
+    $yoast = \YoastSEO();
+
+    // Check if current taxonomy is the main taxonomy for this post type
+	$main_taxonomy_for_post_type = $yoast->helpers->options->get( 'post_types-' . $current_post_type . '-maintax' );
+    if($main_taxonomy_for_post_type !== $current_taxonomy) {
+        return $indexables;
+    }
+
+    // Check if current taxonomy is in this post type
+    $taxonomies = get_object_taxonomies($current_post_type);
+    if(!\in_array($current_taxonomy, $taxonomies, true)) {
+        return $indexables;
+    }
+
+    $pfcpt = Plugin::get_instance();
+
+    // Check if current post type has a page for custom post type
+    $page_for_post_type_id = $pfcpt->get_page_id_from_post_type($current_post_type, false);
+    if(!$page_for_post_type_id) {
+        return $indexables;
+    }
+
+    /** @var Indexable_Repository $indexable_repository */
+    $indexable_repository = $yoast->classes->get(Indexable_Repository::class);
+    $page_for_post_type_indexable = $indexable_repository->find_by_id_and_type($page_for_post_type_id, 'post');
+    if (!$page_for_post_type_indexable) {
+        return $indexables;
+    }
+
+    \array_splice($indexables, $yoast->helpers->options->get('breadcrumbs-home') ? 1 : 0, 0, [$page_for_post_type_indexable]);
+
+    return $indexables;
+}
+
+/**
+ * Fix Yoast breadcrumbs on home
  *
  * @param array $indexables
  * @param Meta_Tags_Context $context
@@ -59,6 +115,9 @@ function fix_home_breadcrumbs(array $indexables, $context)
     }
 
     $yoast = \YoastSEO();
+    if($yoast->helpers->current_page->get_page_type() !== 'Home_Page') {
+        return $indexables;
+    }
 
     /** @var Indexable_Repository $indexable_repository */
     $indexable_repository = $yoast->classes->get(Indexable_Repository::class);

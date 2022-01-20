@@ -28,7 +28,7 @@ function fix_post_breadcrumbs(array $indexables, $context)
     $pfcpt = Plugin::get_instance();
 
     // Check if current post type has a page for custom post type
-    $page_for_post_type_id = $pfcpt->get_page_id_from_post_type($current_post_type, true);
+    $page_for_post_type_id = $pfcpt->get_page_id_from_post_type($current_post_type, function_exists('PLL'));
     if(!$page_for_post_type_id) {
         return $indexables;
     }
@@ -83,7 +83,7 @@ function fix_taxonomy_breadcrumbs(array $indexables, $context)
     $pfcpt = Plugin::get_instance();
 
     // Check if current post type has a page for custom post type
-    $page_for_post_type_id = $pfcpt->get_page_id_from_post_type($current_post_type, false);
+    $page_for_post_type_id = $pfcpt->get_page_id_from_post_type($current_post_type, function_exists('PLL'));
     if(!$page_for_post_type_id) {
         return $indexables;
     }

@@ -269,7 +269,7 @@ class Plugin
     }
 
     /**
-     * Valie option
+     * Validate option
      *
      * @param mixed $value
      * @param string $name
@@ -399,7 +399,7 @@ class Plugin
 
         $post_type_object = \get_post_type_object($post_type);
         $name = $this->get_option_name($post_type);
-        $post_states[$name] = \esc_html($post_type_object->labels->archives);
+        $post_states[$name] = \esc_html(sprintf(__('%s page'), $post_type_object->labels->name));
 
         return $post_states;
     }

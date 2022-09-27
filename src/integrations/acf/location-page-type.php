@@ -14,9 +14,7 @@ class Location_Page_Type extends ACF_Location_Page_Type
         $this->pfcpt = \HelloNico\PageForCustomPostType\Plugin::get_instance();
     }
 
-    /**
-     * @inheritDoc
-     */
+
     public function match($rule, $screen, $field_group)
     {
         $match = parent::match($rule, $screen, $field_group);
@@ -59,9 +57,7 @@ class Location_Page_Type extends ACF_Location_Page_Type
         return $result;
     }
 
-    /**
-     * @inheritDoc
-     */
+
     public function get_values($rule)
     {
         $values = parent::get_values($rule);

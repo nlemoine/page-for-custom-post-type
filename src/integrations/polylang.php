@@ -7,9 +7,6 @@ use PLL_Language;
 
 /**
  * Get translated page id cache key
- *
- * @param string $language_slug
- * @return string
  */
 function get_translated_page_id_cache_key(string $language_slug): string
 {
@@ -53,10 +50,6 @@ function reset_is_posts_page($url, $language, $queried_object_id)
 
 /**
  * Set translasted IDs
- *
- * @param array $page_ids
- *
- * @return array
  */
 function set_translated_page_id(array $page_ids): array
 {
@@ -82,10 +75,6 @@ function set_translated_page_id(array $page_ids): array
 
 /**
  * Only show default language pages
- *
- * @param array $args
- *
- * @return array
  */
 function set_dropdown_args(array $args): array
 {
@@ -96,10 +85,6 @@ function set_dropdown_args(array $args): array
 
 /**
  * Translate slugs
- *
- * @param array $slugs
- * @param PLL_Language $language
- * @return array
  */
 function translate_slugs(array $slugs, PLL_Language $language): array
 {
@@ -158,9 +143,6 @@ function flush_slugs()
 
 /**
  * Get default language page id
- *
- * @param int $page_id
- * @return int
  */
 function get_default_language_page_id(int $page_id): int
 {
@@ -178,7 +160,6 @@ function get_default_language_page_id(int $page_id): int
  * @param int $post_id
  * @param WP_Post $post
  * @param array $translations
- * @return void
  */
 function on_page_for_custom_post_type_change($post_id, $post, $translations)
 {

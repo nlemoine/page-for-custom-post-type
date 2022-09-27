@@ -19,10 +19,10 @@
 		}
 	],
 	"require": {
-		"composer/installers": "^1.0"
+		"composer/installers": "^1.0 || ^2.0"
 	},
 	"require-dev": {
-		"symplify/easy-coding-standard": "^9.4"
+		"symplify/easy-coding-standard": "^11.0"
 	},
 	"scripts": {
 		"lint": "ecs check",
@@ -31,5 +31,10 @@
 	"support": {
 		"issues": "https://github.com/nlemoine/page-for-post-type/issues",
 		"source": "https://github.com/nlemoine/page-for-post-type"
+	},
+	"config": {
+		"allow-plugins": {
+			"composer/installers": true
+		}
 	}
 }

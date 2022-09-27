@@ -3,7 +3,7 @@
  * Plugin Name: Page for custom post type
  * Plugin URI: https://github.com/nlemoine/page-for-custom-post-type
  * Description: Allows you to set pages for any custom post type archive
- * Version: 0.3.0
+ * Version: 0.4.0
  * Author: Nicolas Lemoine
  * Author URI: https://niconico.fr/
  */
@@ -18,19 +18,12 @@ use WP_Query;
 class Plugin
 {
     public const OPTION_PREFIX = 'page_for_';
+
     public const OPTION_PAGE_IDS = 'pages_for_custom_post_type';
-    private $original_post_types_args = [];
 
     protected static $instance;
 
-    public static function get_instance(): self
-    {
-        if (null === self::$instance) {
-            self::$instance = new self();
-        }
-
-        return self::$instance;
-    }
+    private $original_post_types_args = [];
 
     public function __construct()
     {
@@ -43,6 +36,7 @@ class Plugin
         } else {
             \add_action('parse_query', [$this, 'set_page_for_custom_post_type_query'], 1);
             \add_filter('posts_where', [$this, 'posts_where'], 10, 2);
+            \add_filter('wp_nav_menu_objects', [$this, 'set_current_ancestor'], 10, 2);
         }
 
         // Template hierarchy
@@ -66,12 +60,43 @@ class Plugin
         \add_action('post_updated', [$this, 'on_slug_change'], 10, 3);
     }
 
+    public static function get_instance(): self
+    {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
+    }
+
+    /**
+     * Set current ancestor
+     *
+     * @param WP_Post[] $menu_items
+     * @param array $args
+     * @return array
+     */
+    public function set_current_ancestor($menu_items, $args)
+    {
+        global $wp_query;
+        $pages_ids = $this->get_page_ids();
+        foreach ($menu_items as $key => $menu_item) {
+            if (
+                $wp_query->is_singular
+                && $menu_item->type === 'post_type'
+                && \in_array((int) $menu_item->object_id, $pages_ids, true)
+                && !empty($wp_query->query['post_type'])
+                && $this->get_post_type_from_page_id((int) $menu_item->object_id) === $wp_query->query['post_type']
+            ) {
+                $menu_items[$key]->classes[] = 'current-menu-ancestor';
+                $menu_items[$key]->current_item_ancestor = true;
+            }
+        }
+        return $menu_items;
+    }
+
     /**
      * Enable pagination rules on page for CPT
-     *
-     * @param string $post_type
-     * @param WP_Post_Type $post_type_object
-     * @return void
      */
     public function add_pagination_rewrite_tags(string $post_type, WP_Post_Type $post_type_object): void
     {
@@ -88,24 +113,7 @@ class Plugin
     }
 
     /**
-     * Add rewrite tags
-     *
-     * @param string $post_type
-     * @return void
-     */
-    protected function add_rewrite_tags(string $post_type)
-    {
-        \remove_rewrite_tag("%{$post_type}%");
-        // Exclude page from regex so pagination works
-        // add_rewrite_tag("%{$post_type_object->name}%", '(\b(?!page\b)[^/]+)', "{$post_type_object->name}=");
-        \add_rewrite_tag("%{$post_type}%", '(?!page)([^/]+)', "{$post_type}=");
-    }
-
-    /**
      * Flush rewrite rules
-     *
-     * @param string $post_type
-     * @return void
      */
     public function flush_rewrite_rules(string $post_type)
     {
@@ -136,11 +144,7 @@ class Plugin
     /**
      * Modify post type object before it is registered.
      *
-     * @param array  $args
-     * @param string $name
      * @param mixed  $post_type
-     *
-     * @return array
      */
     public function update_post_type_args(array $args, string $post_type): array
     {
@@ -167,7 +171,7 @@ class Plugin
         $post_type_slug = \get_transient($this->get_page_slug_cache_key($post_type));
         if ($post_type_slug === false) {
             // Make sure it's published
-            if ('publish' !== \get_post_status($page_id_for_post_type)) {
+            if (\get_post_status($page_id_for_post_type) !== 'publish') {
                 return $args;
             }
 
@@ -189,23 +193,11 @@ class Plugin
      * Get page slug
      *
      * @param integer $page_id
-     * @return string|null
      */
     public function get_page_slug(int $page_id): ?string
     {
         $page_url = \get_permalink($page_id);
         return $page_url ? \trim(\parse_url($page_url, PHP_URL_PATH), '/') : null;
-    }
-
-    /**
-     * Get cache key for page slug
-     *
-     * @param string $post_type
-     * @return string
-     */
-    protected function get_page_slug_cache_key(string $post_type): string
-    {
-        return self::OPTION_PREFIX . $post_type . '_slug';
     }
 
     /**
@@ -235,8 +227,6 @@ class Plugin
 
     /**
      * Add option to Settings > Reading
-     *
-     * @return void
      */
     public function add_reading_settings(): void
     {
@@ -272,9 +262,7 @@ class Plugin
      * Validate option
      *
      * @param mixed $value
-     * @param string $name
      * @param mixed $original_value
-     * @return void
      */
     public function validate_setting($value, string $name, $original_value)
     {
@@ -303,8 +291,7 @@ class Plugin
 
         // Check for page id used twice
         $page_ids = \array_map(fn ($v) => \is_numeric($v) ? (int) $v : null, \array_filter($_POST, function ($k) use ($name) {
-            return
-                \strpos($k, self::OPTION_PREFIX) === 0
+            return \strpos($k, self::OPTION_PREFIX) === 0
                 && $name !== $k;
         }, ARRAY_FILTER_USE_KEY));
 
@@ -333,9 +320,6 @@ class Plugin
 
     /**
      * Display the dropdown for selecting a page.
-     *
-     * @param array $args
-     * @return void
      */
     public function page_for_post_type_field(array $args): void
     {
@@ -351,7 +335,7 @@ class Plugin
 
             global $wp_rewrite;
             if ($post_type_object->has_archive) {
-                $archive_slug = true === $post_type_object->has_archive ? $post_type_object->rewrite['slug'] : $post_type_object->has_archive;
+                $archive_slug = $post_type_object->has_archive === true ? $post_type_object->rewrite['slug'] : $post_type_object->has_archive;
                 if ($post_type_object->rewrite['with_front']) {
                     $archive_slug = \substr($wp_rewrite->front, 1) . $archive_slug;
                 } else {
@@ -383,12 +367,10 @@ class Plugin
      *
      * @param array   $post_states an array of post states to display after the post title
      * @param WP_Post $post        the current post object
-     *
-     * @return array
      */
     public function display_post_states($post_states, $post): array
     {
-        if ('page' !== $post->post_type) {
+        if ($post->post_type !== 'page') {
             return $post_states;
         }
 
@@ -399,7 +381,7 @@ class Plugin
 
         $post_type_object = \get_post_type_object($post_type);
         $name = $this->get_option_name($post_type);
-        $post_states[$name] = \esc_html(sprintf(__('%s page'), $post_type_object->labels->name));
+        $post_states[$name] = \esc_html(\sprintf(\__('%s page'), $post_type_object->labels->name));
 
         return $post_states;
     }
@@ -417,7 +399,7 @@ class Plugin
             return;
         }
 
-        if ('publish' !== $new_status) {
+        if ($new_status !== 'publish') {
             $post_type = $this->get_post_type_from_page_id($post->ID);
             if (!$post_type) {
                 return;
@@ -435,7 +417,7 @@ class Plugin
      */
     public function on_deleted_post($post_id, ?WP_Post $post = null): void
     {
-        if (\is_null($post)) {
+        if ($post === null) {
             $post = \get_post($post_id);
         }
 
@@ -456,25 +438,7 @@ class Plugin
     }
 
     /**
-     * Undocumented function
-     *
-     * @param WP_Post_Type $post_type
-     * @return boolean
-     */
-    private function should_consider_post_type(WP_Post_Type $post_type): bool
-    {
-        if ($post_type->_builtin || !$post_type->publicly_queryable) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
      * Watch options for post types
-     *
-     * @param string $post_type
-     * @param WP_Post_Type $post_type_object
-     * @return void
      */
     public function watch_options(string $post_type, WP_Post_Type $post_type_object): void
     {
@@ -498,7 +462,6 @@ class Plugin
      * @param mixed $old_value
      * @param mixed $new_value
      * @param string $name
-     * @return void
      */
     public function on_option_update($old_value, $new_value, $name): void
     {
@@ -511,9 +474,7 @@ class Plugin
     /**
      * On individual option add
      *
-     * @param string $name
      * @param mixed $value
-     * @return void
      */
     public function on_option_add(string $name, $value): void
     {
@@ -522,9 +483,6 @@ class Plugin
 
     /**
      * On individual option delete
-     *
-     * @param string $name
-     * @return void
      */
     public function on_option_delete(string $name): void
     {
@@ -532,42 +490,9 @@ class Plugin
     }
 
     /**
-     * On individual option change
-     *
-     * @param string $name
-     * @return void
-     */
-    protected function on_option_change(string $name, $value): void
-    {
-        $post_type = $this->get_post_type_from_option_name($name);
-
-        $page_ids = \get_option($this::OPTION_PAGE_IDS, []);
-        $page_ids[$post_type] = $value;
-
-        // Update main options
-        \update_option($this::OPTION_PAGE_IDS, \array_filter($page_ids));
-
-        $this->flush_rewrite_rules($post_type);
-    }
-
-    /**
-     * Get post type from option name
-     *
-     * @param string $name
-     * @return string
-     */
-    private function get_post_type_from_option_name(string $name): string
-    {
-        return \substr($name, \strlen(self::OPTION_PREFIX));
-    }
-
-    /**
      * Clear transients when a page slug changes
      *
      * @param integer $post_ID
-     * @param WP_Post $post_after
-     * @param WP_Post $post_before
-     * @return void
      */
     public function on_slug_change(int $post_ID, WP_Post $post_after, WP_Post $post_before): void
     {
@@ -588,20 +513,8 @@ class Plugin
     }
 
     /**
-     * Clear page for post type cache
-     *
-     * @param string $post_type
-     * @return void
-     */
-    private function delete_option(string $post_type): void
-    {
-        \delete_option($this->get_option_name($post_type));
-    }
-
-    /**
      * Undocumented function
      *
-     * @param WP_Query|null $query
      * @return bool
      */
     public function is_query_page_for_custom_post_type(?WP_Query $query = null)
@@ -651,7 +564,7 @@ class Plugin
             return;
         }
 
-        $post_type = \array_search($current_page_id, $page_ids);
+        $post_type = \array_search($current_page_id, $page_ids, true);
         if (empty($post_type)) {
             return;
         }
@@ -684,8 +597,6 @@ class Plugin
      * Get page ID from query.
      *
      * @param WP_Query $query
-     *
-     * @return int
      */
     public function get_page_id_from_query($query): int
     {
@@ -702,31 +613,11 @@ class Plugin
 
     /**
      * Get page ids.
-     *
-     * Caches the result with transient.
-     *
-     * @return array
      */
     public function get_page_ids($apply_filters = true): array
     {
         $page_ids = \get_option(self::OPTION_PAGE_IDS, []);
         return \array_map(fn ($id) => (int) $id, $apply_filters ? \apply_filters('pfcpt/page_ids', $page_ids) : $page_ids);
-    }
-
-    /**
-     * Get post types.
-     *
-     * @return array
-     */
-    private function get_post_types(): array
-    {
-        return \get_post_types(
-            [
-                'publicly_queryable' => true,
-                '_builtin'           => false,
-            ],
-            'objects'
-        );
     }
 
     /**
@@ -747,23 +638,6 @@ class Plugin
     }
 
     /**
-     * Get option name.
-     *
-     * @param string|WP_Post_Type $post_type
-     */
-    private function get_conditional_name($post_type): string
-    {
-        if (\is_string($post_type)) {
-            $name = $post_type;
-        }
-        if (\is_a($post_type, 'WP_Post_Type')) {
-            $name = $post_type->name;
-        }
-
-        return "is_{$name}_page";
-    }
-
-    /**
      * Is page for post type.
      *
      * @param ?string $post_type
@@ -772,7 +646,7 @@ class Plugin
     public function is_page_for_custom_post_type(?string $post_type = null): bool
     {
         $post_type_page = $this->is_query_page_for_custom_post_type();
-        if (\is_null($post_type)) {
+        if ($post_type === null) {
             return !!$post_type_page;
         }
 
@@ -787,13 +661,12 @@ class Plugin
      * Add archive link to admin bar
      *
      * @param [type] $admin_bar
-     * @return void
      */
     public function add_admin_bar_archive_link(WP_Admin_Bar $admin_bar): void
     {
         $current_screen = \get_current_screen();
         $post_type_object = null;
-        if ('edit' !== $current_screen->base) {
+        if ($current_screen->base !== 'edit') {
             return;
         }
         $post_type_object = \get_post_type_object($current_screen->post_type);
@@ -809,15 +682,13 @@ class Plugin
                 'href'  => \get_page_for_custom_post_type_link($post_type_object->name),
                 'meta'  => [
                     'target' => '_blank',
-                ]
+                ],
             ]);
         }
     }
 
     /**
      * Add submenu link to archive under each post type
-     *
-     * @return void
      */
     public function add_post_type_submenus(): void
     {
@@ -842,7 +713,6 @@ class Plugin
     /**
      * Get page id for post type
      *
-     * @param string $post_type
      * @return integer|null
      */
     public function get_page_id_from_post_type(string $post_type, $apply_filters = true): ?int
@@ -862,5 +732,100 @@ class Plugin
         $page_ids = $this->get_page_ids();
         $page_id = \apply_filters('pfcpt/post_type_from_id/page_id', $page_id);
         return \array_search($page_id, $page_ids, true) ?: null;
+    }
+
+    /**
+     * Add rewrite tags
+     */
+    protected function add_rewrite_tags(string $post_type)
+    {
+        \remove_rewrite_tag("%{$post_type}%");
+        // Exclude page from regex so pagination works
+        // add_rewrite_tag("%{$post_type_object->name}%", '(\b(?!page\b)[^/]+)', "{$post_type_object->name}=");
+        \add_rewrite_tag("%{$post_type}%", '(?!page)([^/]+)', "{$post_type}=");
+    }
+
+    /**
+     * Get cache key for page slug
+     */
+    protected function get_page_slug_cache_key(string $post_type): string
+    {
+        return self::OPTION_PREFIX . $post_type . '_slug';
+    }
+
+    /**
+     * On individual option change
+     */
+    protected function on_option_change(string $name, $value): void
+    {
+        $post_type = $this->get_post_type_from_option_name($name);
+
+        $page_ids = \get_option($this::OPTION_PAGE_IDS, []);
+        $page_ids[$post_type] = $value;
+
+        // Update main options
+        \update_option($this::OPTION_PAGE_IDS, \array_filter($page_ids));
+
+        $this->flush_rewrite_rules($post_type);
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @return boolean
+     */
+    private function should_consider_post_type(WP_Post_Type $post_type): bool
+    {
+        if ($post_type->_builtin || !$post_type->publicly_queryable) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Get post type from option name
+     */
+    private function get_post_type_from_option_name(string $name): string
+    {
+        return \substr($name, \strlen(self::OPTION_PREFIX));
+    }
+
+    /**
+     * Clear page for post type cache
+     */
+    private function delete_option(string $post_type): void
+    {
+        \delete_option($this->get_option_name($post_type));
+    }
+
+    /**
+     * Get post types.
+     */
+    private function get_post_types(): array
+    {
+        return \get_post_types(
+            [
+                'publicly_queryable' => true,
+                '_builtin'           => false,
+            ],
+            'objects'
+        );
+    }
+
+    /**
+     * Get option name.
+     *
+     * @param string|WP_Post_Type $post_type
+     */
+    private function get_conditional_name($post_type): string
+    {
+        if (\is_string($post_type)) {
+            $name = $post_type;
+        }
+        if (\is_a($post_type, 'WP_Post_Type')) {
+            $name = $post_type->name;
+        }
+
+        return "is_{$name}_page";
     }
 }

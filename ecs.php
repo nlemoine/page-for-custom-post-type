@@ -2,39 +2,40 @@
 
 declare(strict_types=1);
 
-use PhpCsFixer\Fixer\ArrayNotation\ArraySyntaxFixer;
-use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-use Symplify\EasyCodingStandard\ValueObject\Option;
-use Symplify\EasyCodingStandard\ValueObject\Set\SetList;
 use PhpCsFixer\Fixer\FunctionNotation\NativeFunctionInvocationFixer;
 use PhpCsFixer\Fixer\Operator\BinaryOperatorSpacesFixer;
+use PhpCsFixer\Fixer\Operator\NotOperatorWithSuccessorSpaceFixer;
+use PhpCsFixer\Fixer\Strict\DeclareStrictTypesFixer;
+use PhpCsFixer\Fixer\Whitespace\MethodChainingIndentationFixer;
+use Symplify\CodingStandard\Fixer\Commenting\RemoveUselessDefaultCommentFixer;
+use Symplify\EasyCodingStandard\Config\ECSConfig;
+use Symplify\EasyCodingStandard\ValueObject\Set\SetList;
 
-return static function (ContainerConfigurator $containerConfigurator): void {
+return static function (ECSConfig $ecsConfig): void {
+    $ecsConfig->parallel();
 
-    $parameters = $containerConfigurator->parameters();
-    $parameters->set(Option::PARALLEL, true);
-    $parameters->set(Option::PATHS, [
+    $ecsConfig->paths([
         __DIR__ . '/src',
     ]);
 
-    $containerConfigurator->import(SetList::PSR_12);
-    $containerConfigurator->import(SetList::CLEAN_CODE);
-    $containerConfigurator->import(SetList::NAMESPACES);
+    $ecsConfig->sets([SetList::COMMON, SetList::PSR_12, SetList::CLEAN_CODE]);
 
-    $services = $containerConfigurator->services();
-    $services->set(ArraySyntaxFixer::class)
-        ->call('configure', [[
-            'syntax' => 'short',
-        ]]);
-    $services->set(NativeFunctionInvocationFixer::class)
-        ->call('configure', [[
-            'include' => [
-                '@all',
-            ],
-            'scope' => 'namespaced'
-        ]]);
-    $services->set(BinaryOperatorSpacesFixer::class)
-        ->call('configure', [[
-            'operators' => ['=>' => 'align_single_space'],
-        ]]);
+    $ecsConfig->ruleWithConfiguration(NativeFunctionInvocationFixer::class, [
+        'include' => [
+            '@all',
+        ],
+        'scope' => 'namespaced',
+    ]);
+    $ecsConfig->ruleWithConfiguration(BinaryOperatorSpacesFixer::class, [
+        'operators' => [
+            '=>' => 'align_single_space',
+        ],
+    ]);
+
+    $ecsConfig->skip([
+        DeclareStrictTypesFixer::class            => null,
+        NotOperatorWithSuccessorSpaceFixer::class => null,
+        RemoveUselessDefaultCommentFixer::class   => null,
+        MethodChainingIndentationFixer::class     => null,
+    ]);
 };

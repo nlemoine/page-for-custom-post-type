@@ -20,7 +20,7 @@ use Yoast\WP\SEO\Repositories\Indexable_Repository;
 function fix_post_breadcrumbs(array $indexables, $context)
 {
     $current_post_type = $context->indexable->object_sub_type ?? null;
-    if (!\is_singular($current_post_type)) {
+    if (!$current_post_type || !\is_singular($current_post_type)) {
         return $indexables;
     }
 

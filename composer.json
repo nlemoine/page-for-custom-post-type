@@ -1,16 +1,15 @@
 {
 	"name": "hellonico/page-for-custom-post-type",
-	"type": "wordpress-plugin",
 	"description": "Page for custom post types, just like page for posts",
+	"license": "GPL-3.0",
+	"type": "wordpress-plugin",
+	"version": "0.2.0",
 	"keywords": [
 		"wordpress",
 		"custom post type",
 		"custom post type archive",
 		"page for custom post type"
 	],
-	"homepage": "https://github.com/nlemoine/page-for-custom-post-type",
-	"version": "0.2.0",
-	"license": "GPL-3.0",
 	"authors": [
 		{
 			"name": "Nicolas Lemoine",
@@ -18,23 +17,46 @@
 			"homepage": "https://github.com/nlemoine"
 		}
 	],
-	"require": {
-		"composer/installers": "^1.0 || ^2.0"
-	},
-	"require-dev": {
-		"symplify/easy-coding-standard": "^11.0"
-	},
-	"scripts": {
-		"lint": "ecs check",
-		"lint:fix": "ecs check --fix"
-	},
+	"homepage": "https://github.com/nlemoine/page-for-custom-post-type",
 	"support": {
 		"issues": "https://github.com/nlemoine/page-for-post-type/issues",
 		"source": "https://github.com/nlemoine/page-for-post-type"
 	},
+	"require": {
+		"composer/installers": "^1.0 || ^2.0"
+	},
+	"require-dev": {
+		"ergebnis/composer-normalize": "^2.28",
+		"mantle-framework/testkit": "*",
+		"php-stubs/acf-pro-stubs": "^6.0",
+		"php-stubs/wordpress-seo-stubs": "^20.5",
+		"phpstan/extension-installer": "^1.3",
+		"phpstan/phpstan": "^1.10",
+		"roots/wordpress": "^6.2",
+		"symplify/easy-coding-standard": "^11.0",
+		"szepeviktor/phpstan-wordpress": "^1.3",
+		"wpackagist-plugin/polylang": "^3.4",
+		"wpackagist-plugin/wordpress-seo": "^20.9",
+		"wpsyntex/polylang-stubs": "^3.4"
+	},
 	"config": {
 		"allow-plugins": {
-			"composer/installers": true
+			"composer/installers": true,
+			"roots/wordpress-core-installer": true,
+			"ergebnis/composer-normalize": true,
+			"pestphp/pest-plugin": true,
+			"alleyinteractive/composer-wordpress-autoloader": true,
+			"phpstan/extension-installer": true
 		}
+	},
+	"scripts": {
+		"analyse": [
+			"phpstan analyse"
+		],
+		"cs": "ecs check",
+		"cs:fix": "ecs check --fix",
+		"test": [
+			"PLUGINS=wordpress-seo phpunit --testdox"
+		]
 	}
 }

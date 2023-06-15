@@ -1,0 +1,10 @@
+parameters:
+    level: 4
+    paths:
+        - src/
+    editorUrl: 'vscode://file/%%file%%:%%line%%'
+    scanDirectories:
+        - wp-content/plugins/wordpress-seo
+    scanFiles:
+        - vendor/php-stubs/acf-pro-stubs/acf-pro-stubs.php
+        - vendor/wpsyntex/polylang-stubs/polylang-stubs.php

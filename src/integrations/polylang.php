@@ -1,9 +1,10 @@
 <?php
 
-namespace HelloNico\PageForCustomPostType\Integrations;
+namespace n5s\PageForCustomPostType\Integrations;
 
-use HelloNico\PageForCustomPostType\Plugin;
+use n5s\PageForCustomPostType\Plugin;
 use PLL_Language;
+use WP_Post;
 
 /**
  * Get translated page id cache key
@@ -63,7 +64,8 @@ function set_translated_page_id(array $page_ids): array
     $page_ids_for_current_language = \get_transient($cache_key);
     if ($page_ids_for_current_language === false) {
         $page_ids_for_current_language = \array_filter(\array_map(function (int $id) use ($current_language): ?int {
-            return \pll_get_post($id, $current_language);
+            $post_id = \pll_get_post($id, $current_language);
+            return $post_id === false ? null : $post_id;
         }, $page_ids));
 
         \set_transient($cache_key, $page_ids_for_current_language);

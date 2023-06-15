@@ -8,7 +8,7 @@
  * Author URI: https://niconico.fr/
  */
 
-namespace HelloNico\PageForCustomPostType;
+namespace n5s\PageForCustomPostType;
 
 use WP_Admin_Bar;
 use WP_Post;
@@ -32,12 +32,12 @@ class Plugin
             \add_action('admin_init', [$this, 'add_reading_settings']);
             \add_action('admin_bar_menu', [$this, 'add_admin_bar_archive_link'], 80);
             \add_filter('display_post_states', [$this, 'display_post_states'], 100, 2);
-            \add_action('registered_post_type', [$this, 'watch_options'], 10, 2);
         } else {
             \add_action('parse_query', [$this, 'set_page_for_custom_post_type_query'], 1);
             \add_filter('posts_where', [$this, 'posts_where'], 10, 2);
             \add_filter('wp_nav_menu_objects', [$this, 'set_current_ancestor'], 10, 2);
         }
+        \add_action('registered_post_type', [$this, 'watch_options'], 10, 2);
 
         // Template hierarchy
         \add_action('template_redirect', [$this, 'on_template_redirect']);
@@ -389,9 +389,6 @@ class Plugin
     /**
      * Delete the setting for the corresponding post type if the page status
      * is transitioned to anything other than published.
-     *
-     * @param $new_status
-     * @param $old_status
      */
     public function on_transition_post_status($new_status, $old_status, WP_Post $post): void
     {
@@ -453,7 +450,7 @@ class Plugin
         // Watch for changes
         \add_action("update_option_{$this->get_option_name($post_type)}", [$this, 'on_option_update'], 10, 3);
         \add_action("add_option_{$this->get_option_name($post_type)}", [$this, 'on_option_add'], 10, 2);
-        \add_action("delete_option_{$this->get_option_name($post_type)}", [$this, 'on_option_delete'], 10, 2);
+        \add_action("delete_option_{$this->get_option_name($post_type)}", [$this, 'on_option_delete'], 10);
     }
 
     /**
@@ -531,7 +528,7 @@ class Plugin
     /**
      * Undocumented function.
      *
-     * @param [type] $templates
+     * @param array $templates
      */
     public function set_template_hierarchy($templates): array
     {
@@ -601,11 +598,11 @@ class Plugin
     public function get_page_id_from_query($query): int
     {
         if (!empty($query->query_vars['pagename']) && isset($query->queried_object_id)) {
-            return $query->queried_object_id;
+            return (int) $query->queried_object_id;
         }
 
         if (isset($query->query_vars['page_id'])) {
-            return $query->query_vars['page_id'];
+            return (int) $query->query_vars['page_id'];
         }
 
         return 0; // No page queried
@@ -630,7 +627,7 @@ class Plugin
         if (\is_string($post_type)) {
             $name = $post_type;
         }
-        if (\is_a($post_type, 'WP_Post_Type')) {
+        if ($post_type instanceof WP_Post_Type) {
             $name = $post_type->name;
         }
 
@@ -659,8 +656,6 @@ class Plugin
 
     /**
      * Add archive link to admin bar
-     *
-     * @param [type] $admin_bar
      */
     public function add_admin_bar_archive_link(WP_Admin_Bar $admin_bar): void
     {
@@ -674,12 +669,12 @@ class Plugin
             ($post_type_object)
             && ($post_type_object->public)
             && ($post_type_object->show_in_admin_bar)
-            && (\get_page_for_custom_post_type_link($post_type_object->name))
+            && (\get_page_url_for_custom_post_type($post_type_object->name))
         ) {
             $admin_bar->add_menu([
                 'id'    => 'archive',
                 'title' => $post_type_object->labels->view_items,
-                'href'  => \get_page_for_custom_post_type_link($post_type_object->name),
+                'href'  => \get_page_url_for_custom_post_type($post_type_object->name),
                 'meta'  => [
                     'target' => '_blank',
                 ],
@@ -712,8 +707,6 @@ class Plugin
 
     /**
      * Get page id for post type
-     *
-     * @return integer|null
      */
     public function get_page_id_from_post_type(string $post_type, $apply_filters = true): ?int
     {
@@ -723,9 +716,6 @@ class Plugin
 
     /**
      * Get page id for post type
-     *
-     * @param string $page_id
-     * @return integer|null
      */
     public function get_post_type_from_page_id(int $page_id): ?string
     {
@@ -760,11 +750,11 @@ class Plugin
     {
         $post_type = $this->get_post_type_from_option_name($name);
 
-        $page_ids = \get_option($this::OPTION_PAGE_IDS, []);
+        $page_ids = \get_option(self::OPTION_PAGE_IDS, []);
         $page_ids[$post_type] = $value;
 
         // Update main options
-        \update_option($this::OPTION_PAGE_IDS, \array_filter($page_ids));
+        \update_option(self::OPTION_PAGE_IDS, \array_filter($page_ids));
 
         $this->flush_rewrite_rules($post_type);
     }
@@ -819,13 +809,19 @@ class Plugin
      */
     private function get_conditional_name($post_type): string
     {
-        if (\is_string($post_type)) {
-            $name = $post_type;
-        }
-        if (\is_a($post_type, 'WP_Post_Type')) {
-            $name = $post_type->name;
-        }
+        return "is_{$this->get_post_type_name($post_type)}_page";
+    }
 
-        return "is_{$name}_page";
+    /**
+     * Get the post type name.
+     *
+     * @param string|WP_Post_Type $post_type
+     */
+    private function get_post_type_name($post_type): string
+    {
+        if ($post_type instanceof WP_Post_Type) {
+            return $post_type->name;
+        }
+        return $post_type;
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace HelloNico\PageForCustomPostType\Integrations\ACF;
+namespace n5s\PageForCustomPostType\Integrations\ACF;
 
 use ACF_Location_Page_Type;
 
@@ -11,9 +11,8 @@ class Location_Page_Type extends ACF_Location_Page_Type
     public function initialize()
     {
         parent::initialize();
-        $this->pfcpt = \HelloNico\PageForCustomPostType\Plugin::get_instance();
+        $this->pfcpt = \n5s\PageForCustomPostType\Plugin::get_instance();
     }
-
 
     public function match($rule, $screen, $field_group)
     {
@@ -56,7 +55,6 @@ class Location_Page_Type extends ACF_Location_Page_Type
         }
         return $result;
     }
-
 
     public function get_values($rule)
     {

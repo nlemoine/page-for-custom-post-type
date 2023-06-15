@@ -1,10 +1,12 @@
 <?php
 
-namespace HelloNico\PageForCustomPostType\Integrations;
+namespace n5s\PageForCustomPostType\Integrations;
 
-use HelloNico\PageForCustomPostType\Plugin;
+use n5s\PageForCustomPostType\Plugin;
 use Yoast\WP\SEO\Context\Meta_Tags_Context;
+use Yoast\WP\SEO\Main;
 use Yoast\WP\SEO\Repositories\Indexable_Repository;
+use Yoast\WP\SEO\Surfaces\Values\Meta;
 
 // Fix Yoast SEO breadcrumbs
 \add_filter('wpseo_breadcrumb_indexables', __NAMESPACE__ . '\\fix_home_breadcrumbs', 10, 2);
@@ -32,16 +34,22 @@ function fix_post_breadcrumbs(array $indexables, $context)
         return $indexables;
     }
 
+    /** @var Main $yoast */
     $yoast = \YoastSEO();
 
-    /** @var Indexable_Repository $indexable_repository */
-    $indexable_repository = $yoast->classes->get(Indexable_Repository::class);
-    $page_for_post_type_indexable = $indexable_repository->find_by_id_and_type($page_for_post_type_id, 'post');
-    if (!$page_for_post_type_indexable) {
+    /** @var Meta|false $page_for_post_type_meta */
+    $page_for_post_type_meta = $yoast->meta->for_post($page_for_post_type_id);
+    if (!$page_for_post_type_meta) {
         return $indexables;
     }
 
-    \array_splice($indexables, $yoast->helpers->options->get('breadcrumbs-home') ? 1 : 0, 0, [$page_for_post_type_indexable]);
+    // Insert page for custom post type indexable after home indexable
+    \array_splice(
+        $indexables,
+        $yoast->helpers->options->get('breadcrumbs-home') ? 1 : 0,
+        0,
+        [$page_for_post_type_meta->indexable]
+    );
 
     return $indexables;
 }
@@ -49,10 +57,9 @@ function fix_post_breadcrumbs(array $indexables, $context)
 /**
  * Fix Yoast breadcrumbs on taxonomy
  *
- * @param Meta_Tags_Context $context
  * @return array
  */
-function fix_taxonomy_breadcrumbs(array $indexables, $context)
+function fix_taxonomy_breadcrumbs(array $indexables, Meta_Tags_Context $context)
 {
     $current_taxonomy = $context->indexable->object_sub_type ?? null;
     if (!\is_tax($current_taxonomy)) {
@@ -64,6 +71,7 @@ function fix_taxonomy_breadcrumbs(array $indexables, $context)
         return $indexables;
     }
 
+    /** @var Main $yoast */
     $yoast = \YoastSEO();
 
     // Check if current taxonomy is the main taxonomy for this post type
@@ -86,14 +94,18 @@ function fix_taxonomy_breadcrumbs(array $indexables, $context)
         return $indexables;
     }
 
-    /** @var Indexable_Repository $indexable_repository */
-    $indexable_repository = $yoast->classes->get(Indexable_Repository::class);
-    $page_for_post_type_indexable = $indexable_repository->find_by_id_and_type($page_for_post_type_id, 'post');
-    if (!$page_for_post_type_indexable) {
+    /** @var Meta|false $page_for_post_type_meta */
+    $page_for_post_type_meta = $yoast->meta->for_post($page_for_post_type_id);
+    if (!$page_for_post_type_meta) {
         return $indexables;
     }
 
-    \array_splice($indexables, $yoast->helpers->options->get('breadcrumbs-home') ? 1 : 0, 0, [$page_for_post_type_indexable]);
+    \array_splice(
+        $indexables,
+        $yoast->helpers->options->get('breadcrumbs-home') ? 1 : 0,
+        0,
+        [$page_for_post_type_meta->indexable]
+    );
 
     return $indexables;
 }

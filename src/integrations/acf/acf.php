@@ -1,6 +1,6 @@
 <?php
 
-namespace HelloNico\PageForCustomPostType\Integrations\ACF;
+namespace n5s\PageForCustomPostType\Integrations\ACF;
 
 \add_action('acf/include_location_rules', function ($acf_major_version) {
     if ($acf_major_version !== 5) {

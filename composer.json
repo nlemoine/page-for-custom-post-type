@@ -1,9 +1,8 @@
 {
 	"name": "hellonico/page-for-custom-post-type",
 	"description": "Page for custom post types, just like page for posts",
-	"license": "GPL-3.0",
+	"license": "GPL-3.0-or-later",
 	"type": "wordpress-plugin",
-	"version": "0.2.0",
 	"keywords": [
 		"wordpress",
 		"custom post type",

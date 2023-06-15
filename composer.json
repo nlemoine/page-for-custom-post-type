@@ -38,12 +38,17 @@
 		"wpackagist-plugin/wordpress-seo": "^20.9",
 		"wpsyntex/polylang-stubs": "^3.4"
 	},
+	"repositories": [
+		{
+			"type": "composer",
+			"url": "https://wpackagist.org"
+		}
+	],
 	"config": {
 		"allow-plugins": {
 			"composer/installers": true,
 			"roots/wordpress-core-installer": true,
 			"ergebnis/composer-normalize": true,
-			"pestphp/pest-plugin": true,
 			"alleyinteractive/composer-wordpress-autoloader": true,
 			"phpstan/extension-installer": true
 		}

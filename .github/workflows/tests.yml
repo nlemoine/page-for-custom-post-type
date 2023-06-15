@@ -17,3 +17,4 @@ jobs:
     with:
       php: ${{ matrix.php }}
       wordpress: ${{ matrix.wordpress }}
+      command: "test"

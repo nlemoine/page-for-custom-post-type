@@ -5,7 +5,7 @@
  * Description: Allows you to set pages for any custom post type archive
  * Version: 0.3.0
  * Author: Nicolas Lemoine
- * Author URI: https://hellonic.co/.
+ * Author URI: https://n5s.dev/
  */
 
 require_once __DIR__ . '/src/plugin.php';

@@ -21,9 +21,9 @@ class Plugin
 
     public const OPTION_PAGE_IDS = 'pages_for_custom_post_type';
 
-    protected static $instance;
+    protected static ?Plugin $instance = null;
 
-    private $original_post_types_args = [];
+    private array $original_post_types_args = [];
 
     public function __construct()
     {
@@ -74,16 +74,17 @@ class Plugin
      *
      * @param WP_Post[] $menu_items
      * @param array $args
-     * @return array
      */
-    public function set_current_ancestor($menu_items, $args)
+    public function set_current_ancestor($menu_items, $args): array
     {
         global $wp_query;
         $pages_ids = $this->get_page_ids();
         foreach ($menu_items as $key => $menu_item) {
             if (
                 $wp_query->is_singular
+                && isset($menu_item->type)
                 && $menu_item->type === 'post_type'
+                && isset($menu_item->object_id)
                 && \in_array((int) $menu_item->object_id, $pages_ids, true)
                 && !empty($wp_query->query['post_type'])
                 && $this->get_post_type_from_page_id((int) $menu_item->object_id) === $wp_query->query['post_type']
@@ -115,7 +116,7 @@ class Plugin
     /**
      * Flush rewrite rules
      */
-    public function flush_rewrite_rules(string $post_type)
+    public function flush_rewrite_rules(string $post_type): void
     {
         \do_action('pfcpt/flush_rewrite_rules', $post_type);
 
@@ -143,8 +144,6 @@ class Plugin
 
     /**
      * Modify post type object before it is registered.
-     *
-     * @param mixed  $post_type
      */
     public function update_post_type_args(array $args, string $post_type): array
     {
@@ -221,7 +220,6 @@ class Plugin
         }
 
         global $wpdb;
-
         return \str_replace("AND ({$wpdb->posts}.ID = '{$current_page_id}')", '', $where);
     }
 
@@ -389,6 +387,9 @@ class Plugin
     /**
      * Delete the setting for the corresponding post type if the page status
      * is transitioned to anything other than published.
+     *
+     * @param string $new_status
+     * @param string $old_status
      */
     public function on_transition_post_status($new_status, $old_status, WP_Post $post): void
     {
@@ -510,41 +511,46 @@ class Plugin
     }
 
     /**
-     * Undocumented function
-     *
-     * @return bool
+     * Checks if the current page is a page for custom post type.
      */
-    public function is_query_page_for_custom_post_type(?WP_Query $query = null)
+    public function is_query_page_for_custom_post_type(?WP_Query $query = null): bool
     {
-        $q = $query;
-        unset($q);
-        $_q = $_q ?? $GLOBALS['wp_query'] ?? false;
-        if (!$_q) {
-            return false;
+        $q = $query === null ? $GLOBALS['wp_query'] : $query;
+        return isset($q->is_page_for_custom_post_type) && $q->is_page_for_custom_post_type;
+    }
+
+    /**
+     * Change the template hierarchy on pages for custom post type
+     *
+     * @param array<string> $templates
+     */
+    public function set_home_template_hierarchy(array $templates): array
+    {
+        if (!isset($GLOBALS['wp_query']->is_page_for_custom_post_type)) {
+            return $templates;
         }
-        return $_q->is_page_for_custom_post_type;
+        if (!\is_string($GLOBALS['wp_query']->is_page_for_custom_post_type)) {
+            return $templates;
+        }
+        return \array_merge([
+            "home-{$GLOBALS['wp_query']->is_page_for_custom_post_type}",
+        ], $templates);
     }
 
     /**
-     * Undocumented function.
+     * Add properties to the query object so we can use conditionals
      *
-     * @param array $templates
+     * Two properties are added:
+     * - is_page_for_custom_post_type (string|false) Either the post type or false
+     * - is_{$post_type}_page (bool) Whether the current page is a page for the post type
      */
-    public function set_template_hierarchy($templates): array
+    public function set_page_for_custom_post_type_query(WP_Query $query): void
     {
-        $temps = \array_merge(["home-{$GLOBALS['wp_query']->is_page_for_custom_post_type}"], $templates);
-        return $temps;
-    }
+        if (!$query->is_main_query()) {
+            return;
+        }
 
-    /**
-     * Change query.
-     *
-     * @param WP_Query $query
-     */
-    public function set_page_for_custom_post_type_query($query): void
-    {
         $current_page_id = $this->get_page_id_from_query($query);
-
         if (!$current_page_id) {
             return;
         }
@@ -572,7 +578,7 @@ class Plugin
         $query->set('post_type', $post_type);
         $query->is_page_for_custom_post_type = $post_type;
 
-        \add_filter('home_template_hierarchy', [$this, 'set_template_hierarchy']);
+        \add_filter('home_template_hierarchy', [$this, 'set_home_template_hierarchy']);
         \add_filter('frontpage_template_hierarchy', '__return_empty_array');
     }
 
@@ -592,12 +598,10 @@ class Plugin
 
     /**
      * Get page ID from query.
-     *
-     * @param WP_Query $query
      */
-    public function get_page_id_from_query($query): int
+    public function get_page_id_from_query(WP_Query $query): ?int
     {
-        if (!empty($query->query_vars['pagename']) && isset($query->queried_object_id)) {
+        if (!empty($query->query_vars['pagename']) && $query->queried_object_id) {
             return (int) $query->queried_object_id;
         }
 
@@ -605,13 +609,13 @@ class Plugin
             return (int) $query->query_vars['page_id'];
         }
 
-        return 0; // No page queried
+        return 0;
     }
 
     /**
      * Get page ids.
      */
-    public function get_page_ids($apply_filters = true): array
+    public function get_page_ids(bool $apply_filters = true): array
     {
         $page_ids = \get_option(self::OPTION_PAGE_IDS, []);
         return \array_map(fn ($id) => (int) $id, $apply_filters ? \apply_filters('pfcpt/page_ids', $page_ids) : $page_ids);
@@ -642,16 +646,16 @@ class Plugin
      */
     public function is_page_for_custom_post_type(?string $post_type = null): bool
     {
-        $post_type_page = $this->is_query_page_for_custom_post_type();
+        $is_page_for_custom_post_type = $this->is_query_page_for_custom_post_type();
+        if (!$is_page_for_custom_post_type) {
+            return false;
+        }
+
+        $current_post_type = $GLOBALS['wp_query']->is_page_for_custom_post_type ?? null;
         if ($post_type === null) {
-            return !!$post_type_page;
+            return (bool) $current_post_type;
         }
-
-        if (!\is_array($post_type)) {
-            $post_type = [$post_type];
-        }
-
-        return \in_array($post_type_page, $post_type, true);
+        return $post_type === $current_post_type;
     }
 
     /**
@@ -708,7 +712,7 @@ class Plugin
     /**
      * Get page id for post type
      */
-    public function get_page_id_from_post_type(string $post_type, $apply_filters = true): ?int
+    public function get_page_id_from_post_type(string $post_type, bool $apply_filters = true): ?int
     {
         $page_ids = $this->get_page_ids($apply_filters);
         return $page_ids[$post_type] ?? null;
@@ -727,7 +731,7 @@ class Plugin
     /**
      * Add rewrite tags
      */
-    protected function add_rewrite_tags(string $post_type)
+    protected function add_rewrite_tags(string $post_type): void
     {
         \remove_rewrite_tag("%{$post_type}%");
         // Exclude page from regex so pagination works
@@ -745,6 +749,8 @@ class Plugin
 
     /**
      * On individual option change
+     *
+     * @param mixed $value
      */
     protected function on_option_change(string $name, $value): void
     {

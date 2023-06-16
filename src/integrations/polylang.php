@@ -25,10 +25,8 @@ function get_translated_page_id_cache_key(string $language_slug): string
  * @param string $url               not used
  * @param object $language          language in which we want the translation
  * @param int    $queried_object_id id of the queried object
- *
- * @return string
  */
-function set_is_posts_page($url, $language, $queried_object_id)
+function set_is_posts_page($url, $language, $queried_object_id): string
 {
     if (!\is_home()) {
         return $url;
@@ -37,7 +35,7 @@ function set_is_posts_page($url, $language, $queried_object_id)
     $GLOBALS['wp_query']->is_posts_page = true;
     return $url;
 }
-function reset_is_posts_page($url, $language, $queried_object_id)
+function reset_is_posts_page($url, $language, $queried_object_id): string
 {
     if (!\is_home()) {
         return $url;
@@ -130,7 +128,7 @@ function translate_slugs(array $slugs, PLL_Language $language): array
 /**
  * Flush Polylang slugs
  */
-function flush_slugs()
+function flush_slugs(): void
 {
     $languages_list = \pll_languages_list();
     if (!empty($languages_list)) {
@@ -163,7 +161,7 @@ function get_default_language_page_id(int $page_id): int
  * @param WP_Post $post
  * @param array $translations
  */
-function on_page_for_custom_post_type_change($post_id, $post, $translations)
+function on_page_for_custom_post_type_change($post_id, $post, $translations): void
 {
     $default_language = \pll_default_language();
     if (!isset($translations[$default_language])) {

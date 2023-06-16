@@ -16,7 +16,7 @@ Although these plugins provided great inspiration to design this plugin, none of
 
 ## Approach
 
-This plugin takes advantage of the native WordPress behavior, just like it does for the posts page. Which means (almost) no extra query or new function to get your page object.
+This plugin tries to solve this problem by taking advantage of the native WordPress behavior, just like it does for the posts page. Which means (almost) no extra query or new function to get your page object.
 
 In a posts page request (`show_on_front=page`, `page_for_posts={id}`), the `$wp_query` will contain both objects:
 - `$wp_query->queried_object`: the custom post type archive page (`WP_Post`)

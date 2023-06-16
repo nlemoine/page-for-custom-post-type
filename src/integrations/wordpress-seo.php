@@ -5,6 +5,7 @@ namespace n5s\PageForCustomPostType\Integrations;
 use n5s\PageForCustomPostType\Plugin;
 use Yoast\WP\SEO\Context\Meta_Tags_Context;
 use Yoast\WP\SEO\Main;
+use Yoast\WP\SEO\Models\Indexable;
 use Yoast\WP\SEO\Repositories\Indexable_Repository;
 use Yoast\WP\SEO\Surfaces\Values\Meta;
 
@@ -133,15 +134,18 @@ function fix_home_breadcrumbs(array $indexables, $context)
     $static_ancestors = [];
 
     // Push home to breadcrumbs because our PFCPT page is considered a Home_Page type
-    // @see https://github.com/Yoast/wordpress-seo/blob/250d40f33bc5423fa3a937bf5734085c57035718/src/generators/breadcrumbs-generator.php#L97-L108
-    if ($yoast->helpers->options->get('breadcrumbs-home')) {
+    // @see https://github.com/Yoast/wordpress-seo/blob/c936afcfb8b32cdab8218431ea09f19e87470cab/src/generators/breadcrumbs-generator.php#L96-L111
+    $breadcrumbs_home = $yoast->helpers->options->get('breadcrumbs-home');
+    if ($breadcrumbs_home !== '') {
         $front_page_id = $yoast->helpers->current_page->get_front_page_id();
-
         if ($front_page_id === 0) {
-            $static_ancestors[] = $indexable_repository->find_for_home_page();
+            $home_page_ancestor = $indexable_repository->find_for_home_page();
+            if (\is_a($home_page_ancestor, Indexable::class)) {
+                $static_ancestors[] = $home_page_ancestor;
+            }
         } else {
             $static_ancestor = $indexable_repository->find_by_id_and_type($front_page_id, 'post');
-            if ($static_ancestor->post_status !== 'unindexed') {
+            if (\is_a($static_ancestor, Indexable::class) && $static_ancestor->post_status !== 'unindexed') {
                 $static_ancestors[] = $static_ancestor;
             }
         }
@@ -154,8 +158,20 @@ function fix_home_breadcrumbs(array $indexables, $context)
     return $indexables;
 }
 
+function add_filter_once($hook, $callback, $priority = 10, $args = 1)
+{
+    $singular = function () use ($hook, $callback, $priority, $args, &$singular) {
+        \call_user_func_array($callback, \func_get_args());
+        \remove_filter($hook, $singular, $priority);
+    };
+
+    return \add_filter($hook, $singular, $priority, $args);
+}
+
 /**
  * Shortcircuit get_option to return the page ID for a custom post type
+ *
+ * @see https://github.com/Yoast/wordpress-seo/pull/18222
  */
 function set_page_for_custom_post_type(): void
 {
@@ -165,19 +181,58 @@ function set_page_for_custom_post_type(): void
     }
 
     /**
-     * Hijack Yoast SEO for_current_page logic which determines the current indexable
+     * Trick Yoast SEO for_current_page logic which determines the current indexable
+     *
      * @see \Yoast\WP\SEO\Repositories\Indexable_Repository::for_current_page
+     *
+     * @param mixed $value
+     * @return mixed
      */
-    \add_filter('pre_option_show_on_front', function () {
-        return 'page';
+    \add_filter('pre_option_show_on_front', function ($value) {
+        global $wp_current_filter;
+        if (
+            \is_array($wp_current_filter)
+            && isset($wp_current_filter[1])
+            && $wp_current_filter[1] === 'wp_robots'
+        ) {
+            $bt = \debug_backtrace();
+            if (
+                isset($bt[3])
+                && isset($bt[3]['file'])
+                && \basename($bt[3]['file']) === 'current-page-helper.php'
+            ) {
+                return 'page';
+            }
+        }
+        return $value;
     });
 
     /**
-     * Hijack Yoast SEO for_current_page logic which determines the current indexable
+     * Trick Yoast SEO for_current_page logic which determines the current indexable
+     *
      * @see \Yoast\WP\SEO\Repositories\Indexable_Repository::for_current_page
+     *
+     * @param mixed $value
+     * @return mixed
      */
-    \add_filter('pre_option_page_for_posts', function () {
-        return \get_queried_object_id();
+    \add_filter('pre_option_page_for_posts', function ($value) {
+        global $wp_current_filter;
+        if (
+            \is_array($wp_current_filter)
+            && isset($wp_current_filter[1])
+            && $wp_current_filter[1] === 'wp_robots'
+        ) {
+            $bt = \debug_backtrace();
+            if (
+                isset($bt[3])
+                && isset($bt[3]['file'])
+                && \basename($bt[3]['file']) === 'current-page-helper.php'
+            ) {
+                return \get_queried_object_id();
+            }
+        }
+        // return \get_queried_object_id();
+        return $value;
     });
 }
 

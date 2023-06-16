@@ -3,15 +3,16 @@
 namespace n5s\PageForCustomPostType\Integrations\ACF;
 
 use ACF_Location_Page_Type;
+use n5s\PageForCustomPostType\Plugin;
 
 class Location_Page_Type extends ACF_Location_Page_Type
 {
-    private $pfcpt;
+    private Plugin $pfcpt;
 
     public function initialize()
     {
         parent::initialize();
-        $this->pfcpt = \n5s\PageForCustomPostType\Plugin::get_instance();
+        $this->pfcpt = Plugin::get_instance();
     }
 
     public function match($rule, $screen, $field_group)

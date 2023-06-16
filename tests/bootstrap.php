@@ -13,7 +13,6 @@ $plugins_to_load = array_filter(array_map(function ($p) use ($plugins_env) {
 }, $plugins));
 
 \Mantle\Testing\manager()
-    // ->with_sqlite()
     ->loaded(function () use ($plugins_to_load): void {
         require __DIR__ . '/../plugin.php';
         foreach ($plugins_to_load as $plugin) {
@@ -24,6 +23,13 @@ $plugins_to_load = array_filter(array_map(function ($p) use ($plugins_env) {
         'page-for-custom-post-type/plugin.php',
     ], $plugins_to_load))
     ->init(function () {
+        register_post_type('bike', [
+            'public'  => true,
+            'label'   => 'Bikes',
+            'rewrite' => [
+                'slug' => 'bikes',
+            ],
+        ]);
         register_post_type('book', [
             'public'  => true,
             'label'   => 'Books',

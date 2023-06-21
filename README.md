@@ -30,6 +30,15 @@ Once activated, your custom post type will appear in Settings > Reading admin pa
 
 Choose any page you want to set your page for custom post type.
 
+## Key differences with CPT archive
+
+
+|                    | CPT archive                                       | Home for CPT                                                                      |
+| ------------------ |:-------------------------------------------------:|:---------------------------------------------------------------------------------:|
+| Conditionals       | is_post_type_archive = `true`<br>is_archive = `true`  | is_home = `true`<br>is_$posttype_page = `true`<br>is_page_for_custom_type = `$posttype` |
+| Queried object     | `WP_Post_Type`                                    | `WP_Post`                                                                         |
+| Template hierarchy | archive-$posttype.php<br>archive.php<br>index.php | home-$posttype.php<br>home.php<br>index.php                                       |
+
 ## API
 
 To be documented, in the meantime, check the `src/functions.php` file for getting an overview of available functions.

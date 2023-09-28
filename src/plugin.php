@@ -17,6 +17,8 @@ use WP_Query;
 
 class Plugin
 {
+    public const QUERY_VAR_IS_PFCPT = 'is_page_for_custom_post_type';
+
     public const OPTION_PREFIX = 'page_for_';
 
     public const OPTION_PAGE_IDS = 'pages_for_custom_post_type';
@@ -516,7 +518,7 @@ class Plugin
     public function is_query_page_for_custom_post_type(?WP_Query $query = null): bool
     {
         $q = $query === null ? $GLOBALS['wp_query'] : $query;
-        return isset($q->is_page_for_custom_post_type) && $q->is_page_for_custom_post_type;
+        return isset($q->{self::QUERY_VAR_IS_PFCPT}) && $q->{self::QUERY_VAR_IS_PFCPT};
     }
 
     /**
@@ -526,14 +528,14 @@ class Plugin
      */
     public function set_home_template_hierarchy(array $templates): array
     {
-        if (!isset($GLOBALS['wp_query']->is_page_for_custom_post_type)) {
+        if (!isset($GLOBALS['wp_query']->{self::QUERY_VAR_IS_PFCPT})) {
             return $templates;
         }
-        if (!\is_string($GLOBALS['wp_query']->is_page_for_custom_post_type)) {
+        if (!\is_string($GLOBALS['wp_query']->{self::QUERY_VAR_IS_PFCPT})) {
             return $templates;
         }
         return \array_merge([
-            "home-{$GLOBALS['wp_query']->is_page_for_custom_post_type}",
+            "home-{$GLOBALS['wp_query']->{self::QUERY_VAR_IS_PFCPT}}",
         ], $templates);
     }
 
@@ -560,7 +562,7 @@ class Plugin
         // Set conditionals
         foreach (\array_keys($page_ids) as $post_type) {
             $query->{$this->get_conditional_name($post_type)} = false;
-            $query->is_page_for_custom_post_type = false;
+            $query->{self::QUERY_VAR_IS_PFCPT} = false;
         }
 
         if (!\in_array($current_page_id, $page_ids, true)) {
@@ -576,7 +578,7 @@ class Plugin
         $query->is_home = true;
         $query->{$this->get_conditional_name($post_type)} = true;
         $query->set('post_type', $post_type);
-        $query->is_page_for_custom_post_type = $post_type;
+        $query->{self::QUERY_VAR_IS_PFCPT} = $post_type;
 
         \add_filter('home_template_hierarchy', [$this, 'set_home_template_hierarchy']);
         \add_filter('frontpage_template_hierarchy', '__return_empty_array');
@@ -589,7 +591,7 @@ class Plugin
      */
     public function on_template_redirect(): void
     {
-        if (!$this->is_page_for_custom_post_type()) {
+        if (!$this->{self::QUERY_VAR_IS_PFCPT}()) {
             return;
         }
 
@@ -651,7 +653,7 @@ class Plugin
             return false;
         }
 
-        $current_post_type = $GLOBALS['wp_query']->is_page_for_custom_post_type ?? null;
+        $current_post_type = $GLOBALS['wp_query']->{self::QUERY_VAR_IS_PFCPT} ?? null;
         if ($post_type === null) {
             return (bool) $current_post_type;
         }

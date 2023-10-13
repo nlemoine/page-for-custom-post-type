@@ -9,6 +9,26 @@ use Yoast\WP\SEO\Models\Indexable;
 use Yoast\WP\SEO\Repositories\Indexable_Repository;
 use Yoast\WP\SEO\Surfaces\Values\Meta;
 
+// Fix Schema
+add_filter('wpseo_schema_webpage_type', __NAMESPACE__ . '\\fix_schema_webpage_type', 10, 2);
+function fix_schema_webpage_type($type)
+{
+    $pfcpt = Plugin::get_instance();
+    if(!$pfcpt->is_query_page_for_custom_post_type()) {
+        return $type;
+    }
+
+    $type = (array) $type;
+    if (in_array('CollectionPage', $type, true)) {
+        return $type;
+    }
+
+    $type[] = 'CollectionPage';
+
+    return $type;
+}
+
+
 // Fix Yoast SEO breadcrumbs
 \add_filter('wpseo_breadcrumb_indexables', __NAMESPACE__ . '\\fix_home_breadcrumbs', 10, 2);
 \add_filter('wpseo_breadcrumb_indexables', __NAMESPACE__ . '\\fix_taxonomy_breadcrumbs', 10, 2);

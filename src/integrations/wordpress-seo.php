@@ -180,31 +180,8 @@ function set_page_for_custom_post_type(): void
         return;
     }
 
-    /**
-     * Trick Yoast SEO for_current_page logic which determines the current indexable
-     *
-     * @see \Yoast\WP\SEO\Repositories\Indexable_Repository::for_current_page
-     *
-     * @param mixed $value
-     * @return mixed
-     */
-    \add_filter('pre_option_show_on_front', function ($value) {
-        global $wp_current_filter;
-        if (
-            \is_array($wp_current_filter)
-            && isset($wp_current_filter[1])
-            && $wp_current_filter[1] === 'wp_robots'
-        ) {
-            $bt = \debug_backtrace();
-            if (
-                isset($bt[3])
-                && isset($bt[3]['file'])
-                && \basename($bt[3]['file']) === 'current-page-helper.php'
-            ) {
-                return 'page';
-            }
-        }
-        return $value;
+    add_filter('wpseo_frontend_page_type_simple_page_id', function() {
+        return get_queried_object_id();
     });
 
     /**
@@ -215,25 +192,46 @@ function set_page_for_custom_post_type(): void
      * @param mixed $value
      * @return mixed
      */
-    \add_filter('pre_option_page_for_posts', function ($value) {
-        global $wp_current_filter;
-        if (
-            \is_array($wp_current_filter)
-            && isset($wp_current_filter[1])
-            && $wp_current_filter[1] === 'wp_robots'
-        ) {
+    if (get_option('show_on_front') === 'page') {
+        \add_filter('pre_option_show_on_front', function ($value) {
             $bt = \debug_backtrace();
             if (
-                isset($bt[3])
-                && isset($bt[3]['file'])
-                && \basename($bt[3]['file']) === 'current-page-helper.php'
+                isset($bt[3]['file'])
+                && str_ends_with($bt[3]['file'], 'wordpress-seo/src/helpers/current-page-helper.php')
             ) {
-                return \get_queried_object_id();
+                return null;
             }
-        }
-        // return \get_queried_object_id();
-        return $value;
-    });
+            return $value;
+        });
+    }
+
+    // /**
+    //  * Trick Yoast SEO for_current_page logic which determines the current indexable
+    //  *
+    //  * @see \Yoast\WP\SEO\Repositories\Indexable_Repository::for_current_page
+    //  *
+    //  * @param mixed $value
+    //  * @return mixed
+    //  */
+    // \add_filter('pre_option_page_for_posts', function ($value) {
+    //     global $wp_current_filter;
+    //     if (
+    //         \is_array($wp_current_filter)
+    //         && isset($wp_current_filter[1])
+    //         && $wp_current_filter[1] === 'wp_robots'
+    //     ) {
+    //         $bt = \debug_backtrace();
+    //         if (
+    //             isset($bt[3])
+    //             && isset($bt[3]['file'])
+    //             && \basename($bt[3]['file']) === 'current-page-helper.php'
+    //         ) {
+    //             return \get_queried_object_id();
+    //         }
+    //     }
+    //     // return \get_queried_object_id();
+    //     return $value;
+    // });
 }
 
-\add_action('pfcpt/template_redirect', __NAMESPACE__ . '\\set_page_for_custom_post_type');
+\add_action('wp', __NAMESPACE__ . '\\set_page_for_custom_post_type');

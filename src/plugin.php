@@ -579,6 +579,16 @@ class Plugin
         $query->{$this->get_conditional_name($post_type)} = true;
         $query->set('post_type', $post_type);
         $query->{self::QUERY_VAR_IS_PFCPT} = $post_type;
+        $query->is_posts_page = true;
+
+        // Prevent WP from mistakenly thinking this is a front page
+        // When 'posts' is set as show_on_front
+        // https://github.com/WordPress/wordpress-develop/blob/781953641607c4d5b0743a6924af0e820fd54871/src/wp-includes/class-wp-query.php#L4323-L4325
+        if('posts' === get_option( 'show_on_front' )) {
+            add_filter('pre_option_show_on_front', function($value) {
+                return null;
+            });
+        }
 
         \add_filter('home_template_hierarchy', [$this, 'set_home_template_hierarchy']);
         \add_filter('frontpage_template_hierarchy', '__return_empty_array');

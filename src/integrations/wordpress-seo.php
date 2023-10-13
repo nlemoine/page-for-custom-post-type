@@ -10,16 +10,16 @@ use Yoast\WP\SEO\Repositories\Indexable_Repository;
 use Yoast\WP\SEO\Surfaces\Values\Meta;
 
 // Fix Schema
-add_filter('wpseo_schema_webpage_type', __NAMESPACE__ . '\\fix_schema_webpage_type', 10, 2);
+\add_filter('wpseo_schema_webpage_type', __NAMESPACE__ . '\\fix_schema_webpage_type', 10, 2);
 function fix_schema_webpage_type($type)
 {
     $pfcpt = Plugin::get_instance();
-    if(!$pfcpt->is_query_page_for_custom_post_type()) {
+    if (!$pfcpt->is_query_page_for_custom_post_type()) {
         return $type;
     }
 
     $type = (array) $type;
-    if (in_array('CollectionPage', $type, true)) {
+    if (\in_array('CollectionPage', $type, true)) {
         return $type;
     }
 
@@ -200,8 +200,8 @@ function set_page_for_custom_post_type(): void
         return;
     }
 
-    add_filter('wpseo_frontend_page_type_simple_page_id', function() {
-        return get_queried_object_id();
+    \add_filter('wpseo_frontend_page_type_simple_page_id', function () {
+        return \get_queried_object_id();
     });
 
     /**
@@ -212,12 +212,12 @@ function set_page_for_custom_post_type(): void
      * @param mixed $value
      * @return mixed
      */
-    if (get_option('show_on_front') === 'page') {
+    if (\get_option('show_on_front') === 'page') {
         \add_filter('pre_option_show_on_front', function ($value) {
             $bt = \debug_backtrace();
             if (
                 isset($bt[3]['file'])
-                && str_ends_with($bt[3]['file'], 'wordpress-seo/src/helpers/current-page-helper.php')
+                && \str_ends_with($bt[3]['file'], 'wordpress-seo/src/helpers/current-page-helper.php')
             ) {
                 return null;
             }

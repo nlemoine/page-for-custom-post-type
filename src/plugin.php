@@ -584,8 +584,8 @@ class Plugin
         // Prevent WP from mistakenly thinking this is a front page
         // When 'posts' is set as show_on_front
         // https://github.com/WordPress/wordpress-develop/blob/781953641607c4d5b0743a6924af0e820fd54871/src/wp-includes/class-wp-query.php#L4323-L4325
-        if('posts' === get_option( 'show_on_front' )) {
-            add_filter('pre_option_show_on_front', function($value) {
+        if (\get_option('show_on_front') === 'posts') {
+            \add_filter('pre_option_show_on_front', function ($value) {
                 return null;
             });
         }

@@ -10,7 +10,14 @@ use Yoast\WP\SEO\Repositories\Indexable_Repository;
 use Yoast\WP\SEO\Surfaces\Values\Meta;
 
 // Fix Schema
-\add_filter('wpseo_schema_webpage_type', __NAMESPACE__ . '\\fix_schema_webpage_type', 10, 2);
+\add_filter('wpseo_schema_webpage_type', __NAMESPACE__ . '\\fix_schema_webpage_type');
+/**
+ * Add CollectionPage schema to custom post type pages
+ *
+ * @param string|string[] $type
+ *
+ * @return string|string[]
+ */
 function fix_schema_webpage_type($type)
 {
     $pfcpt = Plugin::get_instance();
@@ -37,10 +44,12 @@ function fix_schema_webpage_type($type)
 /**
  * Fix Yoast breadcrumbs on post
  *
+ * @param Indexable[] $indexables
  * @param Meta_Tags_Context $context
- * @return array
+ *
+ * @return Indexable[]
  */
-function fix_post_breadcrumbs(array $indexables, $context)
+function fix_post_breadcrumbs(array $indexables, $context): array
 {
     $current_post_type = $context->indexable->object_sub_type ?? null;
     if (!$current_post_type || !\is_singular($current_post_type)) {
@@ -78,9 +87,11 @@ function fix_post_breadcrumbs(array $indexables, $context)
 /**
  * Fix Yoast breadcrumbs on taxonomy
  *
- * @return array
+ * @param Indexable[] $indexables
+ *
+ * @return Indexable[]
  */
-function fix_taxonomy_breadcrumbs(array $indexables, Meta_Tags_Context $context)
+function fix_taxonomy_breadcrumbs(array $indexables, Meta_Tags_Context $context): array
 {
     $current_taxonomy = $context->indexable->object_sub_type ?? null;
     if (!\is_tax($current_taxonomy)) {
@@ -134,10 +145,12 @@ function fix_taxonomy_breadcrumbs(array $indexables, Meta_Tags_Context $context)
 /**
  * Fix Yoast breadcrumbs on home
  *
+ * @param Indexable[] $indexables
  * @param Meta_Tags_Context $context
- * @return array
+ *
+ * @return Indexable[]
  */
-function fix_home_breadcrumbs(array $indexables, $context)
+function fix_home_breadcrumbs(array $indexables, $context): array
 {
     $pfcpt = Plugin::get_instance();
     if (!$pfcpt->is_query_page_for_custom_post_type()) {
@@ -160,12 +173,12 @@ function fix_home_breadcrumbs(array $indexables, $context)
         $front_page_id = $yoast->helpers->current_page->get_front_page_id();
         if ($front_page_id === 0) {
             $home_page_ancestor = $indexable_repository->find_for_home_page();
-            if (\is_a($home_page_ancestor, Indexable::class)) {
+            if (!\is_bool($home_page_ancestor) && \is_a($home_page_ancestor, Indexable::class)) {
                 $static_ancestors[] = $home_page_ancestor;
             }
         } else {
             $static_ancestor = $indexable_repository->find_by_id_and_type($front_page_id, 'post');
-            if (\is_a($static_ancestor, Indexable::class) && $static_ancestor->post_status !== 'unindexed') {
+            if (!\is_bool($static_ancestor) && \is_a($static_ancestor, Indexable::class) && $static_ancestor->post_status !== 'unindexed') {
                 $static_ancestors[] = $static_ancestor;
             }
         }
@@ -176,16 +189,6 @@ function fix_home_breadcrumbs(array $indexables, $context)
     }
 
     return $indexables;
-}
-
-function add_filter_once($hook, $callback, $priority = 10, $args = 1)
-{
-    $singular = function () use ($hook, $callback, $priority, $args, &$singular) {
-        \call_user_func_array($callback, \func_get_args());
-        \remove_filter($hook, $singular, $priority);
-    };
-
-    return \add_filter($hook, $singular, $priority, $args);
 }
 
 /**

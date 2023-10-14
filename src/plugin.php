@@ -198,7 +198,11 @@ class Plugin
     public function get_page_slug(int $page_id): ?string
     {
         $page_url = \get_permalink($page_id);
-        return $page_url ? \trim(\parse_url($page_url, PHP_URL_PATH), '/') : null;
+        if ($page_url === false) {
+            return null;
+        }
+        $page_path = \parse_url($page_url, PHP_URL_PATH);
+        return \is_string($page_path) ? \trim($page_path, '/') : null;
     }
 
     /**
@@ -365,8 +369,10 @@ class Plugin
     /**
      * Add an indicator to show if a page is set as a post type archive.
      *
-     * @param array   $post_states an array of post states to display after the post title
+     * @param string[]   $post_states an array of post states to display after the post title
      * @param WP_Post $post        the current post object
+     *
+     * @return string[]
      */
     public function display_post_states($post_states, $post): array
     {
@@ -524,7 +530,9 @@ class Plugin
     /**
      * Change the template hierarchy on pages for custom post type
      *
-     * @param array<string> $templates
+     * @param string[] $templates
+     *
+     * @return string[]
      */
     public function set_home_template_hierarchy(array $templates): array
     {
@@ -626,6 +634,8 @@ class Plugin
 
     /**
      * Get page ids.
+     *
+     * @return int[]
      */
     public function get_page_ids(bool $apply_filters = true): array
     {
@@ -808,6 +818,8 @@ class Plugin
 
     /**
      * Get post types.
+     *
+     * @return WP_Post_Type[]
      */
     private function get_post_types(): array
     {

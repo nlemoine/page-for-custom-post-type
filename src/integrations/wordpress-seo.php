@@ -9,6 +9,33 @@ use Yoast\WP\SEO\Models\Indexable;
 use Yoast\WP\SEO\Repositories\Indexable_Repository;
 use Yoast\WP\SEO\Surfaces\Values\Meta;
 
+// Fix Schema
+\add_filter('wpseo_schema_webpage_type', __NAMESPACE__ . '\\fix_schema_webpage_type');
+/**
+ * Add CollectionPage schema to custom post type pages
+ *
+ * @param string|string[] $type
+ *
+ * @return string|string[]
+ */
+function fix_schema_webpage_type($type)
+{
+    $pfcpt = Plugin::get_instance();
+    if (!$pfcpt->is_query_page_for_custom_post_type()) {
+        return $type;
+    }
+
+    $type = (array) $type;
+    if (\in_array('CollectionPage', $type, true)) {
+        return $type;
+    }
+
+    $type[] = 'CollectionPage';
+
+    return $type;
+}
+
+
 // Fix Yoast SEO breadcrumbs
 \add_filter('wpseo_breadcrumb_indexables', __NAMESPACE__ . '\\fix_home_breadcrumbs', 10, 2);
 \add_filter('wpseo_breadcrumb_indexables', __NAMESPACE__ . '\\fix_taxonomy_breadcrumbs', 10, 2);
@@ -17,10 +44,12 @@ use Yoast\WP\SEO\Surfaces\Values\Meta;
 /**
  * Fix Yoast breadcrumbs on post
  *
+ * @param Indexable[] $indexables
  * @param Meta_Tags_Context $context
- * @return array
+ *
+ * @return Indexable[]
  */
-function fix_post_breadcrumbs(array $indexables, $context)
+function fix_post_breadcrumbs(array $indexables, $context): array
 {
     $current_post_type = $context->indexable->object_sub_type ?? null;
     if (!$current_post_type || !\is_singular($current_post_type)) {
@@ -58,9 +87,11 @@ function fix_post_breadcrumbs(array $indexables, $context)
 /**
  * Fix Yoast breadcrumbs on taxonomy
  *
- * @return array
+ * @param Indexable[] $indexables
+ *
+ * @return Indexable[]
  */
-function fix_taxonomy_breadcrumbs(array $indexables, Meta_Tags_Context $context)
+function fix_taxonomy_breadcrumbs(array $indexables, Meta_Tags_Context $context): array
 {
     $current_taxonomy = $context->indexable->object_sub_type ?? null;
     if (!\is_tax($current_taxonomy)) {
@@ -114,10 +145,12 @@ function fix_taxonomy_breadcrumbs(array $indexables, Meta_Tags_Context $context)
 /**
  * Fix Yoast breadcrumbs on home
  *
+ * @param Indexable[] $indexables
  * @param Meta_Tags_Context $context
- * @return array
+ *
+ * @return Indexable[]
  */
-function fix_home_breadcrumbs(array $indexables, $context)
+function fix_home_breadcrumbs(array $indexables, $context): array
 {
     $pfcpt = Plugin::get_instance();
     if (!$pfcpt->is_query_page_for_custom_post_type()) {
@@ -140,12 +173,12 @@ function fix_home_breadcrumbs(array $indexables, $context)
         $front_page_id = $yoast->helpers->current_page->get_front_page_id();
         if ($front_page_id === 0) {
             $home_page_ancestor = $indexable_repository->find_for_home_page();
-            if (\is_a($home_page_ancestor, Indexable::class)) {
+            if (!\is_bool($home_page_ancestor) && \is_a($home_page_ancestor, Indexable::class)) {
                 $static_ancestors[] = $home_page_ancestor;
             }
         } else {
             $static_ancestor = $indexable_repository->find_by_id_and_type($front_page_id, 'post');
-            if (\is_a($static_ancestor, Indexable::class) && $static_ancestor->post_status !== 'unindexed') {
+            if (!\is_bool($static_ancestor) && \is_a($static_ancestor, Indexable::class) && $static_ancestor->post_status !== 'unindexed') {
                 $static_ancestors[] = $static_ancestor;
             }
         }
@@ -156,16 +189,6 @@ function fix_home_breadcrumbs(array $indexables, $context)
     }
 
     return $indexables;
-}
-
-function add_filter_once($hook, $callback, $priority = 10, $args = 1)
-{
-    $singular = function () use ($hook, $callback, $priority, $args, &$singular) {
-        \call_user_func_array($callback, \func_get_args());
-        \remove_filter($hook, $singular, $priority);
-    };
-
-    return \add_filter($hook, $singular, $priority, $args);
 }
 
 /**
@@ -180,31 +203,8 @@ function set_page_for_custom_post_type(): void
         return;
     }
 
-    /**
-     * Trick Yoast SEO for_current_page logic which determines the current indexable
-     *
-     * @see \Yoast\WP\SEO\Repositories\Indexable_Repository::for_current_page
-     *
-     * @param mixed $value
-     * @return mixed
-     */
-    \add_filter('pre_option_show_on_front', function ($value) {
-        global $wp_current_filter;
-        if (
-            \is_array($wp_current_filter)
-            && isset($wp_current_filter[1])
-            && $wp_current_filter[1] === 'wp_robots'
-        ) {
-            $bt = \debug_backtrace();
-            if (
-                isset($bt[3])
-                && isset($bt[3]['file'])
-                && \basename($bt[3]['file']) === 'current-page-helper.php'
-            ) {
-                return 'page';
-            }
-        }
-        return $value;
+    \add_filter('wpseo_frontend_page_type_simple_page_id', function () {
+        return \get_queried_object_id();
     });
 
     /**
@@ -215,25 +215,46 @@ function set_page_for_custom_post_type(): void
      * @param mixed $value
      * @return mixed
      */
-    \add_filter('pre_option_page_for_posts', function ($value) {
-        global $wp_current_filter;
-        if (
-            \is_array($wp_current_filter)
-            && isset($wp_current_filter[1])
-            && $wp_current_filter[1] === 'wp_robots'
-        ) {
+    if (\get_option('show_on_front') === 'page') {
+        \add_filter('pre_option_show_on_front', function ($value) {
             $bt = \debug_backtrace();
             if (
-                isset($bt[3])
-                && isset($bt[3]['file'])
-                && \basename($bt[3]['file']) === 'current-page-helper.php'
+                isset($bt[3]['file'])
+                && \str_ends_with($bt[3]['file'], 'wordpress-seo/src/helpers/current-page-helper.php')
             ) {
-                return \get_queried_object_id();
+                return null;
             }
-        }
-        // return \get_queried_object_id();
-        return $value;
-    });
+            return $value;
+        });
+    }
+
+    // /**
+    //  * Trick Yoast SEO for_current_page logic which determines the current indexable
+    //  *
+    //  * @see \Yoast\WP\SEO\Repositories\Indexable_Repository::for_current_page
+    //  *
+    //  * @param mixed $value
+    //  * @return mixed
+    //  */
+    // \add_filter('pre_option_page_for_posts', function ($value) {
+    //     global $wp_current_filter;
+    //     if (
+    //         \is_array($wp_current_filter)
+    //         && isset($wp_current_filter[1])
+    //         && $wp_current_filter[1] === 'wp_robots'
+    //     ) {
+    //         $bt = \debug_backtrace();
+    //         if (
+    //             isset($bt[3])
+    //             && isset($bt[3]['file'])
+    //             && \basename($bt[3]['file']) === 'current-page-helper.php'
+    //         ) {
+    //             return \get_queried_object_id();
+    //         }
+    //     }
+    //     // return \get_queried_object_id();
+    //     return $value;
+    // });
 }
 
-\add_action('pfcpt/template_redirect', __NAMESPACE__ . '\\set_page_for_custom_post_type');
+\add_action('wp', __NAMESPACE__ . '\\set_page_for_custom_post_type');

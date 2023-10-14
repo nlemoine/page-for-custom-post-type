@@ -23,7 +23,7 @@ function get_translated_page_id_cache_key(string $language_slug): string
  * @see https://github.com/polylang/polylang/blob/88ee8ed65af4f92c0225e4faa46d5f3e640173ba/frontend/frontend-static-pages.php#L122-L146
  *
  * @param string $url               not used
- * @param object $language          language in which we want the translation
+ * @param PLL_Language $language          language in which we want the translation
  * @param int    $queried_object_id id of the queried object
  */
 function set_is_posts_page($url, $language, $queried_object_id): string
@@ -35,6 +35,13 @@ function set_is_posts_page($url, $language, $queried_object_id): string
     $GLOBALS['wp_query']->is_posts_page = true;
     return $url;
 }
+/**
+ * Undocumented function
+ *
+ * @param string       $url
+ * @param PLL_Language $language
+ * @param int          $queried_object_id
+ */
 function reset_is_posts_page($url, $language, $queried_object_id): string
 {
     if (!\is_home()) {
@@ -49,6 +56,10 @@ function reset_is_posts_page($url, $language, $queried_object_id): string
 
 /**
  * Set translasted IDs
+ *
+ * @param int[] $page_ids
+ *
+ * @return int[]
  */
 function set_translated_page_id(array $page_ids): array
 {
@@ -149,7 +160,11 @@ function get_default_language_page_id(int $page_id): int
     if (!empty(\pll_current_language())) {
         return $page_id;
     }
-    $default_page_id = \pll_get_post($page_id, \pll_default_language());
+    $default_language = \pll_default_language();
+    if (!$default_language) {
+        return $page_id;
+    }
+    $default_page_id = \pll_get_post($page_id, $default_language);
     return $default_page_id ? $default_page_id : $page_id;
 }
 \add_filter('pfcpt/post_type_from_id/page_id', __NAMESPACE__ . '\\get_default_language_page_id');
@@ -159,7 +174,7 @@ function get_default_language_page_id(int $page_id): int
  *
  * @param int $post_id
  * @param WP_Post $post
- * @param array $translations
+ * @param int[] $translations
  */
 function on_page_for_custom_post_type_change($post_id, $post, $translations): void
 {
@@ -176,6 +191,9 @@ function on_page_for_custom_post_type_change($post_id, $post, $translations): vo
     }
 
     $post_type = \array_search($default_page_for_post_type_id, $page_ids, true);
+    if (!\is_string($post_type)) {
+        return;
+    }
 
     // Flush cache/rules
     $pfcpt->flush_rewrite_rules($post_type);

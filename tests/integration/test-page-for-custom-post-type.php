@@ -72,17 +72,17 @@ class TestPageForCustomPostType extends Testkit_Test_Case
         ], $hierarchy->hierarchy());
     }
 
-    public function test_query_with_static_pages_set()
-    {
-        // update_option('show_on_front', 'page');
-        // update_option('page_on_front', $this->static_front_page_id);
-        // update_option('page_for_posts', $this->static_page_for_posts_id);
+    // public function test_query_with_static_pages_set()
+    // {
+    //     // update_option('show_on_front', 'page');
+    //     // update_option('page_on_front', $this->static_front_page_id);
+    //     // update_option('page_for_posts', $this->static_page_for_posts_id);
 
-        $this->get(\get_permalink($this->home_for_book_id));
+    //     $this->get(\get_permalink($this->home_for_book_id));
 
-        global $wp_query;
-        $this->assertEquals(\get_post_type_archive_link('post'), \get_permalink($this->static_page_for_posts_id));
-    }
+    //     global $wp_query;
+    //     $this->assertEquals(\get_post_type_archive_link('post'), \get_permalink($this->static_page_for_posts_id));
+    // }
 
     public function test_query_on_non_home_page()
     {

@@ -49,6 +49,7 @@ class Plugin
 
         // Update rewrite tags
         \add_action('registered_post_type', [$this, 'add_pagination_rewrite_tags'], 10, 2);
+        \add_action('registered_post_type', [$this, 'add_pagination_rewrite_tags'], 20, 2); // after extended CPT
 
         // On post status changes
         \add_action('transition_post_status', [$this, 'on_transition_post_status'], 10, 3);
@@ -112,7 +113,7 @@ class Plugin
             return;
         }
 
-        $this->add_rewrite_tags($post_type_object->name);
+        $this->add_rewrite_tags($post_type_object);
     }
 
     /**
@@ -216,6 +217,7 @@ class Plugin
         if (!$this->is_query_page_for_custom_post_type($query)) {
             return $where;
         }
+
         $current_page_id = $this->get_page_id_from_query($query);
         if (!$current_page_id) {
             return $where;
@@ -301,7 +303,8 @@ class Plugin
 
         // Only check for duplicate if the page id is not empty
         $old_value = (int) \get_option($name);
-        if (\in_array($value, \array_filter($page_ids), true)
+        if (
+            \in_array($value, \array_filter($page_ids), true)
             && $value !== $old_value
         ) {
             $error = \sprintf(
@@ -363,7 +366,7 @@ class Plugin
         <p class="description">
             <?php \printf(\esc_html__('Be extremely carefull, setting or changing the page for the "%s" custom post type will change all your "%s" URLs and may hurt SEO.'), \mb_strtolower($args['post_type']->labels->singular_name), \mb_strtolower($args['post_type']->labels->name)); ?>
         </p>
-        <?php
+<?php
     }
 
     /**
@@ -621,7 +624,13 @@ class Plugin
      */
     public function get_page_id_from_query(WP_Query $query): ?int
     {
-        if (!empty($query->query_vars['pagename']) && $query->queried_object_id) {
+        if (
+            (
+                !empty($query->query_vars['pagename'])
+                || !empty($query->query_vars['name'])
+            )
+            && $query->queried_object_id
+        ) {
             return (int) $query->queried_object_id;
         }
 
@@ -753,12 +762,74 @@ class Plugin
     /**
      * Add rewrite tags
      */
-    protected function add_rewrite_tags(string $post_type): void
+    protected function add_rewrite_tags(WP_Post_Type $post_type): void
     {
-        \remove_rewrite_tag("%{$post_type}%");
-        // Exclude page from regex so pagination works
-        // add_rewrite_tag("%{$post_type_object->name}%", '(\b(?!page\b)[^/]+)', "{$post_type_object->name}=");
-        \add_rewrite_tag("%{$post_type}%", '(?!page)([^/]+)', "{$post_type}=");
+        $exclude_page_regex = '(?!page)';
+
+        $permastruct = $post_type->rewrite['permastruct'] ?? null;
+        if ($permastruct === null) {
+            \remove_rewrite_tag("%{$post_type->name}%");
+            // Exclude page from regex so pagination works
+            if ($post_type->hierarchical) {
+                \add_rewrite_tag("%{$post_type->name}%", "{$exclude_page_regex}(.+?)", $post_type->query_var ? "{$post_type->query_var}=" : "post_type={$post_type->name}&pagename=");
+            } else {
+                \add_rewrite_tag("%{$post_type->name}%", "{$exclude_page_regex}([^/]+)", $post_type->query_var ? "{$post_type->query_var}=" : "post_type={$post_type->name}&name=");
+            }
+            return;
+        }
+
+        // /slug/%category%/%postname%/
+        // /slug/%postname%/%category%/
+        // /slug/%category%/%post_id%/
+        // /slug/%category%/%post_id%-%postname%/
+
+        $permastruct_parts = \array_reverse(\explode('/', \ltrim($permastruct, '/')));
+
+        $triggger_watch = [
+            '%postname%',
+            '%post_id%',
+        ];
+        $should_replace_tags = [
+            '%category%',
+            '%author%',
+        ];
+        $should_watch_next = false;
+        $permastruct_replacements = [];
+        foreach ($permastruct_parts as $part) {
+            if (!$should_watch_next && !\in_array($part, $triggger_watch, true)) {
+                continue;
+            }
+            if (!$should_watch_next) {
+                $should_watch_next = true;
+                continue;
+            }
+
+            if (!\in_array($part, $should_replace_tags, true)) {
+                continue;
+            }
+
+            $rewrite_code_index = \array_search($part, $GLOBALS['wp_rewrite']->rewritecode, true);
+            if (!$rewrite_code_index) {
+                continue;
+            }
+            if (
+                isset($GLOBALS['wp_rewrite']->rewritereplace[$rewrite_code_index])
+                && isset($GLOBALS['wp_rewrite']->rewritereplace[$rewrite_code_index])
+                // The tag alraedy contains the exclude regex
+                && !\str_contains($GLOBALS['wp_rewrite']->rewritereplace[$rewrite_code_index], $exclude_page_regex)
+            ) {
+                $permastruct_replacements[] = [
+                    'tag'   => $part,
+                    'regex' => \sprintf('%s%s', $exclude_page_regex, $GLOBALS['wp_rewrite']->rewritereplace[$rewrite_code_index]),
+                    'query' => $GLOBALS['wp_rewrite']->queryreplace[$rewrite_code_index],
+                ];
+            }
+        }
+
+        foreach ($permastruct_replacements as $replacement) {
+            \remove_rewrite_tag($replacement['tag']);
+            \add_rewrite_tag(...$replacement);
+        }
     }
 
     /**

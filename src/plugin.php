@@ -543,7 +543,7 @@ class Plugin
             return $templates;
         }
         return \array_merge([
-            "home-{$GLOBALS['wp_query']->{self::QUERY_VAR_IS_PFCPT}}",
+            "home-{$GLOBALS['wp_query']->{self::QUERY_VAR_IS_PFCPT}}.php",
         ], $templates);
     }
 

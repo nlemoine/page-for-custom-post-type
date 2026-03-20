@@ -7,7 +7,7 @@ use Mantle\Testkit\Test_Case as Testkit_Test_Case;
 use n5s\PageForCustomPostType\Plugin;
 use Yoast\WP\SEO\Memoizers\Meta_Tags_Context_Memoizer;
 
-class TestPageForCustomPostType extends Testkit_Test_Case
+class PageForCustomPostTypeTest extends Testkit_Test_Case
 {
     private string $home_for_book_title = 'Home for Books';
 
@@ -62,7 +62,7 @@ class TestPageForCustomPostType extends Testkit_Test_Case
         $hierarchy = new Hierarchy();
         $this->assertEquals([
             'home' => [
-                "home-{$this->book_post_type}",
+                "home-{$this->book_post_type}.php",
                 'home',
                 'index',
             ],

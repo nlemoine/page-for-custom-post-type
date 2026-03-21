@@ -12,47 +12,65 @@
 	"authors": [
 		{
 			"name": "Nicolas Lemoine",
-			"email": "dev@niconico.fr",
-			"homepage": "https://github.com/nlemoine"
+			"email": "nico@n5s.dev",
+			"homepage": "https://n5s.dev/"
 		}
 	],
 	"homepage": "https://github.com/nlemoine/page-for-custom-post-type",
 	"support": {
-		"issues": "https://github.com/nlemoine/page-for-post-type/issues",
-		"source": "https://github.com/nlemoine/page-for-post-type"
+		"issues": "https://github.com/nlemoine/page-for-custom-post-type/issues",
+		"source": "https://github.com/nlemoine/page-for-custom-post-type"
 	},
 	"require": {
-		"composer/installers": "^1.0 || ^2.0"
+		"composer/installers": "^1.0 || ^2.0",
+		"php": "^8.2"
 	},
 	"require-dev": {
-		"brain/hierarchy": "^3.2",
-		"ergebnis/composer-normalize": "^2.28",
-		"mantle-framework/testkit": "*",
-		"php-stubs/acf-pro-stubs": "^6.0",
-		"php-stubs/wordpress-seo-stubs": "^20.5",
-		"phpstan/extension-installer": "^1.3",
-		"phpstan/phpstan": "^1.10",
-		"roots/wordpress": "^6.2",
-		"symplify/easy-coding-standard": "^11.0",
-		"szepeviktor/phpstan-wordpress": "^1.3",
-		"wpackagist-plugin/polylang": "^3.4",
-		"wpackagist-plugin/wordpress-seo": "^20.9",
-		"wpsyntex/polylang-stubs": "^3.4"
+		"ergebnis/composer-normalize": "^2.48",
+		"mantle-framework/testkit": "^1.17",
+		"wp-plugin/advanced-custom-fields": "^6",
+		"wp-plugin/polylang": "^3.4",
+		"wp-plugin/wordpress-seo": "^26 || ^27",
+		"wp-plugin/autodescription": "^5.1",
+		"szepeviktor/phpstan-wordpress": "^2.0",
+		"phpstan/extension-installer": "^1.4",
+		"phpstan/phpstan": "^2.1"
 	},
 	"repositories": [
 		{
+			"name": "wp-packages",
 			"type": "composer",
-			"url": "https://wpackagist.org"
+			"url": "https://repo.wp-packages.org",
+			"only": [
+				"wp-plugin/*",
+				"wp-theme/*"
+			]
 		}
 	],
+	"minimum-stability": "dev",
+	"prefer-stable": true,
+	"autoload": {
+		"psr-4": {
+			"n5s\\PageForCustomPostType\\": "src/"
+		},
+		"files": [
+			"src/functions.php"
+		]
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"n5s\\PageForCustomPostType\\Tests\\": "tests/"
+		}
+	},
 	"config": {
 		"allow-plugins": {
-			"composer/installers": true,
-			"roots/wordpress-core-installer": true,
-			"ergebnis/composer-normalize": true,
 			"alleyinteractive/composer-wordpress-autoloader": true,
+			"composer/installers": true,
+			"dealerdirect/phpcodesniffer-composer-installer": true,
+			"ergebnis/composer-normalize": true,
+			"pestphp/pest-plugin": true,
 			"phpstan/extension-installer": true,
-			"pestphp/pest-plugin": true
+			"roots/wordpress-core-installer": true
 		}
 	},
 	"scripts": {
@@ -62,7 +80,14 @@
 		"cs": "ecs check",
 		"cs:fix": "ecs check --fix",
 		"test": [
-			"PLUGINS=wordpress-seo phpunit --testdox"
-		]
+			"@test:core",
+			"@test:wordpress-seo",
+			"@test:polylang",
+			"@test:autodescription"
+		],
+		"test:autodescription": "PLUGINS=autodescription phpunit",
+		"test:core": "phpunit",
+		"test:polylang": "PLUGINS=polylang phpunit",
+		"test:wordpress-seo": "PLUGINS=wordpress-seo phpunit"
 	}
 }

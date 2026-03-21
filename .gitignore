@@ -1,5 +1,8 @@
-vendor
-wordpress
-wp-content
-.phpunit.result.cache
-composer.lock
+# Composer
+/vendor
+/composer.lock
+
+# Tests
+/wp-content
+/.phpunit.result.cache
+/tmp

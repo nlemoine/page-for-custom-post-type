@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<ruleset>
+    <rule ref="Syde-Extra" />
+
+    <config name="testVersion" value="8.2-" />
+
+    <file>./src</file>
+    <file>./tests</file>
+
+    <arg name="colors" />
+    <arg value="sp" />
+
+    <!-- PSR-4 namespace configuration. -->
+    <rule ref="SlevomatCodingStandard.Files.TypeNameMatchesFileName">
+        <properties>
+            <property name="rootNamespaces" type="array">
+                <element key="src" value="n5s\PageForCustomPostType" />
+                <element key="tests" value="n5s\PageForCustomPostType\Tests" />
+                <element key="tests/unit" value="n5s\PageForCustomPostType\Tests\Unit" />
+                <element key="tests/integration" value="n5s\PageForCustomPostType\Tests\Integration" />
+            </property>
+        </properties>
+    </rule>
+
+    <rule ref="Syde-Extra">
+        <exclude name="Syde.Files.LineLength.TooLong" />
+        <exclude name="Syde.Classes.DisallowGetterSetter.GetterFound" />
+        <exclude name="Syde.NamingConventions.ElementNameMinimalLength.TooShort" />
+        <exclude name="SlevomatCodingStandard.Classes.ForbiddenPublicProperty.ForbiddenPublicProperty" />
+    </rule>
+
+</ruleset>

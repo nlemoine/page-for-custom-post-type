@@ -1,23 +1,37 @@
 <?php
+
 /**
  * Plugin Name: Page for custom post type
  * Plugin URI: https://github.com/nlemoine/page-for-custom-post-type
  * Description: Allows you to set pages for any custom post type archive
- * Version: 0.3.0
+ * Version: 0.5.0
  * Author: Nicolas Lemoine
  * Author URI: https://n5s.dev/
+ * Requires PHP: 8.2
  */
 
-require_once __DIR__ . '/src/plugin.php';
-require_once __DIR__ . '/src/functions.php';
-add_action('plugins_loaded', function () {
-    if (!function_exists('PLL')) {
-        return;
-    }
-    require_once __DIR__ . '/src/integrations/polylang.php';
-});
-require_once __DIR__ . '/src/integrations/wordpress-seo.php';
-require_once __DIR__ . '/src/integrations/acf/acf.php';
+declare(strict_types=1);
 
-// Hook before Polylang
-add_action('plugins_loaded', [\n5s\PageForCustomPostType\Plugin::class, 'get_instance'], 0);
+namespace n5s\PageForCustomPostType;
+
+use n5s\PageForCustomPostType\Integration\IntegrationInterface;
+
+// Prevent direct access
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+// Initialize plugin (hook before Polylang)
+add_action('plugins_loaded', static function (): void {
+    $plugin = Plugin::getInstance();
+    $plugin->init();
+
+    $container = $plugin->getContainer();
+    foreach ($plugin->getIntegrations() as $integrationClass) {
+        $integration = $container->get($integrationClass);
+
+        if ($integration->isSupported()) {
+            $integration->registerHooks();
+        }
+    }
+}, 0);

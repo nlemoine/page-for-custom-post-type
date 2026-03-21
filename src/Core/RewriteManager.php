@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace n5s\PageForCustomPostType\Core;
 
+use WP_Post_Type;
+
 /**
  * Manages rewrite rules, page slugs, and related caching.
  */
@@ -84,12 +86,99 @@ final class RewriteManager
 
     /**
      * Add rewrite tags for a post type.
+     *
+     * Handles both standard and custom permalink structures (permastructs).
+     * For custom permastructs (e.g. from extended-cpts), we need to add a
+     * (?!page) exclusion to tags that precede %postname%/%post_id% in the
+     * structure, otherwise /page/2/ pagination URLs get incorrectly matched.
      */
-    public function addRewriteTags(string $postType): void
+    public function addRewriteTags(WP_Post_Type $postType): void
     {
-        \remove_rewrite_tag("%{$postType}%");
-        // Exclude "page" from regex so pagination works
-        \add_rewrite_tag("%{$postType}%", '(?!page)([^/]+)', "{$postType}=");
+        $excludePageRegex = '(?!page)';
+
+        $permastruct = $postType->rewrite['permastruct'] ?? null;
+
+        if ($permastruct === null) {
+            \remove_rewrite_tag("%{$postType->name}%");
+
+            if ($postType->hierarchical) {
+                \add_rewrite_tag(
+                    "%{$postType->name}%",
+                    "{$excludePageRegex}(.+?)",
+                    $postType->query_var ? "{$postType->query_var}=" : "post_type={$postType->name}&pagename="
+                );
+            } else {
+                \add_rewrite_tag(
+                    "%{$postType->name}%",
+                    "{$excludePageRegex}([^/]+)",
+                    $postType->query_var ? "{$postType->query_var}=" : "post_type={$postType->name}&name="
+                );
+            }
+
+            return;
+        }
+
+        // Custom permastruct: find tags before %postname%/%post_id% that need
+        // the (?!page) exclusion added to their regex.
+        $this->fixPermastructRewriteTags($permastruct, $excludePageRegex);
+    }
+
+    /**
+     * Fix rewrite tags in a custom permastruct to exclude "page" from matching.
+     *
+     * Parses the permastruct backwards from %postname%/%post_id% and adds
+     * (?!page) to preceding tags like %category% or %author%.
+     */
+    private function fixPermastructRewriteTags(string $permastruct, string $excludePageRegex): void
+    {
+        /** @var \WP_Rewrite */
+        global $wp_rewrite;
+
+        $parts = \array_reverse(\explode('/', \ltrim($permastruct, '/')));
+
+        $triggerTags = ['%postname%', '%post_id%'];
+        $replaceTags = ['%category%', '%author%'];
+        $shouldWatchNext = false;
+        $replacements = [];
+
+        foreach ($parts as $part) {
+            if (!$shouldWatchNext && !\in_array($part, $triggerTags, true)) {
+                continue;
+            }
+
+            if (!$shouldWatchNext) {
+                $shouldWatchNext = true;
+                continue;
+            }
+
+            if (!\in_array($part, $replaceTags, true)) {
+                continue;
+            }
+
+            $tagIndex = \array_search($part, $wp_rewrite->rewritecode, true);
+
+            if ($tagIndex === false) {
+                continue;
+            }
+
+            if (
+                !isset($wp_rewrite->rewritereplace[$tagIndex])
+                || \str_contains($wp_rewrite->rewritereplace[$tagIndex], $excludePageRegex)
+            ) {
+                continue;
+            }
+
+            $replacements[] = [
+                'tag' => $part,
+                'regex' => $excludePageRegex . $wp_rewrite->rewritereplace[$tagIndex],
+                'query' => $wp_rewrite->queryreplace[$tagIndex],
+            ];
+        }
+
+        foreach ($replacements as $replacement) {
+            \remove_rewrite_tag($replacement['tag']);
+            \add_rewrite_tag($replacement['tag'], $replacement['regex'], $replacement['query']);
+        }
     }
 
     /**

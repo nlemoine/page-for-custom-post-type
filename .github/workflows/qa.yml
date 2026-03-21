@@ -45,6 +45,11 @@ jobs:
       fail-fast: false
       matrix:
         php: ${{ fromJson(needs.php-versions.outputs.versions) }}
+        suite:
+          - test:core
+          - test:wordpress-seo
+          - test:polylang
+          - test:autodescription
     steps:
       - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
@@ -52,7 +57,36 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: none
       - uses: ramsey/composer-install@v3
-      - run: composer test:integration
+      - run: composer ${{ matrix.suite }}
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: pcov
+      - uses: ramsey/composer-install@v3
+      - name: Generate coverage (core)
+        run: php -d pcov.enabled=1 vendor/bin/phpunit --testsuite=unit,integration --coverage-clover=coverage-core.xml
+      - name: Check core coverage threshold
+        run: |
+          COVERAGE=$(php -r '
+            $xml = simplexml_load_file("coverage-core.xml");
+            $lines = 0; $covered = 0;
+            foreach ($xml->project->package as $p) {
+              foreach ($p->file as $f) {
+                $name = (string)$f["name"];
+                if (str_contains($name, "/Integration/")) continue;
+                $lines += (int)$f->metrics["statements"];
+                $covered += (int)$f->metrics["coveredstatements"];
+              }
+            }
+            echo round($covered / $lines * 100, 1);
+          ')
+          echo "Core coverage: ${COVERAGE}%"
+          php -r "exit((float)'${COVERAGE}' >= 95.0 ? 0 : 1);"
 
   static-analysis:
     uses: inpsyde/reusable-workflows/.github/workflows/static-analysis-php.yml@main

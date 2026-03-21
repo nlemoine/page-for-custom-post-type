@@ -82,7 +82,7 @@ final class PostType
             return;
         }
 
-        $this->rewriteManager->addRewriteTags($postType);
+        $this->rewriteManager->addRewriteTags($postTypeObject);
     }
 
     /**

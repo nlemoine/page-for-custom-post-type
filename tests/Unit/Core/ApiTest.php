@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace n5s\PageForCustomPostType\Tests\Unit\Core;
 
 use n5s\PageForCustomPostType\Core\Api;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use WP_Post_Type;
 
@@ -23,11 +24,17 @@ class ApiTest extends TestCase
         $this->api = new Api();
     }
 
-    public function testGetOptionNameReturnsPrefixedString(): void
+    #[DataProvider('optionNameProvider')]
+    public function testGetOptionNameReturnsPrefixedString(string $postType, string $expected): void
     {
-        $this->assertEquals('page_for_book', $this->api->getOptionName('book'));
-        $this->assertEquals('page_for_movie', $this->api->getOptionName('movie'));
-        $this->assertEquals('page_for_custom_type', $this->api->getOptionName('custom_type'));
+        $this->assertEquals($expected, $this->api->getOptionName($postType));
+    }
+
+    public static function optionNameProvider(): iterable
+    {
+        yield 'simple' => ['book', 'page_for_book'];
+        yield 'simple 2' => ['movie', 'page_for_movie'];
+        yield 'with underscore' => ['custom_type', 'page_for_custom_type'];
     }
 
     public function testGetOptionNameWithWpPostTypeObject(): void
@@ -37,11 +44,17 @@ class ApiTest extends TestCase
         $this->assertEquals('page_for_book', $this->api->getOptionName($postType));
     }
 
-    public function testGetConditionalNameReturnsIsPrefixWithSuffix(): void
+    #[DataProvider('conditionalNameProvider')]
+    public function testGetConditionalNameReturnsIsPrefixWithSuffix(string $postType, string $expected): void
     {
-        $this->assertEquals('is_book_page', $this->api->getConditionalName('book'));
-        $this->assertEquals('is_movie_page', $this->api->getConditionalName('movie'));
-        $this->assertEquals('is_custom_type_page', $this->api->getConditionalName('custom_type'));
+        $this->assertEquals($expected, $this->api->getConditionalName($postType));
+    }
+
+    public static function conditionalNameProvider(): iterable
+    {
+        yield 'simple' => ['book', 'is_book_page'];
+        yield 'simple 2' => ['movie', 'is_movie_page'];
+        yield 'with underscore' => ['custom_type', 'is_custom_type_page'];
     }
 
     public function testGetConditionalNameWithWpPostTypeObject(): void
@@ -51,34 +64,23 @@ class ApiTest extends TestCase
         $this->assertEquals('is_book_page', $this->api->getConditionalName($postType));
     }
 
-    public function testShouldConsiderPostTypeReturnsTrueForEligiblePostType(): void
+    #[DataProvider('shouldConsiderPostTypeProvider')]
+    public function testShouldConsiderPostType(bool $expected, bool $builtin, bool $publiclyQueryable): void
     {
-        $postType = new WP_Post_Type('book', [
-            '_builtin' => false,
-            'publicly_queryable' => true,
+        $postType = new WP_Post_Type('test', [
+            '_builtin' => $builtin,
+            'publicly_queryable' => $publiclyQueryable,
         ]);
 
-        $this->assertTrue($this->api->shouldConsiderPostType($postType));
+        $this->assertSame($expected, $this->api->shouldConsiderPostType($postType));
     }
 
-    public function testShouldConsiderPostTypeReturnsFalseForBuiltinPostType(): void
+    public static function shouldConsiderPostTypeProvider(): iterable
     {
-        $postType = new WP_Post_Type('post', [
-            '_builtin' => true,
-            'publicly_queryable' => true,
-        ]);
-
-        $this->assertFalse($this->api->shouldConsiderPostType($postType));
-    }
-
-    public function testShouldConsiderPostTypeReturnsFalseForNonPubliclyQueryable(): void
-    {
-        $postType = new WP_Post_Type('private_type', [
-            '_builtin' => false,
-            'publicly_queryable' => false,
-        ]);
-
-        $this->assertFalse($this->api->shouldConsiderPostType($postType));
+        yield 'eligible' => [true, false, true];
+        yield 'builtin' => [false, true, true];
+        yield 'not publicly queryable' => [false, false, false];
+        yield 'builtin and not queryable' => [false, true, false];
     }
 
     public function testConstantsAreDefined(): void
@@ -89,11 +91,17 @@ class ApiTest extends TestCase
         $this->assertEquals('pages_for_custom_post_type', Api::OPTION_PAGE_IDS);
     }
 
-    public function testGetUseSlugOptionNameReturnsSuffixedString(): void
+    #[DataProvider('useSlugOptionNameProvider')]
+    public function testGetUseSlugOptionNameReturnsSuffixedString(string $postType, string $expected): void
     {
-        $this->assertEquals('page_for_book_use_slug', $this->api->getUseSlugOptionName('book'));
-        $this->assertEquals('page_for_movie_use_slug', $this->api->getUseSlugOptionName('movie'));
-        $this->assertEquals('page_for_custom_type_use_slug', $this->api->getUseSlugOptionName('custom_type'));
+        $this->assertEquals($expected, $this->api->getUseSlugOptionName($postType));
+    }
+
+    public static function useSlugOptionNameProvider(): iterable
+    {
+        yield 'simple' => ['book', 'page_for_book_use_slug'];
+        yield 'simple 2' => ['movie', 'page_for_movie_use_slug'];
+        yield 'with underscore' => ['custom_type', 'page_for_custom_type_use_slug'];
     }
 
     public function testGetUseSlugOptionNameWithWpPostTypeObject(): void

@@ -108,4 +108,39 @@ class QueryTest extends TestCase
         $this->assertTrue($wp_query->is_bike_page);
         $this->assertEquals($this->homeForBikeId, $wp_query->queried_object_id);
     }
+
+    public function testFilterPostsWherePassesThroughOnNonPfcptQuery(): void
+    {
+        // Navigate to a regular page (not PFCPT)
+        $this->get(get_permalink($this->staticFrontPageId));
+
+        global $wp_query;
+
+        // The WHERE clause should not be modified for non-PFCPT queries
+        $this->assertFalse($wp_query->{Api::QUERY_VAR_IS_PFCPT});
+    }
+
+    public function testGetPostTypeFromPageIdReturnsNullForNonMappedPage(): void
+    {
+        $api = new Api();
+        $result = $api->getPostTypeFromPageId($this->staticFrontPageId);
+
+        $this->assertNull($result);
+    }
+
+    public function testSetQueryPropertiesSkipsSubQueries(): void
+    {
+        $this->get($this->getBookHomeUrl());
+
+        // Create a secondary query (not main) for the same page
+        $subQuery = new \WP_Query([
+            'page_id' => $this->homeForBookId,
+        ]);
+
+        // Sub-queries should NOT get PFCPT properties set
+        $this->assertFalse(
+            property_exists($subQuery, Api::QUERY_VAR_IS_PFCPT)
+            && $subQuery->{Api::QUERY_VAR_IS_PFCPT} !== false
+        );
+    }
 }

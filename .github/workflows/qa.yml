@@ -1,0 +1,61 @@
+name: QA
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+  php-versions:
+    runs-on: ubuntu-latest
+    outputs:
+      versions: ${{ steps.versions.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: versions
+        uses: WyriHaximus/github-action-composer-php-versions-in-range@v1
+        with:
+          upcomingReleases: true
+
+  unit-tests:
+    needs: php-versions
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ${{ fromJson(needs.php-versions.outputs.versions) }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - uses: ramsey/composer-install@v3
+      - run: composer test:unit
+
+  integration-tests:
+    needs: php-versions
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ${{ fromJson(needs.php-versions.outputs.versions) }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - uses: ramsey/composer-install@v3
+      - run: composer test:integration
+
+  static-analysis:
+    uses: inpsyde/reusable-workflows/.github/workflows/static-analysis-php.yml@main
+
+  coding-standards:
+    uses: inpsyde/reusable-workflows/.github/workflows/coding-standards-php.yml@main

@@ -1,10 +1,8 @@
 parameters:
-    level: 7
+    level: 8
+    treatPhpDocTypesAsCertain: false
     paths:
-        - src/
-    editorUrl: 'vscode://file/%%file%%:%%line%%'
+        - plugin.php
+        - src
     scanDirectories:
-        - wp-content/plugins/wordpress-seo
-    scanFiles:
-        - vendor/php-stubs/acf-pro-stubs/acf-pro-stubs.php
-        - vendor/wpsyntex/polylang-stubs/polylang-stubs.php
+        - wp-content/plugins

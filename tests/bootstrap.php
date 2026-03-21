@@ -1,49 +1,96 @@
 <?php
 
+declare(strict_types=1);
+
+use function Mantle\Testing\manager;
+
 require_once __DIR__ . '/../vendor/autoload.php';
+$rootDir = realpath(__DIR__ . '/..');
 
-$plugins = [
-    'wordpress-seo/wp-seo.php',
-    'polylang/polylang.php',
+// phpcs:disable WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_putenv
+putenv("WP_CORE_DIR=$rootDir/tmp/wordpress");
+putenv("CACHEDIR=$rootDir/tmp/test-cache");
+
+/**
+ * Determine which plugins to load based on PLUGINS env variable.
+ */
+$availablePlugins = [
+    'wordpress-seo' => 'wordpress-seo/wp-seo.php',
+    'polylang' => 'polylang/polylang.php',
+    'autodescription' => 'autodescription/autodescription.php',
 ];
-$plugins_env = $_ENV['PLUGINS'] ?? $_SERVER['PLUGINS'] ?? '';
-$plugins_env = explode(',', $plugins_env);
-$plugins_to_load = array_filter(array_map(function ($p) use ($plugins_env) {
-    return in_array(dirname($p), $plugins_env, true) ? $p : null;
-}, $plugins));
+$requestedPlugins = array_filter(explode(',', getenv('PLUGINS') ?: ''));
+$plugins = array_values(array_filter(array_map(static function ($p) use ($availablePlugins): ?string {
+    return $availablePlugins[$p] ?? null;
+}, $requestedPlugins)));
 
-\Mantle\Testing\manager()
-    ->loaded(function () use ($plugins_to_load): void {
+$isPolylang = \in_array('polylang', $requestedPlugins, true);
+
+$manager = manager()
+    ->with_sqlite()
+    ->loaded(static function () use ($plugins): void {
         require __DIR__ . '/../plugin.php';
-        foreach ($plugins_to_load as $plugin) {
+        foreach ($plugins as $plugin) {
             require __DIR__ . '/../wp-content/plugins/' . $plugin;
         }
     })
-    ->plugins(array_merge([
-        'page-for-custom-post-type/plugin.php',
-    ], $plugins_to_load))
-    ->init(function () {
+    ->init(static function (): void {
         register_post_type('bike', [
-            'public'  => true,
-            'label'   => 'Bikes',
+            'public' => true,
+            'publicly_queryable' => true,
+            'label' => 'Bikes',
+            'has_archive' => true,
             'rewrite' => [
                 'slug' => 'bikes',
             ],
         ]);
         register_post_type('book', [
-            'public'  => true,
-            'label'   => 'Books',
+            'public' => true,
+            'publicly_queryable' => true,
+            'label' => 'Books',
+            'has_archive' => true,
             'rewrite' => [
                 'slug' => 'books',
             ],
         ]);
         register_taxonomy('genre', 'book', [
-            'public'  => true,
-            'label'   => 'Genres',
+            'public' => true,
+            'label' => 'Genres',
             'rewrite' => [
                 'slug' => 'genres',
             ],
         ]);
         register_taxonomy_for_object_type('genre', 'book');
-    })
-    ->install();
+    });
+
+if ($isPolylang) {
+    $manager->after(static function (): void {
+        if (!defined('POLYLANG_DIR')) {
+            return;
+        }
+
+        // Create languages using Polylang's admin model.
+        $options = new \WP_Syntex\Polylang\Options\Options();
+        $model = new \PLL_Admin_Model($options);
+
+        $languages = [
+            ['name' => 'English', 'slug' => 'en', 'locale' => 'en_US', 'rtl' => false, 'term_group' => 0, 'flag' => 'us'],
+            ['name' => 'Français', 'slug' => 'fr', 'locale' => 'fr_FR', 'rtl' => false, 'term_group' => 1, 'flag' => 'fr'],
+        ];
+
+        foreach ($languages as $language) {
+            if (!$model->get_language($language['slug'])) {
+                $model->add_language($language);
+            }
+        }
+
+        $model->update_default_lang('en');
+
+        // Reinitialize Polylang now that languages exist.
+        $polylangBootstrap = new \Polylang();
+        // Manually trigger init since plugins_loaded has already fired.
+        $polylangBootstrap->init();
+    });
+}
+
+$manager->install();

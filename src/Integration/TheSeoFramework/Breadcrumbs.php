@@ -28,9 +28,9 @@ final class Breadcrumbs
     /**
      * Add PFCPT page to breadcrumb list for single posts and taxonomy archives.
      *
-     * @param array[]    $list The breadcrumb list items [['url' => string, 'name' => string], ...].
-     * @param array|null $args The query arguments (id, tax, pta, uid). Null when auto-determined.
-     * @return array[]
+     * @param array<int, array<string, string>> $list The breadcrumb list items.
+     * @param array<string, mixed>|null         $args The query arguments (id, tax, pta, uid).
+     * @return array<int, array<string, string>>
      */
     public function addPfcptPageCrumb(array $list, ?array $args): array
     {
@@ -51,8 +51,14 @@ final class Breadcrumbs
             return $list;
         }
 
+        $url = \get_permalink($pageId);
+
+        if ($url === false) {
+            return $list;
+        }
+
         $crumb = [
-            'url' => \get_permalink($pageId),
+            'url' => $url,
             'name' => \get_the_title($pageId),
         ];
 
@@ -67,6 +73,9 @@ final class Breadcrumbs
      *
      * Returns null if we're not on a page that needs a PFCPT breadcrumb.
      */
+    /**
+     * @param array<string, mixed>|null $args
+     */
     private function resolvePostType(?array $args): ?string
     {
         if ($args !== null) {
@@ -76,6 +85,9 @@ final class Breadcrumbs
         return $this->resolvePostTypeFromQuery();
     }
 
+    /**
+     * @param array<string, mixed> $args
+     */
     private function resolvePostTypeFromArgs(array $args): ?string
     {
         // Single post
@@ -148,6 +160,9 @@ final class Breadcrumbs
 
     /**
      * Check if the current page IS the PFCPT page (to avoid duplicate crumb).
+     */
+    /**
+     * @param array<string, mixed>|null $args
      */
     private function isCurrentPfcptPage(int $pageId, ?array $args): bool
     {

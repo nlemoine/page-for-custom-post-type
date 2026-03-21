@@ -8,6 +8,7 @@ use n5s\PageForCustomPostType\Core\Api;
 use n5s\PageForCustomPostType\Core\RewriteManager;
 use n5s\PageForCustomPostType\PostType\PostType;
 use n5s\PageForCustomPostType\Tests\Fixtures\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Unit tests for the PostType class.
@@ -132,39 +133,32 @@ class PostTypeTest extends TestCase
         $this->assertFalse($modifiedArgs['has_archive']);
     }
 
-    public function testUpdatePostTypeArgsSkipsBuiltinPostTypes(): void
+    #[DataProvider('skippedPostTypeArgsProvider')]
+    public function testUpdatePostTypeArgsSkipsIneligiblePostTypes(array $args, string $postType): void
     {
         $api = new Api();
         $rewriteManager = new RewriteManager($api);
-        $postType = new PostType($api, $rewriteManager);
+        $pt = new PostType($api, $rewriteManager);
 
-        $args = [
-            '_builtin' => true,
-            'public' => true,
-            'has_archive' => true,
-        ];
+        $modifiedArgs = $pt->updatePostTypeArgs($args, $postType);
 
-        $modifiedArgs = $postType->updatePostTypeArgs($args, 'post');
-
-        // Should not be modified
         $this->assertTrue($modifiedArgs['has_archive']);
     }
 
-    public function testUpdatePostTypeArgsSkipsNonPublicPostTypes(): void
+    public static function skippedPostTypeArgsProvider(): iterable
     {
-        $api = new Api();
-        $rewriteManager = new RewriteManager($api);
-        $postType = new PostType($api, $rewriteManager);
-
-        $args = [
-            'public' => false,
-            'has_archive' => true,
+        yield 'builtin' => [
+            ['_builtin' => true, 'public' => true, 'has_archive' => true],
+            'post',
         ];
-
-        $modifiedArgs = $postType->updatePostTypeArgs($args, 'private_type');
-
-        // Should not be modified
-        $this->assertTrue($modifiedArgs['has_archive']);
+        yield 'non-public' => [
+            ['public' => false, 'has_archive' => true],
+            'private_type',
+        ];
+        yield 'non-publicly-queryable' => [
+            ['publicly_queryable' => false, 'has_archive' => true],
+            'internal_type',
+        ];
     }
 
     public function testDifferentPostTypesCanHaveDifferentSettings(): void

@@ -22,7 +22,15 @@ final class Api
      */
     public function getPageIdFromQuery(WP_Query $query): ?int
     {
-        if (!empty($query->query_vars['pagename']) && $query->queried_object_id) {
+        // Check both 'pagename' and 'name' query vars.
+        // Custom permastructs (e.g. extended-cpts) may set 'name' instead of 'pagename'.
+        if (
+            (
+                !empty($query->query_vars['pagename'])
+                || !empty($query->query_vars['name'])
+            )
+            && $query->queried_object_id
+        ) {
             return (int) $query->queried_object_id;
         }
 

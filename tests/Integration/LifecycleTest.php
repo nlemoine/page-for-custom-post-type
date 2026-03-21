@@ -197,4 +197,59 @@ class LifecycleTest extends TestCase
 
         $this->assertTrue($api->shouldUsePageSlug(self::BOOK_POST_TYPE));
     }
+
+    public function testUseSlugOptionUpdateFlushesRewriteRules(): void
+    {
+        $flushCalled = false;
+        add_action('pfcpt/flush_rewrite_rules', static function () use (&$flushCalled) {
+            $flushCalled = true;
+        });
+
+        // Add the option first
+        update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', '0');
+
+        // Now change it to trigger the update hook
+        update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', '1');
+
+        $this->assertTrue($flushCalled);
+    }
+
+    public function testUseSlugOptionUpdateSameValueDoesNotFlush(): void
+    {
+        $flushCount = 0;
+        add_action('pfcpt/flush_rewrite_rules', static function () use (&$flushCount) {
+            $flushCount++;
+        });
+
+        update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', '1');
+        $countAfterFirst = $flushCount;
+
+        // Update with same value
+        update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', '1');
+
+        // Flush count should not increase (WordPress doesn't fire update_option for same value)
+        $this->assertSame($countAfterFirst, $flushCount);
+    }
+
+    public function testDeletedBookPostDoesNotClearOption(): void
+    {
+        $bookId = $this->bookIds[0];
+
+        // Delete a book post (not a page)
+        wp_delete_post($bookId, true);
+
+        $optionValue = get_option('page_for_' . self::BOOK_POST_TYPE);
+
+        $this->assertEquals($this->homeForBookId, $optionValue);
+    }
+
+    public function testDeleteNonExistentPostHasNoEffect(): void
+    {
+        // Call wp_delete_post with a non-existent ID
+        wp_delete_post(999999, true);
+
+        $optionValue = get_option('page_for_' . self::BOOK_POST_TYPE);
+
+        $this->assertEquals($this->homeForBookId, $optionValue);
+    }
 }

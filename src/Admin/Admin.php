@@ -187,7 +187,7 @@ final class Admin
         $dropdownId = \esc_attr($args['name'] . '_dropdown');
         $checkboxWrapperId = \esc_attr($args['name'] . '_use_slug_wrapper');
 
-        $appendSlug = static fn (string $title, \WP_Post $page): string => $title . ' (/' . $page->post_name . '/)';
+        $appendSlug = static fn (string $title, \WP_Post $page): string => $title . ' (' . wp_make_link_relative(get_permalink($page->ID)) . ')';
         \add_filter('list_pages', $appendSlug, 10, 2);
         $dropdown = \wp_dropdown_pages($dropdownArgs);
         \remove_filter('list_pages', $appendSlug);
@@ -205,7 +205,7 @@ final class Admin
                 <?php
                 \printf(
                     /* translators: %s: plural post type name */
-                    \esc_html__('Use page slug as base URL for single %s', 'pfcpt'),
+                    \esc_html__('Selected page slug replaces default "%s" post type slug', 'pfcpt'),
                     \esc_html(\mb_strtolower($args['postType']->labels->name))
                 );
                 ?>
@@ -213,9 +213,10 @@ final class Admin
             <p class="description">
                 ⚠️
                 <?php
-                \esc_html_e(
-                    'Changing this option will modify all single post URLs. This may affect SEO and existing links.',
-                    'pfcpt'
+                printf(
+                    /* translators: %s: plural post type name */
+                    \esc_html__('Changing this option will alter all single "%s" URLs. This may affect SEO and existing links.', 'pfcpt'),
+                    \esc_html(\mb_strtolower($args['postType']->labels->name))
                 );
                 ?>
             </p>

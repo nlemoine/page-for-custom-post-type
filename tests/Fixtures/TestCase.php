@@ -47,7 +47,8 @@ abstract class TestCase extends Test_Case
 
         // When Polylang is active, set the current language to the default
         // to prevent TypeError in Polylang's post creation hooks.
-        if (\function_exists('PLL') && PLL() instanceof \PLL_Frontend) {
+        // PLL() can be PLL_Frontend, PLL_Admin, or PLL_REST_Request.
+        if (\function_exists('PLL') && \property_exists(PLL(), 'curlang')) {
             PLL()->curlang = PLL()->model->get_default_language();
         }
     }

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Mantle\Testing\EarlyIncorrectUsageHandler;
+
 use function Mantle\Testing\manager;
 
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -64,15 +66,18 @@ $manager = manager()
     });
 
 if ($isPolylang) {
-    // Polylang language setup requires a two-phase approach:
-    // 1. Use 'after' to create languages via PLL_Admin_Model (before Polylang::init).
-    //    Suppress _doing_it_wrong notices since we're intentionally calling
-    //    the model before pll_pre_init.
-    // 2. Reinitialize Polylang so it picks up the new languages.
+    // Create Polylang languages during bootstrap.
+    //
+    // PLL_Admin_Model::add_language() calls Languages::get_list() which
+    // triggers _doing_it_wrong before pll_pre_init. We temporarily suppress
+    // Mantle's EarlyIncorrectUsageHandler to prevent test failure.
     $manager->after(static function (): void {
         if (!defined('POLYLANG_DIR')) {
             return;
         }
+
+        // Suppress Mantle's early _doing_it_wrong handler
+        EarlyIncorrectUsageHandler::unregister();
 
         $options = new \WP_Syntex\Polylang\Options\Options();
         $model = new \PLL_Admin_Model($options);
@@ -82,19 +87,16 @@ if ($isPolylang) {
             ['name' => 'Français', 'slug' => 'fr', 'locale' => 'fr_FR', 'rtl' => false, 'term_group' => 1, 'flag' => 'fr'],
         ];
 
-        // Suppress _doing_it_wrong during language creation
-        // (Polylang checks are_ready() which is false before pll_pre_init).
-        \add_filter('doing_it_wrong_trigger_error', '__return_false');
-
         foreach ($languages as $language) {
             if (!$model->get_language($language['slug'])) {
                 $model->add_language($language);
             }
         }
 
-        \remove_filter('doing_it_wrong_trigger_error', '__return_false');
-
         $model->update_default_lang('en');
+
+        // Restore Mantle's handler
+        EarlyIncorrectUsageHandler::register();
 
         // Reinitialize Polylang now that languages exist.
         $polylangBootstrap = new \Polylang();

@@ -321,26 +321,19 @@ abstract class TestCase extends Test_Case
 
         if (!$defaultLang instanceof \PLL_Language) {
             // Languages were rolled back by Refresh_Database — recreate them.
-            // Mark the expected _doing_it_wrong calls from Polylang's model.
-            $this->setExpectedIncorrectUsage('WP_Syntex\Polylang\Model\Languages::get_list()');
-
-            $options = new \WP_Syntex\Polylang\Options\Options();
-            $model = new \PLL_Admin_Model($options);
-
+            // Use PLL()->model directly, same approach as PolylangTest::setUpLanguages().
             $languages = [
                 ['name' => 'English', 'slug' => 'en', 'locale' => 'en_US', 'rtl' => false, 'term_group' => 0, 'flag' => 'us'],
                 ['name' => 'Français', 'slug' => 'fr', 'locale' => 'fr_FR', 'rtl' => false, 'term_group' => 1, 'flag' => 'fr'],
             ];
 
             foreach ($languages as $language) {
-                if (!$model->get_language($language['slug'])) {
-                    $model->add_language($language);
+                if (!PLL()->model->get_language($language['slug'])) {
+                    PLL()->model->add_language($language);
                 }
             }
 
-            $model->update_default_lang('en');
-
-            PLL()->model->clean_languages_cache();
+            PLL()->model->update_default_lang('en');
             $defaultLang = PLL()->model->get_default_language();
         }
 

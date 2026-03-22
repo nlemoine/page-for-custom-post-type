@@ -31,8 +31,14 @@ final class UrlTranslation
             return $url;
         }
 
-        $GLOBALS['pfcpt_is_posts_page'] = $GLOBALS['wp_query']->is_posts_page;
-        $GLOBALS['wp_query']->is_posts_page = true;
+        $wpQuery = $GLOBALS['wp_query'] ?? null;
+
+        if (!$wpQuery instanceof \WP_Query) {
+            return $url;
+        }
+
+        $GLOBALS['pfcpt_is_posts_page'] = $wpQuery->is_posts_page;
+        $wpQuery->is_posts_page = true;
 
         return $url;
     }
@@ -46,7 +52,14 @@ final class UrlTranslation
             return $url;
         }
 
-        $GLOBALS['wp_query']->is_posts_page = $GLOBALS['pfcpt_is_posts_page'];
+        $wpQuery = $GLOBALS['wp_query'] ?? null;
+
+        if (!$wpQuery instanceof \WP_Query) {
+            return $url;
+        }
+
+        $savedValue = $GLOBALS['pfcpt_is_posts_page'] ?? false;
+        $wpQuery->is_posts_page = \is_bool($savedValue) ? $savedValue : false;
         unset($GLOBALS['pfcpt_is_posts_page']);
 
         return $url;

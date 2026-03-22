@@ -43,6 +43,11 @@ class LocationPageType extends ACF_Location_Page_Type
         }
 
         $postId = $screen['post_id'];
+
+        if (!\is_int($postId) && !$postId instanceof \WP_Post) {
+            return false;
+        }
+
         $post = \get_post($postId);
 
         if (!$post instanceof \WP_Post) {
@@ -85,7 +90,16 @@ class LocationPageType extends ACF_Location_Page_Type
     // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps,Syde.Functions.ArgumentTypeDeclaration.NoArgumentType
     public function get_values($rule): array
     {
-        $values = parent::get_values($rule);
+        $parentValues = parent::get_values($rule);
+
+        $values = [];
+
+        foreach ($parentValues as $key => $value) {
+            if (\is_string($key) && \is_string($value)) {
+                $values[$key] = $value;
+            }
+        }
+
         $postTypes = \array_keys($this->api->getPageIds());
 
         if (empty($postTypes)) {
@@ -95,7 +109,7 @@ class LocationPageType extends ACF_Location_Page_Type
         foreach ($postTypes as $postType) {
             $postTypeObject = \get_post_type_object($postType);
 
-            if ($postTypeObject) {
+            if ($postTypeObject && \is_string($postTypeObject->labels->archives)) {
                 $values[$postType . '_page'] = $postTypeObject->labels->archives;
             }
         }

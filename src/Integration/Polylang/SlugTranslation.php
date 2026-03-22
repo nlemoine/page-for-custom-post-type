@@ -52,7 +52,17 @@ final class SlugTranslation
                 continue;
             }
 
-            foreach ($postTypeSlugs['translations'] as $lang => $_slug) {
+            $translations = $postTypeSlugs['translations'];
+
+            if (!\is_array($translations)) {
+                continue;
+            }
+
+            foreach ($translations as $lang => $_slug) {
+                if (!\is_string($lang)) {
+                    continue;
+                }
+
                 if ($lang === $defaultLanguage) {
                     continue;
                 }
@@ -69,7 +79,9 @@ final class SlugTranslation
                     continue;
                 }
 
-                $slugs[$postType]['translations'][$lang] = \substr($pageSlug, \strlen($lang . '/'));
+                if (\is_array($slugs[$postType]['translations'] ?? null)) {
+                    $slugs[$postType]['translations'][$lang] = \substr($pageSlug, \strlen($lang . '/'));
+                }
             }
         }
 

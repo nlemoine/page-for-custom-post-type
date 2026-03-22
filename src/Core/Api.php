@@ -50,7 +50,12 @@ final class Api
             return false;
         }
 
-        $currentPostType = $GLOBALS['wp_query']->{self::QUERY_VAR_IS_PFCPT} ?? null;
+        $wpQuery = $GLOBALS['wp_query'] ?? null;
+        if (!$wpQuery instanceof WP_Query) {
+            return false;
+        }
+
+        $currentPostType = $wpQuery->{self::QUERY_VAR_IS_PFCPT} ?? null;
 
         if ($postType === null) {
             return (bool) $currentPostType;
@@ -101,10 +106,24 @@ final class Api
      */
     public function getPageIds(bool $applyFilters = true): array
     {
-        $pageIds = (array) \get_option(self::OPTION_PAGE_IDS, []);
+        $pageIds = \get_option(self::OPTION_PAGE_IDS, []);
+        if (!\is_array($pageIds)) {
+            $pageIds = [];
+        }
         $pageIds = $applyFilters ? \apply_filters('pfcpt/page_ids', $pageIds) : $pageIds;
 
-        return \array_map(intval(...), $pageIds);
+        if (!\is_array($pageIds)) {
+            return [];
+        }
+
+        $result = [];
+        foreach ($pageIds as $key => $value) {
+            if (\is_string($key) && \is_numeric($value)) {
+                $result[$key] = (int) $value;
+            }
+        }
+
+        return $result;
     }
 
     /**

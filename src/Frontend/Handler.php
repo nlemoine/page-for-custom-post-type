@@ -83,7 +83,12 @@ final class Handler
      */
     public function setHomeTemplateHierarchy(array $templates): array
     {
-        $postType = $GLOBALS['wp_query']->{Api::QUERY_VAR_IS_PFCPT} ?? null;
+        $wpQuery = $GLOBALS['wp_query'] ?? null;
+        if (!$wpQuery instanceof WP_Query) {
+            return $templates;
+        }
+
+        $postType = $wpQuery->{Api::QUERY_VAR_IS_PFCPT} ?? null;
         if (!\is_string($postType)) {
             return $templates;
         }

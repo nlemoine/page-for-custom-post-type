@@ -46,8 +46,9 @@ final class Admin
         }
 
         $name = $this->api->getOptionName($postType);
+        $labelName = is_string($postTypeObject->labels->name) ? $postTypeObject->labels->name : $postType;
         /* translators: %s: post type name */
-        $postStates[$name] = \esc_html(\sprintf(\__('%s page', 'pfcpt'), $postTypeObject->labels->name));
+        $postStates[$name] = \esc_html(\sprintf(\__('%s page', 'pfcpt'), $labelName));
 
         return $postStates;
     }
@@ -105,10 +106,12 @@ final class Admin
                 continue;
             }
 
+            $archivesLabel = is_string($postTypeObject->labels->archives) ? $postTypeObject->labels->archives : $postType;
+
             \add_submenu_page(
                 'edit.php?post_type=' . $postType,
-                $postTypeObject->labels->archives,
-                $postTypeObject->labels->archives,
+                $archivesLabel,
+                $archivesLabel,
                 'edit_pages',
                 $editPostLink
             );
@@ -144,9 +147,11 @@ final class Admin
                 'default' => false,
             ]);
 
+            $labelName = is_string($postTypeObj->labels->name) ? $postTypeObj->labels->name : $postTypeObj->name;
+
             \add_settings_field(
                 $fieldId,
-                $postTypeObj->labels->name,
+                $labelName,
                 $this->renderPageDropdown(...),
                 'reading',
                 'page_for_custom_post_type',
@@ -169,11 +174,12 @@ final class Admin
      */
     private function renderPageDropdown(array $args): void
     {
-        $value = (int) $args['value'];
+        $value = is_numeric($args['value']) ? (int) $args['value'] : 0;
         $useSlugValue = (bool) $args['useSlugValue'];
         $postTypeName = $args['postType']->name;
         $defaultLabel = $this->getDefaultLabel($postTypeName);
 
+        /** @var array{name?: string, id?: string, selected?: int|string, show_option_none?: string, exclude?: int[], echo?: bool|int} $dropdownArgs */
         $dropdownArgs = \apply_filters('pfcpt/dropdown_page_args', [
             'name' => \esc_attr($args['name']),
             'id' => \esc_attr($args['name'] . '_dropdown'),
@@ -181,6 +187,10 @@ final class Admin
             'show_option_none' => $defaultLabel ?? \__('— Select —', 'pfcpt'),
             'exclude' => $this->getExcludedPageIds(),
         ]);
+
+        if (!is_array($dropdownArgs)) {
+            return;
+        }
 
         $dropdownArgs['echo'] = false;
 
@@ -214,7 +224,7 @@ final class Admin
                 \printf(
                     /* translators: %s: plural post type name */
                     \esc_html__('Selected page slug replaces default "%s" post type slug', 'pfcpt'),
-                    \esc_html(\mb_strtolower($args['postType']->labels->name))
+                    \esc_html(\mb_strtolower(is_string($args['postType']->labels->name) ? $args['postType']->labels->name : $args['postType']->name))
                 );
                 ?>
             </label>
@@ -224,7 +234,7 @@ final class Admin
                 printf(
                     /* translators: %s: plural post type name */
                     \esc_html__('Changing this option will alter all single "%s" URLs. This may affect SEO and existing links.', 'pfcpt'),
-                    \esc_html(\mb_strtolower($args['postType']->labels->name))
+                    \esc_html(\mb_strtolower(is_string($args['postType']->labels->name) ? $args['postType']->labels->name : $args['postType']->name))
                 );
                 ?>
             </p>
@@ -252,12 +262,14 @@ final class Admin
     {
         $excluded = [];
 
-        $frontPageId = (int) \get_option('page_on_front');
+        $frontPageOption = \get_option('page_on_front');
+        $frontPageId = is_numeric($frontPageOption) ? (int) $frontPageOption : 0;
         if ($frontPageId > 0) {
             $excluded[] = $frontPageId;
         }
 
-        $postsPageId = (int) \get_option('page_for_posts');
+        $postsPageOption = \get_option('page_for_posts');
+        $postsPageId = is_numeric($postsPageOption) ? (int) $postsPageOption : 0;
         if ($postsPageId > 0) {
             $excluded[] = $postsPageId;
         }
@@ -283,15 +295,19 @@ final class Admin
             return \__('— No archive —', 'pfcpt');
         }
 
-        /** @var \WP_Rewrite */
         global $wp_rewrite;
 
+        if (!$wp_rewrite instanceof \WP_Rewrite) {
+            return null;
+        }
+
         // Get rewrite slug from args
-        $rewriteSlug = $originalArgs['rewrite']['slug'] ?? $postTypeName;
-        $archiveSlug = $hasArchive === true ? $rewriteSlug : $hasArchive;
+        $rewriteArgs = is_array($originalArgs['rewrite'] ?? null) ? $originalArgs['rewrite'] : [];
+        $rewriteSlug = is_string($rewriteArgs['slug'] ?? null) ? $rewriteArgs['slug'] : $postTypeName;
+        $archiveSlug = $hasArchive === true ? $rewriteSlug : (is_string($hasArchive) ? $hasArchive : $postTypeName);
 
         $prefix = $wp_rewrite->root;
-        if ($originalArgs['rewrite']['with_front'] ?? null) {
+        if (!empty($rewriteArgs['with_front'])) {
             $prefix = \substr($wp_rewrite->front, 1);
         }
 

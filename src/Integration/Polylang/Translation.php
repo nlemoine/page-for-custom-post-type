@@ -37,19 +37,29 @@ final class Translation
         $cacheKey = $this->getCacheKey($currentLanguage);
         $pageIdsForCurrentLanguage = \get_transient($cacheKey);
 
-        if ($pageIdsForCurrentLanguage === false) {
-            $pageIdsForCurrentLanguage = \array_filter(
-                \array_map(
-                    static function (int $id) use ($currentLanguage): ?int {
-                        $postId = \pll_get_post($id, $currentLanguage);
-                        return $postId > 0 ? $postId : null;
-                    },
-                    $pageIds
-                )
-            );
+        if (\is_array($pageIdsForCurrentLanguage)) {
+            $result = [];
 
-            \set_transient($cacheKey, $pageIdsForCurrentLanguage);
+            foreach ($pageIdsForCurrentLanguage as $key => $value) {
+                if (\is_string($key) && \is_int($value)) {
+                    $result[$key] = $value;
+                }
+            }
+
+            return $result;
         }
+
+        $pageIdsForCurrentLanguage = \array_filter(
+            \array_map(
+                static function (int $id) use ($currentLanguage): ?int {
+                    $postId = \pll_get_post($id, $currentLanguage);
+                    return $postId > 0 ? $postId : null;
+                },
+                $pageIds
+            )
+        );
+
+        \set_transient($cacheKey, $pageIdsForCurrentLanguage);
 
         return $pageIdsForCurrentLanguage;
     }

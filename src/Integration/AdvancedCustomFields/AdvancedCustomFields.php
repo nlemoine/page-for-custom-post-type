@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace n5s\PageForCustomPostType\Integration\Acf;
+namespace n5s\PageForCustomPostType\Integration\AdvancedCustomFields;
 
 \add_action('acf/include_location_rules', static function (int $acfMajorVersion): void {
     if ($acfMajorVersion !== 5) {

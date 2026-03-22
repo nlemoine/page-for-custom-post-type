@@ -17,7 +17,7 @@ use The_SEO_Framework\Meta\Breadcrumbs as TsfBreadcrumbs;
  * Tests query type detection, breadcrumbs, and schema markup when TSF is active.
  */
 #[RequiresFunction('the_seo_framework')]
-class TheSeoFrameworkTest extends TestCase
+class AutodescriptionTest extends TestCase
 {
     protected function setUp(): void
     {

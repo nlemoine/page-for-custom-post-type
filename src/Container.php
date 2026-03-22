@@ -12,7 +12,7 @@ use n5s\PageForCustomPostType\Frontend\Handler;
 use n5s\PageForCustomPostType\Frontend\QueryFilter;
 use n5s\PageForCustomPostType\Integration\Polylang;
 use n5s\PageForCustomPostType\Integration\WordPressSeo;
-use n5s\PageForCustomPostType\Integration\TheSeoFramework;
+use n5s\PageForCustomPostType\Integration\Autodescription;
 use n5s\PageForCustomPostType\Lifecycle\LifecycleManager;
 use n5s\PageForCustomPostType\PostType\PostType;
 use WP_Query;
@@ -117,18 +117,18 @@ final class Container
                 $this->get(WordPressSeo\Indexables::class)
             ),
 
-            // TheSeoFramework integrations
-            TheSeoFramework\QueryType::class => fn (): TheSeoFramework\QueryType => new TheSeoFramework\QueryType(
+            // Autodescription (The SEO Framework) integrations
+            Autodescription\QueryType::class => fn (): Autodescription\QueryType => new Autodescription\QueryType(
                 $this->get(Api::class)
             ),
 
-            TheSeoFramework\Breadcrumbs::class => fn (): TheSeoFramework\Breadcrumbs => new TheSeoFramework\Breadcrumbs(
+            Autodescription\Breadcrumbs::class => fn (): Autodescription\Breadcrumbs => new Autodescription\Breadcrumbs(
                 $this->get(Api::class)
             ),
 
-            TheSeoFramework\TheSeoFramework::class => fn (): TheSeoFramework\TheSeoFramework => new TheSeoFramework\TheSeoFramework(
-                $this->get(TheSeoFramework\QueryType::class),
-                $this->get(TheSeoFramework\Breadcrumbs::class)
+            Autodescription\Autodescription::class => fn (): Autodescription\Autodescription => new Autodescription\Autodescription(
+                $this->get(Autodescription\QueryType::class),
+                $this->get(Autodescription\Breadcrumbs::class)
             ),
         ];
     }

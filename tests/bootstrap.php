@@ -64,12 +64,16 @@ $manager = manager()
     });
 
 if ($isPolylang) {
+    // Polylang language setup requires a two-phase approach:
+    // 1. Use 'after' to create languages via PLL_Admin_Model (before Polylang::init).
+    //    Suppress _doing_it_wrong notices since we're intentionally calling
+    //    the model before pll_pre_init.
+    // 2. Reinitialize Polylang so it picks up the new languages.
     $manager->after(static function (): void {
         if (!defined('POLYLANG_DIR')) {
             return;
         }
 
-        // Create languages using Polylang's admin model.
         $options = new \WP_Syntex\Polylang\Options\Options();
         $model = new \PLL_Admin_Model($options);
 
@@ -78,17 +82,22 @@ if ($isPolylang) {
             ['name' => 'Français', 'slug' => 'fr', 'locale' => 'fr_FR', 'rtl' => false, 'term_group' => 1, 'flag' => 'fr'],
         ];
 
+        // Suppress _doing_it_wrong during language creation
+        // (Polylang checks are_ready() which is false before pll_pre_init).
+        \add_filter('doing_it_wrong_trigger_error', '__return_false');
+
         foreach ($languages as $language) {
             if (!$model->get_language($language['slug'])) {
                 $model->add_language($language);
             }
         }
 
+        \remove_filter('doing_it_wrong_trigger_error', '__return_false');
+
         $model->update_default_lang('en');
 
         // Reinitialize Polylang now that languages exist.
         $polylangBootstrap = new \Polylang();
-        // Manually trigger init since plugins_loaded has already fired.
         $polylangBootstrap->init();
     });
 }

@@ -122,8 +122,6 @@ class AutodescriptionTest extends TestCase
         }
 
         $genre = get_term($genreId, self::GENRE_TAXONOMY);
-
-        // Clear TSF cache before navigation to avoid stale state from previous tests
         $this->clearTsfCache();
 
         $this->get(get_term_link($genre));
@@ -135,6 +133,11 @@ class AutodescriptionTest extends TestCase
         ]);
 
         // Should have: Home, PFCPT page, taxonomy term
+        $this->assertNotFalse(
+            has_filter('the_seo_framework_breadcrumb_list'),
+            'Breadcrumb filter should be registered'
+        );
+
         $this->assertCount(3, $breadcrumbs);
 
         // First is home

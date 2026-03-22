@@ -64,6 +64,20 @@ abstract class TestCase extends Test_Case
         $this->createHomePages();
         $this->createStaticPages();
         $this->updatePluginOptions();
+
+        // Regenerate rewrite rules. Tests that call unregister_post_type()
+        // or RewriteManager::flushRewriteRules() may leave $wp_rewrite in
+        // a state where post type/taxonomy permastructs are missing.
+        // Re-registering the taxonomy ensures its permastruct is present.
+        if (taxonomy_exists(self::GENRE_TAXONOMY)) {
+            unregister_taxonomy(self::GENRE_TAXONOMY);
+        }
+        register_taxonomy(self::GENRE_TAXONOMY, self::BOOK_POST_TYPE, [
+            'public' => true,
+            'label' => 'Genres',
+            'rewrite' => ['slug' => 'genres'],
+        ]);
+        flush_rewrite_rules();
     }
 
     /**

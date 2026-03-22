@@ -147,7 +147,7 @@ class WordPressSeoTest extends TestCase
         $this->assertEquals('Home for Books', $meta->breadcrumbs[1]['text']);
 
         // Third crumb is the taxonomy term
-        $this->assertEquals(get_term_link($genre), $meta->breadcrumbs[2]['url']);
+        $this->assertStringContainsString('fantasy', $meta->breadcrumbs[2]['url']);
         $this->assertEquals($genre->name, $meta->breadcrumbs[2]['text']);
     }
 

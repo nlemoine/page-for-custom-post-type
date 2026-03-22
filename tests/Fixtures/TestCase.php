@@ -119,6 +119,13 @@ abstract class TestCase extends Test_Case
 
         $this->homeForBikeId = $this->getOrCreatePage('home-for-bikes', 'Home for Bikes');
         update_option('page_for_' . self::BIKE_POST_TYPE, $this->homeForBikeId);
+
+        // When Polylang is active, assign the default language to pages
+        // so they appear in language-filtered queries (e.g., wp_dropdown_pages).
+        if (\function_exists('pll_set_post_language')) {
+            pll_set_post_language($this->homeForBookId, 'en');
+            pll_set_post_language($this->homeForBikeId, 'en');
+        }
     }
 
     /**
@@ -128,6 +135,11 @@ abstract class TestCase extends Test_Case
     {
         $this->staticFrontPageId = $this->getOrCreatePage('welcome-home', 'Welcome Home!');
         $this->staticPageForPostsId = $this->getOrCreatePage('posts-page', 'Posts Page');
+
+        if (\function_exists('pll_set_post_language')) {
+            pll_set_post_language($this->staticFrontPageId, 'en');
+            pll_set_post_language($this->staticPageForPostsId, 'en');
+        }
     }
 
     /**
@@ -310,7 +322,10 @@ abstract class TestCase extends Test_Case
             return;
         }
 
-        // Clear the language cache to force a fresh DB read
+        // Force Polylang to re-read languages from DB by clearing all caches.
+        // This is necessary because Refresh_Database's transaction rollback
+        // can leave Polylang's language cache in an inconsistent state.
+        wp_cache_delete('pll_languages_list', 'options');
         $pll->model->clean_languages_cache();
 
         $defaultLang = $pll->model->get_default_language();

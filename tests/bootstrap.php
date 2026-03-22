@@ -102,10 +102,12 @@ if ($isPolylang) {
         $polylangBootstrap = new \Polylang();
         $polylangBootstrap->init();
 
-        // Set the current language to the default to prevent TypeError
-        // in Polylang's post creation hooks (Capabilities\Create\Post::get_language).
-        if (\function_exists('PLL') && \property_exists(PLL(), 'curlang')) {
-            PLL()->curlang = PLL()->model->get_default_language();
+        // Verify Polylang initialized correctly with languages.
+        if (\function_exists('PLL') && PLL() instanceof \PLL_Base) {
+            $defaultLang = PLL()->model->get_default_language();
+            if ($defaultLang instanceof \PLL_Language) {
+                PLL()->curlang = $defaultLang;
+            }
         }
     });
 }

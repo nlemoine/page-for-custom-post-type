@@ -45,12 +45,10 @@ abstract class TestCase extends Test_Case
 
         $this->set_permalink_structure('/%postname%/');
 
-        // When Polylang is active, set the current language to the default
-        // to prevent TypeError in Polylang's post creation hooks.
-        // PLL() can be PLL_Frontend, PLL_Admin, or PLL_REST_Request.
-        if (\function_exists('PLL') && \property_exists(PLL(), 'curlang')) {
-            PLL()->curlang = PLL()->model->get_default_language();
-        }
+        // When Polylang is active, ensure the default language is set.
+        // This prevents TypeError in Polylang's post creation hooks
+        // (Capabilities\Create\Post::get_language expects PLL_Language).
+        $this->setPolylangDefaultLanguage();
     }
 
     /**
@@ -290,5 +288,35 @@ abstract class TestCase extends Test_Case
             $actualIds,
             'Queried post IDs do not match expected values'
         );
+    }
+
+    /**
+     * Set the default language when Polylang is active.
+     *
+     * Polylang's Capabilities\Create\Post::get_language() has a strict
+     * PLL_Language return type. When no current language is set, it falls
+     * back to get_default_language() which returns false if the language
+     * cache is stale. We must ensure curlang is set before any post creation.
+     */
+    private function setPolylangDefaultLanguage(): void
+    {
+        if (!\function_exists('PLL')) {
+            return;
+        }
+
+        $pll = PLL();
+
+        if (!$pll instanceof \PLL_Base) {
+            return;
+        }
+
+        // Clear the language cache to force a fresh DB read
+        $pll->model->clean_languages_cache();
+
+        $defaultLang = $pll->model->get_default_language();
+
+        if ($defaultLang instanceof \PLL_Language) {
+            $pll->curlang = $defaultLang;
+        }
     }
 }

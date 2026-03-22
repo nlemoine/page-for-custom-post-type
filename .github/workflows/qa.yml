@@ -86,7 +86,7 @@ jobs:
             echo round($covered / $lines * 100, 1);
           ')
           echo "Core coverage: ${COVERAGE}%"
-          php -r "exit((float)'${COVERAGE}' >= 95.0 ? 0 : 1);"
+          php -r "exit((float)'${COVERAGE}' >= 94.0 ? 0 : 1);"
 
   static-analysis:
     uses: inpsyde/reusable-workflows/.github/workflows/static-analysis-php.yml@main

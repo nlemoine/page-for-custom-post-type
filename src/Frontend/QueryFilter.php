@@ -73,7 +73,9 @@ final class QueryFilter
             }
 
             // @phpstan-ignore property.notFound
-            $menuItems[$key]->classes[] = 'current-menu-ancestor';
+            $classes = \is_array($menuItems[$key]->classes) ? $menuItems[$key]->classes : [];
+            $classes[] = 'current-menu-ancestor';
+            $menuItems[$key]->classes = $classes;
             // @phpstan-ignore property.notFound
             $menuItems[$key]->current_item_ancestor = true;
         }
@@ -92,7 +94,11 @@ final class QueryFilter
             return false;
         }
 
-        $menuObjectId = (int) ($menuItem->object_id ?? 0);
+        $rawObjectId = $menuItem->object_id ?? 0;
+        if (!\is_numeric($rawObjectId)) {
+            return false;
+        }
+        $menuObjectId = (int) $rawObjectId;
         if ($menuObjectId === 0) {
             return false;
         }

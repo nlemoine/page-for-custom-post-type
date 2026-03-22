@@ -53,10 +53,10 @@ final class RewriteManager
     public function getCachedPageSlug(string $postType): ?string
     {
         $cacheKey = $this->getPageSlugCacheKey($postType);
-        $slug = \get_transient($cacheKey);
+        $cached = \get_transient($cacheKey);
 
-        if ($slug !== false) {
-            return $slug ?: null;
+        if ($cached !== false) {
+            return \is_string($cached) && $cached !== '' ? $cached : null;
         }
 
         $pageId = $this->api->getPageIdFromPostType($postType, false);
@@ -96,9 +96,10 @@ final class RewriteManager
     {
         $excludePageRegex = '(?!page)';
 
-        $permastruct = $postType->rewrite['permastruct'] ?? null;
+        $rewrite = $postType->rewrite;
+        $permastruct = \is_array($rewrite) ? ($rewrite['permastruct'] ?? null) : null;
 
-        if ($permastruct === null) {
+        if (!\is_string($permastruct)) {
             \remove_rewrite_tag("%{$postType->name}%");
 
             if ($postType->hierarchical) {

@@ -36,7 +36,13 @@ namespace n5s\PageForCustomPostType {
     function get_page_id_for_custom_post_type(?string $postType = null): ?int
     {
         if ($postType === null) {
-            $postType = $GLOBALS['wp_query']->{Api::QUERY_VAR_IS_PFCPT} ?? null;
+            $wpQuery = $GLOBALS['wp_query'] ?? null;
+
+            if (!$wpQuery instanceof \WP_Query) {
+                return null;
+            }
+
+            $postType = $wpQuery->{Api::QUERY_VAR_IS_PFCPT} ?? null;
 
             if (!\is_string($postType)) {
                 return null;

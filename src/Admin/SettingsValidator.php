@@ -43,10 +43,11 @@ final class SettingsValidator
         $pageStatus = \get_post_status($value);
 
         if ($pageStatus !== 'publish') {
+            $labelName = is_string($postTypeObject->labels->name) ? $postTypeObject->labels->name : $postType;
             $this->addError($name, \sprintf(
                 /* translators: 1: post type name, 2: page title */
                 \__('Page for %1$s post type (%2$s) is not published', 'pfcpt'),
-                $postTypeObject->labels->name,
+                $labelName,
                 \get_the_title($value)
             ));
             return $this->fallbackValue($name);
@@ -56,10 +57,11 @@ final class SettingsValidator
 
         // Check for page ID used twice
         if ($this->isDuplicatePageId($value, $name)) {
+            $labelNameDup = is_string($postTypeObject->labels->name) ? $postTypeObject->labels->name : $postType;
             $this->addError($name, \sprintf(
                 /* translators: 1: post type name, 2: page title */
                 \__('Page for %1$s post type (%2$s) is already used', 'pfcpt'),
-                $postTypeObject->labels->name,
+                $labelNameDup,
                 \get_the_title($value)
             ));
             return $this->fallbackValue($name);
@@ -85,7 +87,8 @@ final class SettingsValidator
             $otherPageIds
         );
 
-        $oldValue = (int) \get_option($currentOptionName);
+        $oldOptionValue = \get_option($currentOptionName);
+        $oldValue = is_numeric($oldOptionValue) ? (int) $oldOptionValue : 0;
 
         return \in_array($value, \array_filter($pageIds), true) && $value !== $oldValue;
     }
@@ -103,7 +106,8 @@ final class SettingsValidator
      */
     private function fallbackValue(string $name): mixed
     {
-        $oldValue = (int) \get_option($name);
+        $oldOptionValue = \get_option($name);
+        $oldValue = is_numeric($oldOptionValue) ? (int) $oldOptionValue : 0;
 
         return !empty($oldValue) ? $oldValue : null;
     }

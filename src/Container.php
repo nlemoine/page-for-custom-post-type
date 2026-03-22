@@ -33,8 +33,20 @@ final class Container
     {
         $this->factories = [
             // WP
-            wpdb::class => static fn (): wpdb => $GLOBALS['wpdb'],
-            WP_Query::class => static fn (): WP_Query => $GLOBALS['wp_query'] ?? null,
+            wpdb::class => static function (): wpdb {
+                $wpdb = $GLOBALS['wpdb'];
+                if (!$wpdb instanceof wpdb) {
+                    throw new \RuntimeException('Global $wpdb is not available.');
+                }
+                return $wpdb;
+            },
+            WP_Query::class => static function (): WP_Query {
+                $wpQuery = $GLOBALS['wp_query'] ?? null;
+                if (!$wpQuery instanceof WP_Query) {
+                    throw new \RuntimeException('Global $wp_query is not available.');
+                }
+                return $wpQuery;
+            },
 
             // Core services (no dependencies)
             Api::class => static fn (): Api => new Api(),

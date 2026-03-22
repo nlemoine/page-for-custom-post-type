@@ -58,8 +58,12 @@ final class PostType
 
             if (is_string($pageSlug)) {
                 // Set page slug as rewrite slug
-                $args['rewrite'] = $args['rewrite'] ?? [];
-                $args['rewrite']['slug'] = $pageSlug;
+                $rewrite = $args['rewrite'] ?? [];
+                if (!is_array($rewrite)) {
+                    $rewrite = [];
+                }
+                $rewrite['slug'] = $pageSlug;
+                $args['rewrite'] = $rewrite;
             }
         }
 

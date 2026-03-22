@@ -92,7 +92,13 @@ final class Breadcrumbs
     {
         // Single post
         if (!empty($args['id']) && empty($args['tax'])) {
-            $post = \get_post($args['id']);
+            $argId = $args['id'];
+
+            if (!\is_int($argId) && !$argId instanceof \WP_Post) {
+                return null;
+            }
+
+            $post = \get_post($argId);
 
             if ($post === null) {
                 return null;
@@ -105,7 +111,13 @@ final class Breadcrumbs
 
         // Taxonomy archive
         if (!empty($args['id']) && !empty($args['tax'])) {
-            return $this->getPostTypeForTaxonomy($args['tax']);
+            $tax = $args['tax'];
+
+            if (!\is_string($tax)) {
+                return null;
+            }
+
+            return $this->getPostTypeForTaxonomy($tax);
         }
 
         return null;
@@ -167,7 +179,9 @@ final class Breadcrumbs
     private function isCurrentPfcptPage(int $pageId, ?array $args): bool
     {
         if ($args !== null) {
-            return !empty($args['id']) && empty($args['tax']) && (int) $args['id'] === $pageId;
+            $argId = $args['id'] ?? null;
+
+            return !empty($argId) && empty($args['tax']) && \is_numeric($argId) && (int) $argId === $pageId;
         }
 
         return $this->api->isQueryPageForCustomPostType();

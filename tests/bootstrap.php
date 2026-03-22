@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use Mantle\Testing\EarlyIncorrectUsageHandler;
-
 use function Mantle\Testing\manager;
 
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -66,49 +64,16 @@ $manager = manager()
     });
 
 if ($isPolylang) {
-    // Create Polylang languages during bootstrap.
-    //
-    // PLL_Admin_Model::add_language() calls Languages::get_list() which
-    // triggers _doing_it_wrong before pll_pre_init. We temporarily suppress
-    // Mantle's EarlyIncorrectUsageHandler to prevent test failure.
+    // Initialize Polylang after install.
+    // Language creation is handled per-test in TestCase::setPolylangDefaultLanguage()
+    // because Refresh_Database rolls back DB changes between tests.
     $manager->after(static function (): void {
         if (!defined('POLYLANG_DIR')) {
             return;
         }
 
-        // Suppress Mantle's early _doing_it_wrong handler
-        EarlyIncorrectUsageHandler::unregister();
-
-        $options = new \WP_Syntex\Polylang\Options\Options();
-        $model = new \PLL_Admin_Model($options);
-
-        $languages = [
-            ['name' => 'English', 'slug' => 'en', 'locale' => 'en_US', 'rtl' => false, 'term_group' => 0, 'flag' => 'us'],
-            ['name' => 'Français', 'slug' => 'fr', 'locale' => 'fr_FR', 'rtl' => false, 'term_group' => 1, 'flag' => 'fr'],
-        ];
-
-        foreach ($languages as $language) {
-            if (!$model->get_language($language['slug'])) {
-                $model->add_language($language);
-            }
-        }
-
-        $model->update_default_lang('en');
-
-        // Restore Mantle's handler
-        EarlyIncorrectUsageHandler::register();
-
-        // Reinitialize Polylang now that languages exist.
         $polylangBootstrap = new \Polylang();
         $polylangBootstrap->init();
-
-        // Verify Polylang initialized correctly with languages.
-        if (\function_exists('PLL') && PLL() instanceof \PLL_Base) {
-            $defaultLang = PLL()->model->get_default_language();
-            if ($defaultLang instanceof \PLL_Language) {
-                PLL()->curlang = $defaultLang;
-            }
-        }
     });
 }
 

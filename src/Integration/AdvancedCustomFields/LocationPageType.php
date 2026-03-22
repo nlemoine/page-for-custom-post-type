@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace n5s\PageForCustomPostType\Integration\Acf;
+namespace n5s\PageForCustomPostType\Integration\AdvancedCustomFields;
 
 use ACF_Location_Page_Type;
 use n5s\PageForCustomPostType\Core\Api;

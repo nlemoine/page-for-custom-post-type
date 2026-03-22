@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace n5s\PageForCustomPostType\Integration\TheSeoFramework;
+namespace n5s\PageForCustomPostType\Integration\Autodescription;
 
 use n5s\PageForCustomPostType\Core\Api;
 

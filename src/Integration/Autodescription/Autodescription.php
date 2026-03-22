@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace n5s\PageForCustomPostType\Integration\TheSeoFramework;
+namespace n5s\PageForCustomPostType\Integration\Autodescription;
 
 use n5s\PageForCustomPostType\Integration\IntegrationInterface;
 
@@ -11,7 +11,7 @@ use n5s\PageForCustomPostType\Integration\IntegrationInterface;
  *
  * Bootstraps all TSF-related integrations as a single unit.
  */
-final class TheSeoFramework implements IntegrationInterface
+final class Autodescription implements IntegrationInterface
 {
     public function __construct(
         private readonly QueryType $queryType,

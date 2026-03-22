@@ -187,7 +187,15 @@ final class Admin
         $dropdownId = \esc_attr($args['name'] . '_dropdown');
         $checkboxWrapperId = \esc_attr($args['name'] . '_use_slug_wrapper');
 
-        $appendSlug = static fn (string $title, \WP_Post $page): string => $title . ' (' . wp_make_link_relative(get_permalink($page->ID)) . ')';
+        $appendSlug = static function (string $title, \WP_Post $page): string {
+            $permalink = \get_permalink($page->ID);
+
+            if ($permalink === false) {
+                return $title;
+            }
+
+            return $title . ' (' . \wp_make_link_relative($permalink) . ')';
+        };
         \add_filter('list_pages', $appendSlug, 10, 2);
         $dropdown = \wp_dropdown_pages($dropdownArgs);
         \remove_filter('list_pages', $appendSlug);

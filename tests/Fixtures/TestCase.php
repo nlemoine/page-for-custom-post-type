@@ -303,35 +303,49 @@ abstract class TestCase extends Test_Case
     }
 
     /**
-     * Set the default language when Polylang is active.
+     * Set up Polylang languages when Polylang is active.
      *
-     * Polylang's Capabilities\Create\Post::get_language() has a strict
-     * PLL_Language return type. When no current language is set, it falls
-     * back to get_default_language() which returns false if the language
-     * cache is stale. We must ensure curlang is set before any post creation.
+     * Polylang's Capabilities\Create\Post::get_language() requires a valid
+     * PLL_Language return type. Refresh_Database's transaction rollback removes
+     * language terms created during bootstrap, so we must recreate them in
+     * every test's setUp and set curlang to prevent TypeError.
      */
     private function setPolylangDefaultLanguage(): void
     {
-        if (!\function_exists('PLL')) {
+        if (!\function_exists('PLL') || !PLL() instanceof \PLL_Base) {
             return;
         }
 
-        $pll = PLL();
+        // Ensure languages exist within this test's transaction.
+        $defaultLang = PLL()->model->get_default_language();
 
-        if (!$pll instanceof \PLL_Base) {
-            return;
+        if (!$defaultLang instanceof \PLL_Language) {
+            // Languages were rolled back by Refresh_Database — recreate them.
+            // Mark the expected _doing_it_wrong calls from Polylang's model.
+            $this->setExpectedIncorrectUsage('WP_Syntex\Polylang\Model\Languages::get_list()');
+
+            $options = new \WP_Syntex\Polylang\Options\Options();
+            $model = new \PLL_Admin_Model($options);
+
+            $languages = [
+                ['name' => 'English', 'slug' => 'en', 'locale' => 'en_US', 'rtl' => false, 'term_group' => 0, 'flag' => 'us'],
+                ['name' => 'Français', 'slug' => 'fr', 'locale' => 'fr_FR', 'rtl' => false, 'term_group' => 1, 'flag' => 'fr'],
+            ];
+
+            foreach ($languages as $language) {
+                if (!$model->get_language($language['slug'])) {
+                    $model->add_language($language);
+                }
+            }
+
+            $model->update_default_lang('en');
+
+            PLL()->model->clean_languages_cache();
+            $defaultLang = PLL()->model->get_default_language();
         }
-
-        // Force Polylang to re-read languages from DB by clearing all caches.
-        // This is necessary because Refresh_Database's transaction rollback
-        // can leave Polylang's language cache in an inconsistent state.
-        wp_cache_delete('pll_languages_list', 'options');
-        $pll->model->clean_languages_cache();
-
-        $defaultLang = $pll->model->get_default_language();
 
         if ($defaultLang instanceof \PLL_Language) {
-            $pll->curlang = $defaultLang;
+            PLL()->curlang = $defaultLang;
         }
     }
 }

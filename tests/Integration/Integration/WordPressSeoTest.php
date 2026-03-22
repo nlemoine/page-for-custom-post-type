@@ -7,6 +7,7 @@ namespace n5s\PageForCustomPostType\Tests\Integration\Integration;
 use n5s\PageForCustomPostType\Tests\Fixtures\TestCase;
 use PHPUnit\Framework\Attributes\RequiresFunction;
 use Yoast\WP\SEO\Memoizers\Meta_Tags_Context_Memoizer;
+use Yoast\WP\SEO\Repositories\Indexable_Repository;
 
 /**
  * Integration tests for Yoast SEO integration.
@@ -28,9 +29,20 @@ class WordPressSeoTest extends TestCase
         // Configure Yoast SEO main taxonomy for books
         \YoastSEO()->helpers->options->set('post_types-' . self::BOOK_POST_TYPE . '-maintax', self::GENRE_TAXONOMY);
 
+        // Ensure Yoast indexables exist for our PFCPT pages
+        $this->ensureIndexable($this->homeForBookId);
+        $this->ensureIndexable($this->homeForBikeId);
+
         // Clear Yoast SEO cache
         $memoizer = \YoastSEO()->classes->get(Meta_Tags_Context_Memoizer::class);
         $memoizer->clear();
+    }
+
+    private function ensureIndexable(int $postId): void
+    {
+        /** @var Indexable_Repository $repository */
+        $repository = \YoastSEO()->classes->get(Indexable_Repository::class);
+        $repository->find_by_id_and_type($postId, 'post');
     }
 
     public function testCanonicalUrlOnPfcptPage(): void
@@ -114,6 +126,10 @@ class WordPressSeoTest extends TestCase
         foreach ($this->bookIds as $bookId) {
             wp_set_object_terms($bookId, $genreId, self::GENRE_TAXONOMY);
         }
+
+        // Clear Yoast cache to avoid stale state from previous tests
+        $memoizer = \YoastSEO()->classes->get(Meta_Tags_Context_Memoizer::class);
+        $memoizer->clear();
 
         $genre = get_term($genreId, self::GENRE_TAXONOMY);
         $this->get(get_term_link($genre));

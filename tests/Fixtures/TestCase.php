@@ -44,6 +44,12 @@ abstract class TestCase extends Test_Case
         parent::setUp();
 
         $this->set_permalink_structure('/%postname%/');
+
+        // When Polylang is active, set the current language to the default
+        // to prevent TypeError in Polylang's post creation hooks.
+        if (\function_exists('PLL') && PLL() instanceof \PLL_Frontend) {
+            PLL()->curlang = PLL()->model->get_default_language();
+        }
     }
 
     /**

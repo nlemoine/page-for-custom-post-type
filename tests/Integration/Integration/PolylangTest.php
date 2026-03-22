@@ -406,6 +406,9 @@ class PolylangTest extends TestCase
 
         $frLanguage = PLL()->model->get_language('fr');
 
+        // Clean up any global state from prior tests
+        unset($GLOBALS['pfcpt_is_posts_page']);
+
         // Not on a home page
         $GLOBALS['wp_query']->is_home = false;
         $GLOBALS['wp_query']->is_posts_page = false;

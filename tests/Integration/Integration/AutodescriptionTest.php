@@ -122,6 +122,10 @@ class AutodescriptionTest extends TestCase
         }
 
         $genre = get_term($genreId, self::GENRE_TAXONOMY);
+
+        // Clear TSF cache before navigation to avoid stale state from previous tests
+        $this->clearTsfCache();
+
         $this->get(get_term_link($genre));
 
         // Use explicit args to avoid TSF's function-level memoization
@@ -203,5 +207,12 @@ class AutodescriptionTest extends TestCase
 
         $canCacheProp = $cacheRef->getProperty('can_cache_query');
         $canCacheProp->setValue(null, null);
+
+        // Clear Breadcrumbs static options cache
+        $breadcrumbsRef = new \ReflectionClass(TsfBreadcrumbs::class);
+        if ($breadcrumbsRef->hasProperty('options')) {
+            $optionsProp = $breadcrumbsRef->getProperty('options');
+            $optionsProp->setValue(null, []);
+        }
     }
 }

@@ -102,19 +102,14 @@ final class RewriteManager
         if (!\is_string($permastruct)) {
             remove_rewrite_tag("%{$postType->name}%");
 
-            if ($postType->hierarchical) {
-                add_rewrite_tag(
-                    "%{$postType->name}%",
-                    "{$excludePageRegex}(.+?)",
-                    $postType->query_var ? "{$postType->query_var}=" : "post_type={$postType->name}&pagename="
-                );
-            } else {
-                add_rewrite_tag(
-                    "%{$postType->name}%",
-                    "{$excludePageRegex}([^/]+)",
-                    $postType->query_var ? "{$postType->query_var}=" : "post_type={$postType->name}&name="
-                );
-            }
+            $regex = $postType->hierarchical ? '(.+?)' : '([^/]+)';
+            $queryParam = $postType->hierarchical ? 'pagename' : 'name';
+
+            add_rewrite_tag(
+                "%{$postType->name}%",
+                "{$excludePageRegex}{$regex}",
+                $postType->query_var ? "{$postType->query_var}=" : "post_type={$postType->name}&{$queryParam}="
+            );
 
             return;
         }

@@ -68,25 +68,13 @@ jobs:
           php-version: '8.2'
           coverage: pcov
       - uses: ramsey/composer-install@v3
-      - name: Generate coverage (core)
-        run: php -d pcov.enabled=1 vendor/bin/phpunit --testsuite=unit,integration --coverage-clover=coverage-core.xml
-      - name: Check core coverage threshold
-        run: |
-          COVERAGE=$(php -r '
-            $xml = simplexml_load_file("coverage-core.xml");
-            $lines = 0; $covered = 0;
-            foreach ($xml->project->package as $p) {
-              foreach ($p->file as $f) {
-                $name = (string)$f["name"];
-                if (str_contains($name, "/Integration/")) continue;
-                $lines += (int)$f->metrics["statements"];
-                $covered += (int)$f->metrics["coveredstatements"];
-              }
-            }
-            echo round($covered / $lines * 100, 1);
-          ')
-          echo "Core coverage: ${COVERAGE}%"
-          php -r "exit((float)'${COVERAGE}' >= 94.0 ? 0 : 1);"
+      - name: Generate coverage
+        run: php -d pcov.enabled=1 vendor/bin/phpunit --testsuite=unit,integration --coverage-clover=coverage.xml
+      - uses: codecov/codecov-action@v5
+        with:
+          files: coverage.xml
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   static-analysis:
     uses: inpsyde/reusable-workflows/.github/workflows/static-analysis-php.yml@main

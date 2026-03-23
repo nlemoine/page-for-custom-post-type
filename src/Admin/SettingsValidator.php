@@ -76,8 +76,9 @@ final class SettingsValidator
     private function isDuplicatePageId(int $value, string $currentOptionName): bool
     {
         // Get all page_for_* values from POST, excluding current option
+        // Nonce verified by Settings API before sanitize callback.
         $otherPageIds = array_filter(
-            $_POST,
+            $_POST, // phpcs:ignore WordPress.Security.NonceVerification.Missing
             static fn (string $k): bool => str_starts_with($k, Api::OPTION_PREFIX) && $k !== $currentOptionName,
             \ARRAY_FILTER_USE_KEY
         );

@@ -229,15 +229,17 @@ abstract class TestCase extends Test_Case
      */
     protected function configureStaticFrontPage(bool $enable = true): void
     {
-        if ($enable) {
-            update_option('show_on_front', 'page');
-            update_option('page_on_front', $this->staticFrontPageId);
-            update_option('page_for_posts', $this->staticPageForPostsId);
-        } else {
+        if (!$enable) {
             update_option('show_on_front', 'posts');
             delete_option('page_on_front');
             delete_option('page_for_posts');
+
+            return;
         }
+
+        update_option('show_on_front', 'page');
+        update_option('page_on_front', $this->staticFrontPageId);
+        update_option('page_for_posts', $this->staticPageForPostsId);
     }
 
     /**
@@ -273,14 +275,20 @@ abstract class TestCase extends Test_Case
                     (bool) $wp_query->$property,
                     "Expected {$property} to be true"
                 );
-            } elseif (\function_exists($property)) {
+
+                continue;
+            }
+
+            if (\function_exists($property)) {
                 $this->assertTrue(
                     $property(),
                     "Expected {$property}() to return true"
                 );
-            } else {
-                $this->fail("Unknown conditional: {$conditional}");
+
+                continue;
             }
+
+            $this->fail("Unknown conditional: {$conditional}");
         }
     }
 

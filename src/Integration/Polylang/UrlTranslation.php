@@ -25,7 +25,7 @@ final class UrlTranslation
     /**
      * Set is_posts_page before Polylang processes the URL.
      */
-    public function beforeTranslationUrl(string $url, PLL_Language $_language, int $_queriedObjectId): string
+    public function beforeTranslationUrl(string $url, PLL_Language $language, int $queriedObjectId): string
     {
         if (!is_home()) {
             return $url;
@@ -46,7 +46,7 @@ final class UrlTranslation
     /**
      * Reset is_posts_page after Polylang URL generation.
      */
-    public function afterTranslationUrl(string $url, PLL_Language $_language, int $_queriedObjectId): string
+    public function afterTranslationUrl(string $url, PLL_Language $language, int $queriedObjectId): string
     {
         if (!is_home()) {
             return $url;

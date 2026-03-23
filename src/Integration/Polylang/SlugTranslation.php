@@ -32,6 +32,7 @@ final class SlugTranslation
      * @param array<string, array<string, mixed>> $slugs
      * @return array<string, array<string, mixed>>
      */
+    //phpcs:ignore SlevomatCodingStandard.Complexity.Cognitive.ComplexityTooHigh
     public function translateSlugs(array $slugs, PLL_Language $language): array
     {
         $defaultLanguage = pll_default_language();

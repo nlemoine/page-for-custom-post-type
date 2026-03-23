@@ -50,7 +50,7 @@ final class Lifecycle
      *
      * @param array<string, int> $translations
      */
-    public function onPostSave(int $_postId, WP_Post $_post, array $translations): void
+    public function onPostSave(int $postId, WP_Post $post, array $translations): void
     {
         $defaultLanguage = pll_default_language();
 

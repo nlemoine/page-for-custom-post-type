@@ -41,15 +41,22 @@ jobs:
   integration-tests:
     needs: php-versions
     runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.wp == 'trunk' }}
     strategy:
       fail-fast: false
       matrix:
         php: ${{ fromJson(needs.php-versions.outputs.versions) }}
+        wp: ['latest']
         suite:
           - test:core
           - test:wordpress-seo
           - test:polylang
           - test:autodescription
+        include:
+          - php: '8.2'
+            wp: 'trunk'
+            suite: test:core
+    name: PHP ${{ matrix.php }} | WP ${{ matrix.wp }} | ${{ matrix.suite }}
     steps:
       - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
@@ -58,6 +65,8 @@ jobs:
           coverage: none
       - uses: ramsey/composer-install@v3
       - run: composer ${{ matrix.suite }}
+        env:
+          WP_VERSION: ${{ matrix.wp }}
 
   coverage:
     runs-on: ubuntu-latest

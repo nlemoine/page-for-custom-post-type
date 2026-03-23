@@ -128,6 +128,28 @@ class QueryTest extends TestCase
         $this->assertNull($result);
     }
 
+    public function testBodyClassOnPfcptPage(): void
+    {
+        $this->get($this->getBookHomeUrl());
+
+        $classes = get_body_class();
+
+        $this->assertContains('home', $classes);
+        $this->assertContains('home-for-' . self::BOOK_POST_TYPE, $classes);
+        $this->assertNotContains('blog', $classes);
+    }
+
+    public function testBodyClassOnDifferentPfcptPage(): void
+    {
+        $this->get($this->getBikeHomeUrl());
+
+        $classes = get_body_class();
+
+        $this->assertContains('home', $classes);
+        $this->assertContains('home-for-' . self::BIKE_POST_TYPE, $classes);
+        $this->assertNotContains('blog', $classes);
+    }
+
     public function testSetQueryPropertiesSkipsSubQueries(): void
     {
         $this->get($this->getBookHomeUrl());

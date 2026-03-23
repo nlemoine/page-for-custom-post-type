@@ -74,7 +74,7 @@ final class Admin
             return;
         }
 
-        $archiveUrl = get_page_url_for_custom_post_type($postTypeObject->name);
+        $archiveUrl = \n5s\PageForCustomPostType\get_page_url_for_custom_post_type($postTypeObject->name);
 
         if (!$archiveUrl) {
             return;

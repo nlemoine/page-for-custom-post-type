@@ -42,7 +42,7 @@ class MenuHighlightingTest extends TestCase
             'classes' => [],
         ]);
 
-        $result = $this->queryFilter->setCurrentAncestor([$menuItem], new \stdClass());
+        $result = $this->queryFilter->withCurrentAncestor([$menuItem], new \stdClass());
 
         $this->assertContains('current-menu-ancestor', $result[0]->classes);
         $this->assertTrue($result[0]->current_item_ancestor);
@@ -58,7 +58,7 @@ class MenuHighlightingTest extends TestCase
             'classes' => [],
         ]);
 
-        $result = $this->queryFilter->setCurrentAncestor([$menuItem], new \stdClass());
+        $result = $this->queryFilter->withCurrentAncestor([$menuItem], new \stdClass());
 
         $this->assertNotContains('current-menu-ancestor', $result[0]->classes);
     }
@@ -73,7 +73,7 @@ class MenuHighlightingTest extends TestCase
             'classes' => [],
         ]);
 
-        $result = $this->queryFilter->setCurrentAncestor([$menuItem], new \stdClass());
+        $result = $this->queryFilter->withCurrentAncestor([$menuItem], new \stdClass());
 
         $this->assertNotContains('current-menu-ancestor', $result[0]->classes);
         $this->assertFalse($result[0]->current_item_ancestor);
@@ -89,7 +89,7 @@ class MenuHighlightingTest extends TestCase
             'classes' => [],
         ]);
 
-        $result = $this->queryFilter->setCurrentAncestor([$menuItem], new \stdClass());
+        $result = $this->queryFilter->withCurrentAncestor([$menuItem], new \stdClass());
 
         $this->assertNotContains('current-menu-ancestor', $result[0]->classes);
         $this->assertFalse($result[0]->current_item_ancestor);
@@ -105,7 +105,7 @@ class MenuHighlightingTest extends TestCase
             'classes' => [],
         ]);
 
-        $result = $this->queryFilter->setCurrentAncestor([$menuItem], new \stdClass());
+        $result = $this->queryFilter->withCurrentAncestor([$menuItem], new \stdClass());
 
         $this->assertNotContains('current-menu-ancestor', $result[0]->classes);
         $this->assertFalse($result[0]->current_item_ancestor);
@@ -121,7 +121,7 @@ class MenuHighlightingTest extends TestCase
             'classes' => ['menu-item', 'existing-class'],
         ]);
 
-        $result = $this->queryFilter->setCurrentAncestor([$menuItem], new \stdClass());
+        $result = $this->queryFilter->withCurrentAncestor([$menuItem], new \stdClass());
 
         $this->assertContains('existing-class', $result[0]->classes);
         $this->assertContains('menu-item', $result[0]->classes);
@@ -139,7 +139,7 @@ class MenuHighlightingTest extends TestCase
             'classes' => [],
         ]);
 
-        $result = $this->queryFilter->setCurrentAncestor([$menuItem], new \stdClass());
+        $result = $this->queryFilter->withCurrentAncestor([$menuItem], new \stdClass());
 
         $this->assertNotContains('current-menu-ancestor', $result[0]->classes);
         $this->assertFalse($result[0]->current_item_ancestor);

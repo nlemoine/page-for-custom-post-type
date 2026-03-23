@@ -33,7 +33,7 @@ class CustomPermastructTest extends TestCase
         global $wp_query;
 
         $this->assertTrue($wp_query->is_home);
-        $this->assertTrue(is_page_for_custom_post_type());
+        $this->assertTrue(\n5s\PageForCustomPostType\is_page_for_custom_post_type());
         $this->assertGreaterThan(1, $wp_query->query_vars['paged']);
         $this->assertNotEmpty($wp_query->posts);
     }
@@ -66,7 +66,7 @@ class CustomPermastructTest extends TestCase
         global $wp_query;
 
         $this->assertTrue($wp_query->is_home);
-        $this->assertTrue(is_page_for_custom_post_type());
+        $this->assertTrue(\n5s\PageForCustomPostType\is_page_for_custom_post_type());
         $this->assertTrue(is_paged());
         $this->assertNotEmpty($wp_query->posts);
     }

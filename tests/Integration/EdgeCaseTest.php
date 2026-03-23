@@ -22,7 +22,7 @@ class EdgeCaseTest extends TestCase
 
         $this->assertTrue(is_home());
         $this->assertFalse(is_front_page());
-        $this->assertTrue(is_page_for_custom_post_type());
+        $this->assertTrue(\n5s\PageForCustomPostType\is_page_for_custom_post_type());
     }
 
     public function testFrontPageIsNotPfcptPage(): void
@@ -31,7 +31,7 @@ class EdgeCaseTest extends TestCase
 
         $this->get(home_url('/'));
 
-        $this->assertFalse(is_page_for_custom_post_type());
+        $this->assertFalse(\n5s\PageForCustomPostType\is_page_for_custom_post_type());
     }
 
     public function testPfcptWithShowOnFrontPosts(): void
@@ -43,7 +43,7 @@ class EdgeCaseTest extends TestCase
         $this->get($this->getBookHomeUrl());
 
         $this->assertTrue(is_home());
-        $this->assertTrue(is_page_for_custom_post_type());
+        $this->assertTrue(\n5s\PageForCustomPostType\is_page_for_custom_post_type());
     }
 
     public function testNestedPageSlug(): void
@@ -75,7 +75,7 @@ class EdgeCaseTest extends TestCase
         global $wp_query;
 
         $this->assertTrue($wp_query->is_home);
-        $this->assertTrue(is_page_for_custom_post_type());
+        $this->assertTrue(\n5s\PageForCustomPostType\is_page_for_custom_post_type());
     }
 
     public function testPfcptPageContentIsNotInQuery(): void
@@ -94,14 +94,14 @@ class EdgeCaseTest extends TestCase
         $this->get($this->getBookHomeUrl());
 
         $this->assertTrue(is_home());
-        $this->assertTrue(is_page_for_custom_post_type(self::BOOK_POST_TYPE));
-        $this->assertFalse(is_page_for_custom_post_type(self::BIKE_POST_TYPE));
+        $this->assertTrue(\n5s\PageForCustomPostType\is_page_for_custom_post_type(self::BOOK_POST_TYPE));
+        $this->assertFalse(\n5s\PageForCustomPostType\is_page_for_custom_post_type(self::BIKE_POST_TYPE));
 
         $this->get($this->getBikeHomeUrl());
 
         $this->assertTrue(is_home());
-        $this->assertTrue(is_page_for_custom_post_type(self::BIKE_POST_TYPE));
-        $this->assertFalse(is_page_for_custom_post_type(self::BOOK_POST_TYPE));
+        $this->assertTrue(\n5s\PageForCustomPostType\is_page_for_custom_post_type(self::BIKE_POST_TYPE));
+        $this->assertFalse(\n5s\PageForCustomPostType\is_page_for_custom_post_type(self::BOOK_POST_TYPE));
     }
 
     public function testPfcptPageWithNoPostsPerPage(): void
@@ -130,7 +130,7 @@ class EdgeCaseTest extends TestCase
 
         $this->assertTrue($wp_query->is_page);
         $this->assertFalse($wp_query->is_home);
-        $this->assertFalse(is_page_for_custom_post_type());
+        $this->assertFalse(\n5s\PageForCustomPostType\is_page_for_custom_post_type());
     }
 
     public function testQueriedObjectIsPageNotPosts(): void

@@ -21,6 +21,7 @@ class PublicApiTest extends TestCase
 
     public function testIsPageForCustomPostTypeReturnsTrueOnPfcptPage(): void
     {
+        $this->setExpectedDeprecated('is_page_for_custom_post_type');
         $this->get($this->getBookHomeUrl());
 
         $this->assertTrue(is_page_for_custom_post_type());
@@ -28,6 +29,7 @@ class PublicApiTest extends TestCase
 
     public function testIsPageForCustomPostTypeReturnsTrueForSpecificPostType(): void
     {
+        $this->setExpectedDeprecated('is_page_for_custom_post_type');
         $this->get($this->getBookHomeUrl());
 
         $this->assertTrue(is_page_for_custom_post_type(self::BOOK_POST_TYPE));
@@ -35,6 +37,7 @@ class PublicApiTest extends TestCase
 
     public function testIsPageForCustomPostTypeReturnsFalseForWrongPostType(): void
     {
+        $this->setExpectedDeprecated('is_page_for_custom_post_type');
         $this->get($this->getBookHomeUrl());
 
         $this->assertFalse(is_page_for_custom_post_type('post'));
@@ -43,6 +46,7 @@ class PublicApiTest extends TestCase
 
     public function testIsPageForCustomPostTypeReturnsFalseOnRegularPage(): void
     {
+        $this->setExpectedDeprecated('is_page_for_custom_post_type');
         $this->get(get_permalink($this->staticFrontPageId));
 
         $this->assertFalse(is_page_for_custom_post_type());
@@ -50,6 +54,8 @@ class PublicApiTest extends TestCase
 
     public function testGetCustomPostTypeForPageReturnsPostType(): void
     {
+        $this->setExpectedDeprecated('get_custom_post_type_for_page');
+
         $this->assertEquals(
             self::BOOK_POST_TYPE,
             get_custom_post_type_for_page($this->homeForBookId)
@@ -58,11 +64,15 @@ class PublicApiTest extends TestCase
 
     public function testGetCustomPostTypeForPageReturnsNullForNonPfcptPage(): void
     {
+        $this->setExpectedDeprecated('get_custom_post_type_for_page');
+
         $this->assertNull(get_custom_post_type_for_page($this->staticFrontPageId));
     }
 
     public function testGetPageIdForCustomPostTypeReturnsPageId(): void
     {
+        $this->setExpectedDeprecated('get_page_id_for_custom_post_type');
+
         $this->assertEquals(
             $this->homeForBookId,
             get_page_id_for_custom_post_type(self::BOOK_POST_TYPE)
@@ -71,11 +81,14 @@ class PublicApiTest extends TestCase
 
     public function testGetPageIdForCustomPostTypeReturnsNullForUnknownPostType(): void
     {
+        $this->setExpectedDeprecated('get_page_id_for_custom_post_type');
+
         $this->assertNull(get_page_id_for_custom_post_type('nonexistent'));
     }
 
     public function testGetPageIdForCustomPostTypeUsesCurrentQueryWhenNull(): void
     {
+        $this->setExpectedDeprecated('get_page_id_for_custom_post_type');
         $this->get($this->getBookHomeUrl());
 
         $this->assertEquals(
@@ -86,6 +99,7 @@ class PublicApiTest extends TestCase
 
     public function testGetPageUrlForCustomPostTypeReturnsUrl(): void
     {
+        $this->setExpectedDeprecated('get_page_url_for_custom_post_type');
         $expectedUrl = get_permalink($this->homeForBookId);
 
         $this->assertEquals(
@@ -96,11 +110,14 @@ class PublicApiTest extends TestCase
 
     public function testGetPageUrlForCustomPostTypeReturnsNullForUnknownPostType(): void
     {
+        $this->setExpectedDeprecated('get_page_url_for_custom_post_type');
+
         $this->assertNull(get_page_url_for_custom_post_type('nonexistent'));
     }
 
     public function testGetPageUrlForCustomPostTypeUsesCurrentQueryWhenNull(): void
     {
+        $this->setExpectedDeprecated('get_page_url_for_custom_post_type');
         $this->get($this->getBookHomeUrl());
 
         $expectedUrl = get_permalink($this->homeForBookId);

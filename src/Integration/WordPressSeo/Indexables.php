@@ -40,10 +40,23 @@ final class Indexables
         /**
          * Trick Yoast SEO for_current_page logic which determines the current indexable.
          *
+         * Yoast's get_simple_page_id() checks is_posts_page() before reaching the
+         * wpseo_frontend_page_type_simple_page_id filter. Since Handler sets is_home
+         * and is_posts_page to true, Yoast returns page_for_posts (the blog page ID)
+         * instead of our PFCPT page ID. Filtering page_for_posts directly would fix
+         * Yoast but break nav menu highlighting and other consumers.
+         *
+         * The only targeted fix is intercepting show_on_front specifically when called
+         * from Yoast's Current_Page_Helper, so is_posts_page() returns false and
+         * execution falls through to our filter.
+         *
+         * @see \Yoast\WP\SEO\Helpers\Current_Page_Helper::is_posts_page
+         * @see \Yoast\WP\SEO\Helpers\Current_Page_Helper::get_simple_page_id
          * @see \Yoast\WP\SEO\Repositories\Indexable_Repository::for_current_page
          */
         if (get_option('show_on_front') === 'page') {
             add_filter('pre_option_show_on_front', static function (mixed $value): mixed {
+                // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace -- Scoped to Yoast's helper; no alternative without broader side effects.
                 $bt = debug_backtrace(\DEBUG_BACKTRACE_IGNORE_ARGS, 4);
 
                 if (

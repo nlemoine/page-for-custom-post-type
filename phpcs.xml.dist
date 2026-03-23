@@ -10,6 +10,8 @@
     <arg name="colors" />
     <arg value="sp" />
 
+    <config name="ignore_warnings_on_exit" value="1" />
+
     <!-- PSR-4 namespace configuration. -->
     <rule ref="SlevomatCodingStandard.Files.TypeNameMatchesFileName">
         <properties>

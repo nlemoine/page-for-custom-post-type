@@ -44,7 +44,7 @@ final class SlugTranslation
         $postTypes = array_keys($pageIds);
 
         foreach ($slugs as $postType => $postTypeSlugs) {
-            if (!in_array($postType, $postTypes, true)) {
+            if (!\in_array($postType, $postTypes, true)) {
                 continue;
             }
 
@@ -54,12 +54,12 @@ final class SlugTranslation
 
             $translations = $postTypeSlugs['translations'];
 
-            if (!is_array($translations)) {
+            if (!\is_array($translations)) {
                 continue;
             }
 
             foreach (array_keys($translations) as $lang) {
-                if (!is_string($lang)) {
+                if (!\is_string($lang)) {
                     continue;
                 }
 
@@ -79,8 +79,8 @@ final class SlugTranslation
                     continue;
                 }
 
-                if (is_array($slugs[$postType]['translations'] ?? null)) {
-                    $slugs[$postType]['translations'][$lang] = substr($pageSlug, strlen($lang . '/'));
+                if (\is_array($slugs[$postType]['translations'] ?? null)) {
+                    $slugs[$postType]['translations'][$lang] = substr($pageSlug, \strlen($lang . '/'));
                 }
             }
         }

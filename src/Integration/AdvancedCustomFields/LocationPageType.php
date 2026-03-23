@@ -44,7 +44,7 @@ class LocationPageType extends ACF_Location_Page_Type
 
         $postId = $screen['post_id'];
 
-        if (!is_int($postId) && !$postId instanceof \WP_Post) {
+        if (!\is_int($postId) && !$postId instanceof \WP_Post) {
             return false;
         }
 
@@ -95,7 +95,7 @@ class LocationPageType extends ACF_Location_Page_Type
         $values = [];
 
         foreach ($parentValues as $key => $value) {
-            if (is_string($key) && is_string($value)) {
+            if (\is_string($key) && \is_string($value)) {
                 $values[$key] = $value;
             }
         }
@@ -109,7 +109,7 @@ class LocationPageType extends ACF_Location_Page_Type
         foreach ($postTypes as $postType) {
             $postTypeObject = get_post_type_object($postType);
 
-            if ($postTypeObject && is_string($postTypeObject->labels->archives)) {
+            if ($postTypeObject && \is_string($postTypeObject->labels->archives)) {
                 $values[$postType . '_page'] = $postTypeObject->labels->archives;
             }
         }

@@ -21,7 +21,7 @@ class RewriteManagerTest extends TestCase
 
         // SettingsValidator::validate() may be triggered via sanitize_option hooks
         if (!\function_exists('add_settings_error')) {
-            require_once ABSPATH . 'wp-admin/includes/template.php';
+            require_once \ABSPATH . 'wp-admin/includes/template.php';
         }
 
         $this->api = new Api();

@@ -19,7 +19,7 @@ class SettingsValidatorTest extends TestCase
 
         // add_settings_error() is admin-only
         if (!\function_exists('add_settings_error')) {
-            require_once ABSPATH . 'wp-admin/includes/template.php';
+            require_once \ABSPATH . 'wp-admin/includes/template.php';
         }
 
         $this->validator = new SettingsValidator();

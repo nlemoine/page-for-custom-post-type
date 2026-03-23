@@ -46,9 +46,9 @@ final class Admin
         }
 
         $name = $this->api->getOptionName($postType);
-        $labelName = is_string($postTypeObject->labels->name) ? $postTypeObject->labels->name : $postType;
+        $labelName = \is_string($postTypeObject->labels->name) ? $postTypeObject->labels->name : $postType;
         /* translators: %s: post type name */
-        $postStates[$name] = esc_html(sprintf(__('%s page', 'pfcpt'), $labelName));
+        $postStates[$name] = esc_html(\sprintf(__('%s page', 'pfcpt'), $labelName));
 
         return $postStates;
     }
@@ -106,7 +106,7 @@ final class Admin
                 continue;
             }
 
-            $archivesLabel = is_string($postTypeObject->labels->archives) ? $postTypeObject->labels->archives : $postType;
+            $archivesLabel = \is_string($postTypeObject->labels->archives) ? $postTypeObject->labels->archives : $postType;
 
             add_submenu_page(
                 'edit.php?post_type=' . $postType,
@@ -147,7 +147,7 @@ final class Admin
                 'default' => false,
             ]);
 
-            $labelName = is_string($postTypeObj->labels->name) ? $postTypeObj->labels->name : $postTypeObj->name;
+            $labelName = \is_string($postTypeObj->labels->name) ? $postTypeObj->labels->name : $postTypeObj->name;
 
             add_settings_field(
                 $fieldId,
@@ -188,7 +188,7 @@ final class Admin
             'exclude' => $this->getExcludedPageIds(),
         ]);
 
-        if (!is_array($dropdownArgs)) {
+        if (!\is_array($dropdownArgs)) {
             return;
         }
 
@@ -224,7 +224,7 @@ final class Admin
                 printf(
                     /* translators: %s: plural post type name */
                     esc_html__('Selected page slug replaces default "%s" post type slug', 'pfcpt'),
-                    esc_html(mb_strtolower(is_string($args['postType']->labels->name) ? $args['postType']->labels->name : $args['postType']->name))
+                    esc_html(mb_strtolower(\is_string($args['postType']->labels->name) ? $args['postType']->labels->name : $args['postType']->name))
                 );
                 ?>
             </label>
@@ -234,7 +234,7 @@ final class Admin
                 printf(
                     /* translators: %s: plural post type name */
                     esc_html__('Changing this option will alter all single "%s" URLs. This may affect SEO and existing links.', 'pfcpt'),
-                    esc_html(mb_strtolower(is_string($args['postType']->labels->name) ? $args['postType']->labels->name : $args['postType']->name))
+                    esc_html(mb_strtolower(\is_string($args['postType']->labels->name) ? $args['postType']->labels->name : $args['postType']->name))
                 );
                 ?>
             </p>
@@ -302,9 +302,9 @@ final class Admin
         }
 
         // Get rewrite slug from args
-        $rewriteArgs = is_array($originalArgs['rewrite'] ?? null) ? $originalArgs['rewrite'] : [];
-        $rewriteSlug = is_string($rewriteArgs['slug'] ?? null) ? $rewriteArgs['slug'] : $postTypeName;
-        $archiveSlug = $hasArchive === true ? $rewriteSlug : (is_string($hasArchive) ? $hasArchive : $postTypeName);
+        $rewriteArgs = \is_array($originalArgs['rewrite'] ?? null) ? $originalArgs['rewrite'] : [];
+        $rewriteSlug = \is_string($rewriteArgs['slug'] ?? null) ? $rewriteArgs['slug'] : $postTypeName;
+        $archiveSlug = $hasArchive === true ? $rewriteSlug : (\is_string($hasArchive) ? $hasArchive : $postTypeName);
 
         $prefix = $wp_rewrite->root;
         if (!empty($rewriteArgs['with_front'])) {
@@ -312,6 +312,6 @@ final class Admin
         }
 
         /* translators: %s: archive slug */
-        return sprintf(__('— Default (/%s/) —', 'pfcpt'), $prefix . $archiveSlug);
+        return \sprintf(__('— Default (/%s/) —', 'pfcpt'), $prefix . $archiveSlug);
     }
 }

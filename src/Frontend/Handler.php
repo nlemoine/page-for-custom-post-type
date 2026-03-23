@@ -44,7 +44,7 @@ final class Handler
 
         $pageIds = $this->api->getPageIds();
 
-        if (!in_array($currentPageId, $pageIds, true)) {
+        if (!\in_array($currentPageId, $pageIds, true)) {
             return;
         }
 
@@ -94,7 +94,7 @@ final class Handler
         }
 
         $postType = $wpQuery->{Api::QUERY_VAR_IS_PFCPT} ?? null;
-        if (!is_string($postType)) {
+        if (!\is_string($postType)) {
             return $classes;
         }
 
@@ -119,13 +119,13 @@ final class Handler
         }
 
         $postType = $wpQuery->{Api::QUERY_VAR_IS_PFCPT} ?? null;
-        if (!is_string($postType)) {
+        if (!\is_string($postType)) {
             return $templates;
         }
 
         // Match extension format of incoming templates (classic vs block themes)
         $first = reset($templates);
-        $extension = is_string($first) && str_ends_with($first, '.php') ? '.php' : '';
+        $extension = \is_string($first) && str_ends_with($first, '.php') ? '.php' : '';
 
         return array_merge(["home-{$postType}{$extension}"], $templates);
     }

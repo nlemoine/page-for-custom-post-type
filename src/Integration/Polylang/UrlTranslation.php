@@ -59,7 +59,7 @@ final class UrlTranslation
         }
 
         $savedValue = $GLOBALS['pfcpt_is_posts_page'] ?? false;
-        $wpQuery->is_posts_page = is_bool($savedValue) ? $savedValue : false;
+        $wpQuery->is_posts_page = \is_bool($savedValue) ? $savedValue : false;
         unset($GLOBALS['pfcpt_is_posts_page']);
 
         return $url;

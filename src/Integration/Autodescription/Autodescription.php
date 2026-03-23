@@ -21,7 +21,7 @@ final class Autodescription implements IntegrationInterface
 
     public function isSupported(): bool
     {
-        return function_exists('the_seo_framework');
+        return \function_exists('the_seo_framework');
     }
 
     public function registerHooks(): void

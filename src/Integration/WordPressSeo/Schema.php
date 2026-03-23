@@ -37,7 +37,7 @@ final class Schema
 
         $type = (array) $type;
 
-        if (in_array('CollectionPage', $type, true)) {
+        if (\in_array('CollectionPage', $type, true)) {
             return $type;
         }
 

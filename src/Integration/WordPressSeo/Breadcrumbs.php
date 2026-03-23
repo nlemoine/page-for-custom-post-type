@@ -45,7 +45,7 @@ final class Breadcrumbs
             return $indexables;
         }
 
-        $pageForPostTypeId = $this->api->getPageIdFromPostType($currentPostType, function_exists('PLL'));
+        $pageForPostTypeId = $this->api->getPageIdFromPostType($currentPostType, \function_exists('PLL'));
 
         if (!$pageForPostTypeId) {
             return $indexables;
@@ -85,7 +85,7 @@ final class Breadcrumbs
 
         $currentPostType = get_post_type();
 
-        if (!is_string($currentPostType)) {
+        if (!\is_string($currentPostType)) {
             return $indexables;
         }
 
@@ -99,11 +99,11 @@ final class Breadcrumbs
 
         $taxonomies = get_object_taxonomies($currentPostType);
 
-        if (!in_array($currentTaxonomy, $taxonomies, true)) {
+        if (!\in_array($currentTaxonomy, $taxonomies, true)) {
             return $indexables;
         }
 
-        $pageForPostTypeId = $this->api->getPageIdFromPostType($currentPostType, function_exists('PLL'));
+        $pageForPostTypeId = $this->api->getPageIdFromPostType($currentPostType, \function_exists('PLL'));
 
         if (!$pageForPostTypeId) {
             return $indexables;
@@ -155,13 +155,13 @@ final class Breadcrumbs
             if ($frontPageId === 0) {
                 $homePageAncestor = $indexableRepository->find_for_home_page();
 
-                if (!is_bool($homePageAncestor) && $homePageAncestor instanceof Indexable) {
+                if (!\is_bool($homePageAncestor) && $homePageAncestor instanceof Indexable) {
                     $staticAncestors[] = $homePageAncestor;
                 }
             } else {
                 $staticAncestor = $indexableRepository->find_by_id_and_type($frontPageId, 'post');
 
-                if (!is_bool($staticAncestor) && $staticAncestor instanceof Indexable && $staticAncestor->post_status !== 'unindexed') {
+                if (!\is_bool($staticAncestor) && $staticAncestor instanceof Indexable && $staticAncestor->post_status !== 'unindexed') {
                     $staticAncestors[] = $staticAncestor;
                 }
             }

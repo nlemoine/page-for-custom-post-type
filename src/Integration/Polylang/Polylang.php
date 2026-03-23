@@ -24,7 +24,7 @@ final class Polylang implements IntegrationInterface
 
     public function isSupported(): bool
     {
-        return function_exists('PLL');
+        return \function_exists('PLL');
     }
 
     public function registerHooks(): void

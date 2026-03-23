@@ -42,9 +42,9 @@ final class RewriteManager
             return null;
         }
 
-        $pagePath = parse_url($pageUrl, PHP_URL_PATH);
+        $pagePath = parse_url($pageUrl, \PHP_URL_PATH);
 
-        return is_string($pagePath) ? trim($pagePath, '/') : null;
+        return \is_string($pagePath) ? trim($pagePath, '/') : null;
     }
 
     /**
@@ -56,7 +56,7 @@ final class RewriteManager
         $cached = get_transient($cacheKey);
 
         if ($cached !== false) {
-            return is_string($cached) && $cached !== '' ? $cached : null;
+            return \is_string($cached) && $cached !== '' ? $cached : null;
         }
 
         $pageId = $this->api->getPageIdFromPostType($postType, false);
@@ -97,9 +97,9 @@ final class RewriteManager
         $excludePageRegex = '(?!page)';
 
         $rewrite = $postType->rewrite;
-        $permastruct = is_array($rewrite) ? ($rewrite['permastruct'] ?? null) : null;
+        $permastruct = \is_array($rewrite) ? ($rewrite['permastruct'] ?? null) : null;
 
-        if (!is_string($permastruct)) {
+        if (!\is_string($permastruct)) {
             remove_rewrite_tag("%{$postType->name}%");
 
             if ($postType->hierarchical) {
@@ -143,7 +143,7 @@ final class RewriteManager
         $replacements = [];
 
         foreach ($parts as $part) {
-            if (!$shouldWatchNext && !in_array($part, $triggerTags, true)) {
+            if (!$shouldWatchNext && !\in_array($part, $triggerTags, true)) {
                 continue;
             }
 
@@ -152,7 +152,7 @@ final class RewriteManager
                 continue;
             }
 
-            if (!in_array($part, $replaceTags, true)) {
+            if (!\in_array($part, $replaceTags, true)) {
                 continue;
             }
 

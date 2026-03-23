@@ -56,10 +56,10 @@ final class PostType
             // Get the page slug (cached)
             $pageSlug = $this->rewriteManager->getCachedPageSlug($postType);
 
-            if (is_string($pageSlug)) {
+            if (\is_string($pageSlug)) {
                 // Set page slug as rewrite slug
                 $rewrite = $args['rewrite'] ?? [];
-                if (!is_array($rewrite)) {
+                if (!\is_array($rewrite)) {
                     $rewrite = [];
                 }
                 $rewrite['slug'] = $pageSlug;

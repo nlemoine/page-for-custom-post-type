@@ -22,10 +22,10 @@ class AdminScreenTest extends TestCase
 
         // Load admin includes needed for settings API
         if (!\function_exists('add_settings_section')) {
-            require_once ABSPATH . 'wp-admin/includes/template.php';
+            require_once \ABSPATH . 'wp-admin/includes/template.php';
         }
         if (!\function_exists('register_setting')) {
-            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+            require_once \ABSPATH . 'wp-admin/includes/plugin.php';
         }
 
         $container = Plugin::getInstance()->getContainer();
@@ -158,7 +158,7 @@ class AdminScreenTest extends TestCase
 
         // WP_Admin_Bar requires admin includes
         if (!\class_exists('WP_Admin_Bar')) {
-            require_once ABSPATH . WPINC . '/class-wp-admin-bar.php';
+            require_once \ABSPATH . \WPINC . '/class-wp-admin-bar.php';
         }
 
         $adminBar = new \WP_Admin_Bar();
@@ -174,13 +174,13 @@ class AdminScreenTest extends TestCase
         $this->acting_as('administrator');
 
         if (!\class_exists('WP_Admin_Bar')) {
-            require_once ABSPATH . WPINC . '/class-wp-admin-bar.php';
+            require_once \ABSPATH . \WPINC . '/class-wp-admin-bar.php';
         }
         if (!\class_exists('WP_Screen')) {
-            require_once ABSPATH . 'wp-admin/includes/class-wp-screen.php';
+            require_once \ABSPATH . 'wp-admin/includes/class-wp-screen.php';
         }
         if (!\function_exists('set_current_screen')) {
-            require_once ABSPATH . 'wp-admin/includes/screen.php';
+            require_once \ABSPATH . 'wp-admin/includes/screen.php';
         }
 
         set_current_screen('edit-' . self::BOOK_POST_TYPE);
@@ -200,10 +200,10 @@ class AdminScreenTest extends TestCase
         $this->acting_as('administrator');
 
         if (!\class_exists('WP_Admin_Bar')) {
-            require_once ABSPATH . WPINC . '/class-wp-admin-bar.php';
+            require_once \ABSPATH . \WPINC . '/class-wp-admin-bar.php';
         }
         if (!\function_exists('set_current_screen')) {
-            require_once ABSPATH . 'wp-admin/includes/screen.php';
+            require_once \ABSPATH . 'wp-admin/includes/screen.php';
         }
 
         // Set to a non-edit screen (dashboard)

@@ -43,8 +43,8 @@ final class SettingsValidator
         $pageStatus = get_post_status($value);
 
         if ($pageStatus !== 'publish') {
-            $labelName = is_string($postTypeObject->labels->name) ? $postTypeObject->labels->name : $postType;
-            $this->addError($name, sprintf(
+            $labelName = \is_string($postTypeObject->labels->name) ? $postTypeObject->labels->name : $postType;
+            $this->addError($name, \sprintf(
                 /* translators: 1: post type name, 2: page title */
                 __('Page for %1$s post type (%2$s) is not published', 'pfcpt'),
                 $labelName,
@@ -57,8 +57,8 @@ final class SettingsValidator
 
         // Check for page ID used twice
         if ($this->isDuplicatePageId($value, $name)) {
-            $labelNameDup = is_string($postTypeObject->labels->name) ? $postTypeObject->labels->name : $postType;
-            $this->addError($name, sprintf(
+            $labelNameDup = \is_string($postTypeObject->labels->name) ? $postTypeObject->labels->name : $postType;
+            $this->addError($name, \sprintf(
                 /* translators: 1: post type name, 2: page title */
                 __('Page for %1$s post type (%2$s) is already used', 'pfcpt'),
                 $labelNameDup,
@@ -79,7 +79,7 @@ final class SettingsValidator
         $otherPageIds = array_filter(
             $_POST,
             static fn (string $k): bool => str_starts_with($k, Api::OPTION_PREFIX) && $k !== $currentOptionName,
-            ARRAY_FILTER_USE_KEY
+            \ARRAY_FILTER_USE_KEY
         );
 
         $pageIds = array_map(
@@ -90,7 +90,7 @@ final class SettingsValidator
         $oldOptionValue = get_option($currentOptionName);
         $oldValue = is_numeric($oldOptionValue) ? (int) $oldOptionValue : 0;
 
-        return in_array($value, array_filter($pageIds), true) && $value !== $oldValue;
+        return \in_array($value, array_filter($pageIds), true) && $value !== $oldValue;
     }
 
     /**
@@ -117,6 +117,6 @@ final class SettingsValidator
      */
     private function getPostTypeFromOptionName(string $name): string
     {
-        return substr($name, strlen(Api::OPTION_PREFIX));
+        return substr($name, \strlen(Api::OPTION_PREFIX));
     }
 }

@@ -35,7 +35,8 @@
 		"szepeviktor/phpstan-wordpress": "^2.0",
 		"phpstan/extension-installer": "^1.4",
 		"phpstan/phpstan": "^2.1",
-		"syde/phpcs": "^1.0"
+		"syde/phpcs": "^1.0",
+		"slevomat/coding-standard": "^8.22"
 	},
 	"repositories": [
 		{

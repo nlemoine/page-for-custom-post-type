@@ -23,6 +23,7 @@
     </rule>
 
     <rule ref="Syde-Extra">
+        <exclude name="Syde.Functions.FunctionLength.TooLong" />
         <exclude name="Syde.Files.LineLength.TooLong" />
         <exclude name="Syde.Classes.DisallowGetterSetter.GetterFound" />
         <exclude name="Syde.NamingConventions.ElementNameMinimalLength.TooShort" />

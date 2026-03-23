@@ -39,7 +39,7 @@ final class Admin
             return $postStates;
         }
 
-        $postTypeObject = \get_post_type_object($postType);
+        $postTypeObject = get_post_type_object($postType);
 
         if (!$postTypeObject) {
             return $postStates;
@@ -48,7 +48,7 @@ final class Admin
         $name = $this->api->getOptionName($postType);
         $labelName = is_string($postTypeObject->labels->name) ? $postTypeObject->labels->name : $postType;
         /* translators: %s: post type name */
-        $postStates[$name] = \esc_html(\sprintf(\__('%s page', 'pfcpt'), $labelName));
+        $postStates[$name] = esc_html(sprintf(__('%s page', 'pfcpt'), $labelName));
 
         return $postStates;
     }
@@ -58,13 +58,13 @@ final class Admin
      */
     public function addAdminBarArchiveLink(WP_Admin_Bar $adminBar): void
     {
-        $currentScreen = \get_current_screen();
+        $currentScreen = get_current_screen();
 
         if (!$currentScreen || $currentScreen->base !== 'edit') {
             return;
         }
 
-        $postTypeObject = \get_post_type_object($currentScreen->post_type);
+        $postTypeObject = get_post_type_object($currentScreen->post_type);
 
         if (!$postTypeObject) {
             return;
@@ -74,7 +74,7 @@ final class Admin
             return;
         }
 
-        $archiveUrl = \get_page_url_for_custom_post_type($postTypeObject->name);
+        $archiveUrl = get_page_url_for_custom_post_type($postTypeObject->name);
 
         if (!$archiveUrl) {
             return;
@@ -96,19 +96,19 @@ final class Admin
     public function addPostTypeSubmenus(): void
     {
         foreach ($this->api->getPageIds() as $postType => $pageId) {
-            $postTypeObject = \get_post_type_object($postType);
+            $postTypeObject = get_post_type_object($postType);
             if (!$postTypeObject) {
                 continue;
             }
 
-            $editPostLink = \get_edit_post_link($pageId);
+            $editPostLink = get_edit_post_link($pageId);
             if (!$editPostLink) {
                 continue;
             }
 
             $archivesLabel = is_string($postTypeObject->labels->archives) ? $postTypeObject->labels->archives : $postType;
 
-            \add_submenu_page(
+            add_submenu_page(
                 'edit.php?post_type=' . $postType,
                 $archivesLabel,
                 $archivesLabel,
@@ -125,9 +125,9 @@ final class Admin
     {
         $postTypes = $this->api->getPostTypes();
 
-        \add_settings_section(
+        add_settings_section(
             'page_for_custom_post_type',
-            \__('Pages for post type', 'pfcpt'),
+            __('Pages for post type', 'pfcpt'),
             '__return_false',
             'reading'
         );
@@ -138,18 +138,18 @@ final class Admin
             $value = $this->api->getPageIdFromPostType($postTypeObj->name);
             $useSlugValue = $this->api->shouldUsePageSlug($postTypeObj->name);
 
-            \register_setting('reading', $fieldId, [
+            register_setting('reading', $fieldId, [
                 'type' => 'integer',
             ]);
 
-            \register_setting('reading', $useSlugFieldId, [
+            register_setting('reading', $useSlugFieldId, [
                 'type' => 'boolean',
                 'default' => false,
             ]);
 
             $labelName = is_string($postTypeObj->labels->name) ? $postTypeObj->labels->name : $postTypeObj->name;
 
-            \add_settings_field(
+            add_settings_field(
                 $fieldId,
                 $labelName,
                 $this->renderPageDropdown(...),
@@ -180,11 +180,11 @@ final class Admin
         $defaultLabel = $this->getDefaultLabel($postTypeName);
 
         /** @var array{name?: string, id?: string, selected?: int|string, show_option_none?: string, exclude?: int[], echo?: bool|int} $dropdownArgs */
-        $dropdownArgs = \apply_filters('pfcpt/dropdown_page_args', [
-            'name' => \esc_attr($args['name']),
-            'id' => \esc_attr($args['name'] . '_dropdown'),
+        $dropdownArgs = apply_filters('pfcpt/dropdown_page_args', [
+            'name' => esc_attr($args['name']),
+            'id' => esc_attr($args['name'] . '_dropdown'),
             'selected' => $value,
-            'show_option_none' => $defaultLabel ?? \__('— Select —', 'pfcpt'),
+            'show_option_none' => $defaultLabel ?? __('— Select —', 'pfcpt'),
             'exclude' => $this->getExcludedPageIds(),
         ]);
 
@@ -194,37 +194,37 @@ final class Admin
 
         $dropdownArgs['echo'] = false;
 
-        $dropdownId = \esc_attr($args['name'] . '_dropdown');
-        $checkboxWrapperId = \esc_attr($args['name'] . '_use_slug_wrapper');
+        $dropdownId = esc_attr($args['name'] . '_dropdown');
+        $checkboxWrapperId = esc_attr($args['name'] . '_use_slug_wrapper');
 
         $appendSlug = static function (string $title, \WP_Post $page): string {
-            $permalink = \get_permalink($page->ID);
+            $permalink = get_permalink($page->ID);
 
             if ($permalink === false) {
                 return $title;
             }
 
-            return $title . ' (' . \wp_make_link_relative($permalink) . ')';
+            return $title . ' (' . wp_make_link_relative($permalink) . ')';
         };
-        \add_filter('list_pages', $appendSlug, 10, 2);
-        $dropdown = \wp_dropdown_pages($dropdownArgs);
-        \remove_filter('list_pages', $appendSlug);
+        add_filter('list_pages', $appendSlug, 10, 2);
+        $dropdown = wp_dropdown_pages($dropdownArgs);
+        remove_filter('list_pages', $appendSlug);
         ?>
         <?= $dropdown; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
-        <div id="<?= \esc_attr($checkboxWrapperId); ?>" style="margin-top: 0.5em;<?= $value > 0 ? '' : ' display: none;'; ?>">
+        <div id="<?= esc_attr($checkboxWrapperId); ?>" style="margin-top: 0.5em;<?= $value > 0 ? '' : ' display: none;'; ?>">
             <label>
                 <input
                     type="checkbox"
-                    name="<?= \esc_attr($args['useSlugName']); ?>"
+                    name="<?= esc_attr($args['useSlugName']); ?>"
                     value="1"
-                    <?php \checked($useSlugValue); ?>
+                    <?php checked($useSlugValue); ?>
                 />
                 <?php
-                \printf(
+                printf(
                     /* translators: %s: plural post type name */
-                    \esc_html__('Selected page slug replaces default "%s" post type slug', 'pfcpt'),
-                    \esc_html(\mb_strtolower(is_string($args['postType']->labels->name) ? $args['postType']->labels->name : $args['postType']->name))
+                    esc_html__('Selected page slug replaces default "%s" post type slug', 'pfcpt'),
+                    esc_html(mb_strtolower(is_string($args['postType']->labels->name) ? $args['postType']->labels->name : $args['postType']->name))
                 );
                 ?>
             </label>
@@ -233,16 +233,16 @@ final class Admin
                 <?php
                 printf(
                     /* translators: %s: plural post type name */
-                    \esc_html__('Changing this option will alter all single "%s" URLs. This may affect SEO and existing links.', 'pfcpt'),
-                    \esc_html(\mb_strtolower(is_string($args['postType']->labels->name) ? $args['postType']->labels->name : $args['postType']->name))
+                    esc_html__('Changing this option will alter all single "%s" URLs. This may affect SEO and existing links.', 'pfcpt'),
+                    esc_html(mb_strtolower(is_string($args['postType']->labels->name) ? $args['postType']->labels->name : $args['postType']->name))
                 );
                 ?>
             </p>
         </div>
         <script>
         (function() {
-            var dropdown = document.getElementById('<?= \esc_js($dropdownId); ?>');
-            var checkboxWrapper = document.getElementById('<?= \esc_js($checkboxWrapperId); ?>');
+            var dropdown = document.getElementById('<?= esc_js($dropdownId); ?>');
+            var checkboxWrapper = document.getElementById('<?= esc_js($checkboxWrapperId); ?>');
             dropdown.addEventListener('change', function() {
                 checkboxWrapper.style.display = dropdown.value > 0 ? '' : 'none';
             });
@@ -262,13 +262,13 @@ final class Admin
     {
         $excluded = [];
 
-        $frontPageOption = \get_option('page_on_front');
+        $frontPageOption = get_option('page_on_front');
         $frontPageId = is_numeric($frontPageOption) ? (int) $frontPageOption : 0;
         if ($frontPageId > 0) {
             $excluded[] = $frontPageId;
         }
 
-        $postsPageOption = \get_option('page_for_posts');
+        $postsPageOption = get_option('page_for_posts');
         $postsPageId = is_numeric($postsPageOption) ? (int) $postsPageOption : 0;
         if ($postsPageId > 0) {
             $excluded[] = $postsPageId;
@@ -292,7 +292,7 @@ final class Admin
         $hasArchive = $originalArgs['has_archive'] ?? false;
 
         if (!$hasArchive) {
-            return \__('— No archive —', 'pfcpt');
+            return __('— No archive —', 'pfcpt');
         }
 
         global $wp_rewrite;
@@ -308,10 +308,10 @@ final class Admin
 
         $prefix = $wp_rewrite->root;
         if (!empty($rewriteArgs['with_front'])) {
-            $prefix = \substr($wp_rewrite->front, 1);
+            $prefix = substr($wp_rewrite->front, 1);
         }
 
         /* translators: %s: archive slug */
-        return \sprintf(\__('— Default (/%s/) —', 'pfcpt'), $prefix . $archiveSlug);
+        return sprintf(__('— Default (/%s/) —', 'pfcpt'), $prefix . $archiveSlug);
     }
 }

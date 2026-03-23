@@ -24,7 +24,7 @@ final class Handler
      * - is_page_for_custom_post_type (string|false) Either the post type or false
      * - is_{$post_type}_page (bool) Whether the current page is a page for the post type
      */
-    public function setQueryProperties(WP_Query $query): void
+    public function withQueryProperties(WP_Query $query): void
     {
         if (!$query->is_main_query()) {
             return;
@@ -44,11 +44,11 @@ final class Handler
 
         $pageIds = $this->api->getPageIds();
 
-        if (!\in_array($currentPageId, $pageIds, true)) {
+        if (!in_array($currentPageId, $pageIds, true)) {
             return;
         }
 
-        $postType = \array_search($currentPageId, $pageIds, true);
+        $postType = array_search($currentPageId, $pageIds, true);
 
         if (empty($postType)) {
             return;
@@ -67,13 +67,13 @@ final class Handler
         // Prevent WP from mistakenly thinking this is a front page
         // when 'posts' is set as show_on_front
         // @see https://github.com/WordPress/wordpress-develop/blob/781953641607c4d5b0743a6924af0e820fd54871/src/wp-includes/class-wp-query.php#L4323-L4325
-        if (\get_option('show_on_front') === 'posts') {
-            \add_filter('pre_option_show_on_front', static fn (): null => null);
+        if (get_option('show_on_front') === 'posts') {
+            add_filter('pre_option_show_on_front', static fn (): null => null);
         }
 
-        \add_filter('home_template_hierarchy', [$this, 'setHomeTemplateHierarchy']);
-        \add_filter('frontpage_template_hierarchy', '__return_empty_array');
-        \add_filter('body_class', [$this, 'filterBodyClass']);
+        add_filter('home_template_hierarchy', [$this, 'withHomeTemplateHierarchy']);
+        add_filter('frontpage_template_hierarchy', '__return_empty_array');
+        add_filter('body_class', [$this, 'filterBodyClass']);
     }
 
     /**
@@ -94,15 +94,15 @@ final class Handler
         }
 
         $postType = $wpQuery->{Api::QUERY_VAR_IS_PFCPT} ?? null;
-        if (!\is_string($postType)) {
+        if (!is_string($postType)) {
             return $classes;
         }
 
-        $classes = \array_diff($classes, ['blog']);
+        $classes = array_diff($classes, ['blog']);
         $classes[] = 'home';
         $classes[] = "home-for-{$postType}";
 
-        return \array_values($classes);
+        return array_values($classes);
     }
 
     /**
@@ -111,7 +111,7 @@ final class Handler
      * @param string[] $templates
      * @return string[]
      */
-    public function setHomeTemplateHierarchy(array $templates): array
+    public function withHomeTemplateHierarchy(array $templates): array
     {
         $wpQuery = $GLOBALS['wp_query'] ?? null;
         if (!$wpQuery instanceof WP_Query) {
@@ -119,14 +119,14 @@ final class Handler
         }
 
         $postType = $wpQuery->{Api::QUERY_VAR_IS_PFCPT} ?? null;
-        if (!\is_string($postType)) {
+        if (!is_string($postType)) {
             return $templates;
         }
 
         // Match extension format of incoming templates (classic vs block themes)
-        $first = \reset($templates);
-        $extension = \is_string($first) && \str_ends_with($first, '.php') ? '.php' : '';
+        $first = reset($templates);
+        $extension = is_string($first) && str_ends_with($first, '.php') ? '.php' : '';
 
-        return \array_merge(["home-{$postType}{$extension}"], $templates);
+        return array_merge(["home-{$postType}{$extension}"], $templates);
     }
 }

@@ -18,8 +18,8 @@ final class UrlTranslation
 {
     public function registerHooks(): void
     {
-        \add_filter('pll_pre_translation_url', [$this, 'beforeTranslationUrl'], 9, 3);
-        \add_filter('pll_pre_translation_url', [$this, 'afterTranslationUrl'], 11, 3);
+        add_filter('pll_pre_translation_url', [$this, 'beforeTranslationUrl'], 9, 3);
+        add_filter('pll_pre_translation_url', [$this, 'afterTranslationUrl'], 11, 3);
     }
 
     /**
@@ -27,7 +27,7 @@ final class UrlTranslation
      */
     public function beforeTranslationUrl(string $url, PLL_Language $_language, int $_queriedObjectId): string
     {
-        if (!\is_home()) {
+        if (!is_home()) {
             return $url;
         }
 
@@ -48,7 +48,7 @@ final class UrlTranslation
      */
     public function afterTranslationUrl(string $url, PLL_Language $_language, int $_queriedObjectId): string
     {
-        if (!\is_home()) {
+        if (!is_home()) {
             return $url;
         }
 
@@ -59,7 +59,7 @@ final class UrlTranslation
         }
 
         $savedValue = $GLOBALS['pfcpt_is_posts_page'] ?? false;
-        $wpQuery->is_posts_page = \is_bool($savedValue) ? $savedValue : false;
+        $wpQuery->is_posts_page = is_bool($savedValue) ? $savedValue : false;
         unset($GLOBALS['pfcpt_is_posts_page']);
 
         return $url;

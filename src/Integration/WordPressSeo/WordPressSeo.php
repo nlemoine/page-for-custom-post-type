@@ -22,7 +22,7 @@ final class WordPressSeo implements IntegrationInterface
 
     public function isSupported(): bool
     {
-        return \function_exists('YoastSEO');
+        return function_exists('YoastSEO');
     }
 
     public function registerHooks(): void

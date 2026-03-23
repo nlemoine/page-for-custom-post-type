@@ -68,11 +68,21 @@ jobs:
           php-version: '8.2'
           coverage: pcov
       - uses: ramsey/composer-install@v3
-      - name: Generate coverage
-        run: php -d pcov.enabled=1 vendor/bin/phpunit --testsuite=unit,integration --coverage-clover=coverage.xml
+      - name: Coverage (core)
+        run: php -d pcov.enabled=1 vendor/bin/phpunit --testsuite=unit,integration --coverage-php=build/coverage-core.cov
+      - name: Coverage (polylang)
+        run: PLUGINS=polylang php -d pcov.enabled=1 vendor/bin/phpunit --testsuite=plugin-integration --coverage-php=build/coverage-polylang.cov
+      - name: Coverage (wordpress-seo)
+        run: PLUGINS=wordpress-seo php -d pcov.enabled=1 vendor/bin/phpunit --testsuite=plugin-integration --coverage-php=build/coverage-wordpress-seo.cov
+      - name: Coverage (autodescription)
+        run: PLUGINS=autodescription php -d pcov.enabled=1 vendor/bin/phpunit --testsuite=plugin-integration --coverage-php=build/coverage-autodescription.cov
+      - name: Merge coverage
+        run: |
+          composer require --dev phpunit/phpcov --quiet
+          vendor/bin/phpcov merge build --clover build/coverage.xml
       - uses: codecov/codecov-action@v5
         with:
-          files: coverage.xml
+          files: build/coverage.xml
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 

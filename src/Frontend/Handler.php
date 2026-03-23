@@ -73,6 +73,36 @@ final class Handler
 
         \add_filter('home_template_hierarchy', [$this, 'setHomeTemplateHierarchy']);
         \add_filter('frontpage_template_hierarchy', '__return_empty_array');
+        \add_filter('body_class', [$this, 'filterBodyClass']);
+    }
+
+    /**
+     * Replace 'blog' body class with 'home' and 'home-for-{post_type}' on PFCPT pages.
+     *
+     * WordPress core adds 'blog' when is_home() is true, but that class should
+     * only apply to the actual page_for_posts. For custom post type pages, we
+     * replace it with more specific classes.
+     *
+     * @param string[] $classes
+     * @return string[]
+     */
+    public function filterBodyClass(array $classes): array
+    {
+        $wpQuery = $GLOBALS['wp_query'] ?? null;
+        if (!$wpQuery instanceof WP_Query) {
+            return $classes;
+        }
+
+        $postType = $wpQuery->{Api::QUERY_VAR_IS_PFCPT} ?? null;
+        if (!\is_string($postType)) {
+            return $classes;
+        }
+
+        $classes = \array_diff($classes, ['blog']);
+        $classes[] = 'home';
+        $classes[] = "home-for-{$postType}";
+
+        return \array_values($classes);
     }
 
     /**

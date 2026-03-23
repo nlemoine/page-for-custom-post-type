@@ -40,7 +40,7 @@ final class Breadcrumbs
             return $list;
         }
 
-        $pageId = $this->api->getPageIdFromPostType($postType, function_exists('PLL'));
+        $pageId = $this->api->getPageIdFromPostType($postType, \function_exists('PLL'));
 
         if ($pageId === null) {
             return $list;
@@ -95,7 +95,7 @@ final class Breadcrumbs
         if (!empty($args['id']) && empty($args['tax'])) {
             $argId = $args['id'];
 
-            if (!is_int($argId) && !$argId instanceof \WP_Post) {
+            if (!\is_int($argId) && !$argId instanceof \WP_Post) {
                 return null;
             }
 
@@ -114,7 +114,7 @@ final class Breadcrumbs
         if (!empty($args['id']) && !empty($args['tax'])) {
             $tax = $args['tax'];
 
-            if (!is_string($tax)) {
+            if (!\is_string($tax)) {
                 return null;
             }
 
@@ -130,7 +130,7 @@ final class Breadcrumbs
         if (is_singular()) {
             $postType = get_post_type();
 
-            if (!is_string($postType)) {
+            if (!\is_string($postType)) {
                 return null;
             }
 

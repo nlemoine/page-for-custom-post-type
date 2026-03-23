@@ -37,7 +37,7 @@ class PaginationTest extends TestCase
         global $wp_query;
 
         $postsPerPage = (int) get_option('posts_per_page');
-        $expectedIds = array_slice(
+        $expectedIds = \array_slice(
             array_reverse($this->bookIds),
             $postsPerPage,
             $postsPerPage
@@ -88,7 +88,7 @@ class PaginationTest extends TestCase
         global $wp_query;
 
         $postsPerPage = (int) get_option('posts_per_page');
-        $expectedMaxPages = (int) ceil(count($this->bookIds) / $postsPerPage);
+        $expectedMaxPages = (int) ceil(\count($this->bookIds) / $postsPerPage);
 
         $this->assertEquals($expectedMaxPages, $wp_query->max_num_pages);
     }

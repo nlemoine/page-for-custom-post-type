@@ -57,7 +57,7 @@ class QueryTest extends TestCase
 
         global $wp_query;
 
-        $expectedIds = array_slice(array_reverse($this->bookIds), 0, (int) get_option('posts_per_page'));
+        $expectedIds = \array_slice(array_reverse($this->bookIds), 0, (int) get_option('posts_per_page'));
 
         $this->assertEquals($expectedIds, array_column($wp_query->posts, 'ID'));
     }

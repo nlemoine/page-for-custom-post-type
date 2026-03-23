@@ -61,13 +61,13 @@ final class Lifecycle
         $defaultPageForPostTypeId = $translations[$defaultLanguage];
         $pageIds = $this->api->getPageIds(false);
 
-        if (!in_array($defaultPageForPostTypeId, $pageIds, true)) {
+        if (!\in_array($defaultPageForPostTypeId, $pageIds, true)) {
             return;
         }
 
         $postType = array_search($defaultPageForPostTypeId, $pageIds, true);
 
-        if (!is_string($postType)) {
+        if (!\is_string($postType)) {
             return;
         }
 

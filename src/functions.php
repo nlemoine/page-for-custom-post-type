@@ -44,7 +44,7 @@ namespace n5s\PageForCustomPostType {
 
             $postType = $wpQuery->{Api::QUERY_VAR_IS_PFCPT} ?? null;
 
-            if (!is_string($postType)) {
+            if (!\is_string($postType)) {
                 return null;
             }
         }
@@ -73,7 +73,7 @@ namespace n5s\PageForCustomPostType {
 }
 
 namespace {
-    if (!function_exists('is_page_for_custom_post_type')) {
+    if (!\function_exists('is_page_for_custom_post_type')) {
         /**
          * @deprecated 1.0.0 Use \n5s\PageForCustomPostType\is_page_for_custom_post_type() instead.
          */
@@ -85,7 +85,7 @@ namespace {
         }
     }
 
-    if (!function_exists('get_custom_post_type_for_page')) {
+    if (!\function_exists('get_custom_post_type_for_page')) {
         /**
          * @deprecated 1.0.0 Use \n5s\PageForCustomPostType\get_custom_post_type_for_page() instead.
          */
@@ -97,7 +97,7 @@ namespace {
         }
     }
 
-    if (!function_exists('get_page_id_for_custom_post_type')) {
+    if (!\function_exists('get_page_id_for_custom_post_type')) {
         /**
          * @deprecated 1.0.0 Use \n5s\PageForCustomPostType\get_page_id_for_custom_post_type() instead.
          */
@@ -109,7 +109,7 @@ namespace {
         }
     }
 
-    if (!function_exists('get_page_url_for_custom_post_type')) {
+    if (!\function_exists('get_page_url_for_custom_post_type')) {
         /**
          * @deprecated 1.0.0 Use \n5s\PageForCustomPostType\get_page_url_for_custom_post_type() instead.
          */

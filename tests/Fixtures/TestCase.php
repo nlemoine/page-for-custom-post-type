@@ -273,7 +273,7 @@ abstract class TestCase extends Test_Case
                     (bool) $wp_query->$property,
                     "Expected {$property} to be true"
                 );
-            } elseif (function_exists($property)) {
+            } elseif (\function_exists($property)) {
                 $this->assertTrue(
                     $property(),
                     "Expected {$property}() to return true"

@@ -37,7 +37,7 @@ final class QueryFilter
             return $where;
         }
 
-        if (!in_array($currentPageId, $this->api->getPageIds(), true)) {
+        if (!\in_array($currentPageId, $this->api->getPageIds(), true)) {
             return $where;
         }
 
@@ -73,7 +73,7 @@ final class QueryFilter
             }
 
             // @phpstan-ignore property.notFound
-            $classes = is_array($menuItems[$key]->classes) ? $menuItems[$key]->classes : [];
+            $classes = \is_array($menuItems[$key]->classes) ? $menuItems[$key]->classes : [];
             $classes[] = 'current-menu-ancestor';
             $menuItems[$key]->classes = $classes;
             // @phpstan-ignore property.notFound
@@ -103,7 +103,7 @@ final class QueryFilter
             return false;
         }
 
-        if (!in_array($menuObjectId, $pageIds, true)) {
+        if (!\in_array($menuObjectId, $pageIds, true)) {
             return false;
         }
 

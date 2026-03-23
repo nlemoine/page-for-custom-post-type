@@ -37,11 +37,11 @@ final class Translation
         $cacheKey = $this->getCacheKey($currentLanguage);
         $pageIdsForCurrentLanguage = get_transient($cacheKey);
 
-        if (is_array($pageIdsForCurrentLanguage)) {
+        if (\is_array($pageIdsForCurrentLanguage)) {
             $result = [];
 
             foreach ($pageIdsForCurrentLanguage as $key => $value) {
-                if (is_string($key) && is_int($value)) {
+                if (\is_string($key) && \is_int($value)) {
                     $result[$key] = $value;
                 }
             }

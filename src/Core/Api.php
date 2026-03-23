@@ -88,7 +88,7 @@ final class Api
 
         $postType = array_search($pageId, $pageIds, true);
 
-        return is_string($postType) ? $postType : null;
+        return \is_string($postType) ? $postType : null;
     }
 
     /**
@@ -107,18 +107,18 @@ final class Api
     public function getPageIds(bool $applyFilters = true): array
     {
         $pageIds = get_option(self::OPTION_PAGE_IDS, []);
-        if (!is_array($pageIds)) {
+        if (!\is_array($pageIds)) {
             $pageIds = [];
         }
         $pageIds = $applyFilters ? apply_filters('pfcpt/page_ids', $pageIds) : $pageIds;
 
-        if (!is_array($pageIds)) {
+        if (!\is_array($pageIds)) {
             return [];
         }
 
         $result = [];
         foreach ($pageIds as $key => $value) {
-            if (is_string($key) && is_numeric($value)) {
+            if (\is_string($key) && is_numeric($value)) {
                 $result[$key] = (int) $value;
             }
         }

@@ -112,7 +112,7 @@ class EdgeCaseTest extends TestCase
 
         global $wp_query;
 
-        $this->assertCount(count($this->bookIds), $wp_query->posts);
+        $this->assertCount(\count($this->bookIds), $wp_query->posts);
         $this->assertSame(1, $wp_query->max_num_pages);
     }
 

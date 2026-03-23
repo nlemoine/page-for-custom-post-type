@@ -19,7 +19,7 @@ class WordPressSeoTest extends TestCase
 {
     protected function setUp(): void
     {
-        if (!function_exists('YoastSEO')) {
+        if (!\function_exists('YoastSEO')) {
             $this->markTestSkipped('Yoast SEO is not installed.');
         }
 

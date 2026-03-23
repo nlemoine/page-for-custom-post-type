@@ -67,7 +67,7 @@ class PluginTest extends TestCase
             $this->assertIsString($integration);
             $this->assertTrue(
                 is_subclass_of($integration, IntegrationInterface::class),
-                sprintf('Expected %s to implement %s', $integration, IntegrationInterface::class),
+                \sprintf('Expected %s to implement %s', $integration, IntegrationInterface::class),
             );
         }
     }

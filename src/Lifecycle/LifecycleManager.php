@@ -116,9 +116,9 @@ final class LifecycleManager
      */
     private function getPostTypeFromUseSlugOptionName(string $name): string
     {
-        $withoutPrefix = substr($name, strlen(Api::OPTION_PREFIX));
+        $withoutPrefix = substr($name, \strlen(Api::OPTION_PREFIX));
 
-        return substr($withoutPrefix, 0, -strlen(Api::OPTION_SUFFIX_USE_SLUG));
+        return substr($withoutPrefix, 0, -\strlen(Api::OPTION_SUFFIX_USE_SLUG));
     }
 
     /**
@@ -222,6 +222,6 @@ final class LifecycleManager
      */
     private function getPostTypeFromOptionName(string $name): string
     {
-        return substr($name, strlen(Api::OPTION_PREFIX));
+        return substr($name, \strlen(Api::OPTION_PREFIX));
     }
 }

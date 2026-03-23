@@ -309,7 +309,7 @@ class PolylangTest extends TestCase
         if ($pageSlug !== null) {
             $translatedSlug = $result[self::BOOK_POST_TYPE]['translations']['fr'];
             // The slug is computed by stripping the language prefix (e.g. "fr/") from the page slug
-            $expectedSlug = substr($pageSlug, strlen('fr/'));
+            $expectedSlug = substr($pageSlug, \strlen('fr/'));
             $this->assertEquals($expectedSlug, $translatedSlug);
             $this->assertNotEquals('home-for-books', $translatedSlug);
         }

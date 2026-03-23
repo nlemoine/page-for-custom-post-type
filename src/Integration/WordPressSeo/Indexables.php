@@ -44,7 +44,7 @@ final class Indexables
          */
         if (get_option('show_on_front') === 'page') {
             add_filter('pre_option_show_on_front', static function (mixed $value): mixed {
-                $bt = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 4);
+                $bt = debug_backtrace(\DEBUG_BACKTRACE_IGNORE_ARGS, 4);
 
                 if (
                     isset($bt[3]['file'])

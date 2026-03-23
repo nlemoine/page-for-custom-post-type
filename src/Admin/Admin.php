@@ -207,6 +207,7 @@ final class Admin
             return $title . ' (' . wp_make_link_relative($permalink) . ')';
         };
         add_filter('list_pages', $appendSlug, 10, 2);
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_dropdown_pages() returns pre-escaped HTML.
         $dropdown = wp_dropdown_pages($dropdownArgs);
         remove_filter('list_pages', $appendSlug);
         ?>

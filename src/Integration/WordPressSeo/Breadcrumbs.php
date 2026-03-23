@@ -152,18 +152,15 @@ final class Breadcrumbs
         if ($breadcrumbsHome !== '') {
             $frontPageId = $yoast->helpers->current_page->get_front_page_id();
 
-            if ($frontPageId === 0) {
-                $homePageAncestor = $indexableRepository->find_for_home_page();
+            $staticAncestor = $frontPageId === 0
+                ? $indexableRepository->find_for_home_page()
+                : $indexableRepository->find_by_id_and_type($frontPageId, 'post');
 
-                if (!\is_bool($homePageAncestor) && $homePageAncestor instanceof Indexable) {
-                    $staticAncestors[] = $homePageAncestor;
-                }
-            } else {
-                $staticAncestor = $indexableRepository->find_by_id_and_type($frontPageId, 'post');
-
-                if (!\is_bool($staticAncestor) && $staticAncestor instanceof Indexable && $staticAncestor->post_status !== 'unindexed') {
-                    $staticAncestors[] = $staticAncestor;
-                }
+            if (
+                $staticAncestor instanceof Indexable
+                && ($frontPageId === 0 || $staticAncestor->post_status !== 'unindexed')
+            ) {
+                $staticAncestors[] = $staticAncestor;
             }
         }
 

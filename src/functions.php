@@ -77,6 +77,7 @@ namespace {
         /**
          * @deprecated 1.0.0 Use \n5s\PageForCustomPostType\is_page_for_custom_post_type() instead.
          */
+        // phpcs:ignore Syde.Functions.DisallowGlobalFunction.Found
         function is_page_for_custom_post_type(?string $postType = null): bool
         {
             _deprecated_function(__FUNCTION__, '1.0.0', '\n5s\PageForCustomPostType\is_page_for_custom_post_type()');
@@ -89,6 +90,7 @@ namespace {
         /**
          * @deprecated 1.0.0 Use \n5s\PageForCustomPostType\get_custom_post_type_for_page() instead.
          */
+        // phpcs:ignore Syde.Functions.DisallowGlobalFunction.Found
         function get_custom_post_type_for_page(int $pageId): ?string
         {
             _deprecated_function(__FUNCTION__, '1.0.0', '\n5s\PageForCustomPostType\get_custom_post_type_for_page()');
@@ -101,6 +103,7 @@ namespace {
         /**
          * @deprecated 1.0.0 Use \n5s\PageForCustomPostType\get_page_id_for_custom_post_type() instead.
          */
+        // phpcs:ignore Syde.Functions.DisallowGlobalFunction.Found
         function get_page_id_for_custom_post_type(?string $postType = null): ?int
         {
             _deprecated_function(__FUNCTION__, '1.0.0', '\n5s\PageForCustomPostType\get_page_id_for_custom_post_type()');
@@ -113,6 +116,7 @@ namespace {
         /**
          * @deprecated 1.0.0 Use \n5s\PageForCustomPostType\get_page_url_for_custom_post_type() instead.
          */
+        // phpcs:ignore Syde.Functions.DisallowGlobalFunction.Found
         function get_page_url_for_custom_post_type(?string $postType = null): ?string
         {
             _deprecated_function(__FUNCTION__, '1.0.0', '\n5s\PageForCustomPostType\get_page_url_for_custom_post_type()');

@@ -230,7 +230,7 @@ final class Plugin
      *
      * @return array<string, int>
      */
-
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     public function get_page_ids(bool $applyFilters = true): array
     {
         return $this->getApi()->getPageIds($applyFilters);
@@ -258,7 +258,6 @@ final class Plugin
      * @deprecated Use RewriteManager::flushRewriteRules() instead
      */
     // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-
     public function flush_rewrite_rules(string $postType): void
     {
         $this->container->get(RewriteManager::class)->flushRewriteRules($postType);

@@ -136,7 +136,7 @@ class RewriteManagerTest extends TestCase
     public function testFlushRewriteRulesFiresAction(): void
     {
         $firedPostType = null;
-        add_action('pfcpt/flush_rewrite_rules', function (string $pt) use (&$firedPostType) {
+        add_action('pfcpt/flush_rewrite_rules', static function (string $pt) use (&$firedPostType) {
             $firedPostType = $pt;
         });
 

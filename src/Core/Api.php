@@ -84,9 +84,9 @@ final class Api
     public function getPostTypeFromPageId(int $pageId): ?string
     {
         $pageIds = $this->getPageIds();
-        $pageId = \apply_filters('pfcpt/post_type_from_id/page_id', $pageId);
+        $pageId = apply_filters('pfcpt/post_type_from_id/page_id', $pageId);
 
-        $postType = \array_search($pageId, $pageIds, true);
+        $postType = array_search($pageId, $pageIds, true);
 
         return is_string($postType) ? $postType : null;
     }
@@ -106,19 +106,19 @@ final class Api
      */
     public function getPageIds(bool $applyFilters = true): array
     {
-        $pageIds = \get_option(self::OPTION_PAGE_IDS, []);
-        if (!\is_array($pageIds)) {
+        $pageIds = get_option(self::OPTION_PAGE_IDS, []);
+        if (!is_array($pageIds)) {
             $pageIds = [];
         }
-        $pageIds = $applyFilters ? \apply_filters('pfcpt/page_ids', $pageIds) : $pageIds;
+        $pageIds = $applyFilters ? apply_filters('pfcpt/page_ids', $pageIds) : $pageIds;
 
-        if (!\is_array($pageIds)) {
+        if (!is_array($pageIds)) {
             return [];
         }
 
         $result = [];
         foreach ($pageIds as $key => $value) {
-            if (\is_string($key) && \is_numeric($value)) {
+            if (is_string($key) && is_numeric($value)) {
                 $result[$key] = (int) $value;
             }
         }
@@ -153,7 +153,7 @@ final class Api
     {
         $optionName = $this->getUseSlugOptionName($postType);
 
-        return (bool) \get_option($optionName, false);
+        return (bool) get_option($optionName, false);
     }
 
     /**
@@ -163,7 +163,7 @@ final class Api
      */
     public function getPostTypes(): array
     {
-        return \get_post_types(
+        return get_post_types(
             [
                 'publicly_queryable' => true,
                 '_builtin' => false,

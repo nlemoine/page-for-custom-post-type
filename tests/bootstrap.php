@@ -20,7 +20,7 @@ $availablePlugins = [
     'autodescription' => 'autodescription/autodescription.php',
 ];
 $requestedPlugins = array_filter(explode(',', getenv('PLUGINS') ?: ''));
-$plugins = array_values(array_filter(array_map(static function ($p) use ($availablePlugins): ?string {
+$plugins = array_values(array_filter(array_map(static function (string $p) use ($availablePlugins): ?string {
     return $availablePlugins[$p] ?? null;
 }, $requestedPlugins)));
 

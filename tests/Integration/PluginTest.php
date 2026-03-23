@@ -75,7 +75,7 @@ class PluginTest extends TestCase
     public function testOnTemplateRedirectFiresActionWhenOnPfcptPage(): void
     {
         $actionFired = false;
-        add_action('pfcpt/template_redirect', function () use (&$actionFired) {
+        add_action('pfcpt/template_redirect', static function () use (&$actionFired) {
             $actionFired = true;
         });
 
@@ -87,7 +87,7 @@ class PluginTest extends TestCase
     public function testOnTemplateRedirectDoesNotFireActionWhenNotOnPfcptPage(): void
     {
         $actionFired = false;
-        add_action('pfcpt/template_redirect', function () use (&$actionFired) {
+        add_action('pfcpt/template_redirect', static function () use (&$actionFired) {
             $actionFired = true;
         });
 

@@ -34,7 +34,8 @@
 		"wp-plugin/autodescription": "^5.1",
 		"szepeviktor/phpstan-wordpress": "^2.0",
 		"phpstan/extension-installer": "^1.4",
-		"phpstan/phpstan": "^2.1"
+		"phpstan/phpstan": "^2.1",
+		"syde/phpcs": "^1.0"
 	},
 	"repositories": [
 		{

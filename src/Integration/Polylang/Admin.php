@@ -14,7 +14,7 @@ final class Admin
 {
     public function registerHooks(): void
     {
-        \add_filter('pfcpt/dropdown_page_args', [$this, 'filterDropdownArgs']);
+        add_filter('pfcpt/dropdown_page_args', [$this, 'filterDropdownArgs']);
     }
 
     /**
@@ -25,7 +25,7 @@ final class Admin
      */
     public function filterDropdownArgs(array $args): array
     {
-        $args['lang'] = \pll_default_language();
+        $args['lang'] = pll_default_language();
         return $args;
     }
 }

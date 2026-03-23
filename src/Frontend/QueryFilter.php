@@ -37,11 +37,11 @@ final class QueryFilter
             return $where;
         }
 
-        if (!\in_array($currentPageId, $this->api->getPageIds(), true)) {
+        if (!in_array($currentPageId, $this->api->getPageIds(), true)) {
             return $where;
         }
 
-        return \str_replace(
+        return str_replace(
             "AND ({$this->wpdb->posts}.ID = '{$currentPageId}')",
             '',
             $where
@@ -57,7 +57,7 @@ final class QueryFilter
      * @param object $args
      * @return \WP_Post[]
      */
-    public function setCurrentAncestor(array $menuItems, object $args): array
+    public function withCurrentAncestor(array $menuItems, object $args): array
     {
         global $wp_query;
 
@@ -73,7 +73,7 @@ final class QueryFilter
             }
 
             // @phpstan-ignore property.notFound
-            $classes = \is_array($menuItems[$key]->classes) ? $menuItems[$key]->classes : [];
+            $classes = is_array($menuItems[$key]->classes) ? $menuItems[$key]->classes : [];
             $classes[] = 'current-menu-ancestor';
             $menuItems[$key]->classes = $classes;
             // @phpstan-ignore property.notFound
@@ -95,7 +95,7 @@ final class QueryFilter
         }
 
         $rawObjectId = $menuItem->object_id ?? 0;
-        if (!\is_numeric($rawObjectId)) {
+        if (!is_numeric($rawObjectId)) {
             return false;
         }
         $menuObjectId = (int) $rawObjectId;
@@ -103,7 +103,7 @@ final class QueryFilter
             return false;
         }
 
-        if (!\in_array($menuObjectId, $pageIds, true)) {
+        if (!in_array($menuObjectId, $pageIds, true)) {
             return false;
         }
 

@@ -16,8 +16,8 @@ final class Translation
 {
     public function registerHooks(): void
     {
-        \add_filter('pfcpt/page_ids', [$this, 'filterTranslatedPageIds']);
-        \add_filter('pfcpt/post_type_from_id/page_id', [$this, 'resolveDefaultLanguagePageId']);
+        add_filter('pfcpt/page_ids', [$this, 'filterTranslatedPageIds']);
+        add_filter('pfcpt/post_type_from_id/page_id', [$this, 'resolveDefaultLanguagePageId']);
     }
 
     /**
@@ -28,20 +28,20 @@ final class Translation
      */
     public function filterTranslatedPageIds(array $pageIds): array
     {
-        $currentLanguage = \pll_current_language();
+        $currentLanguage = pll_current_language();
 
         if (empty($currentLanguage)) {
             return $pageIds;
         }
 
         $cacheKey = $this->getCacheKey($currentLanguage);
-        $pageIdsForCurrentLanguage = \get_transient($cacheKey);
+        $pageIdsForCurrentLanguage = get_transient($cacheKey);
 
-        if (\is_array($pageIdsForCurrentLanguage)) {
+        if (is_array($pageIdsForCurrentLanguage)) {
             $result = [];
 
             foreach ($pageIdsForCurrentLanguage as $key => $value) {
-                if (\is_string($key) && \is_int($value)) {
+                if (is_string($key) && is_int($value)) {
                     $result[$key] = $value;
                 }
             }
@@ -49,17 +49,17 @@ final class Translation
             return $result;
         }
 
-        $pageIdsForCurrentLanguage = \array_filter(
-            \array_map(
+        $pageIdsForCurrentLanguage = array_filter(
+            array_map(
                 static function (int $id) use ($currentLanguage): ?int {
-                    $postId = \pll_get_post($id, $currentLanguage);
+                    $postId = pll_get_post($id, $currentLanguage);
                     return $postId > 0 ? $postId : null;
                 },
                 $pageIds
             )
         );
 
-        \set_transient($cacheKey, $pageIdsForCurrentLanguage);
+        set_transient($cacheKey, $pageIdsForCurrentLanguage);
 
         return $pageIdsForCurrentLanguage;
     }
@@ -69,17 +69,17 @@ final class Translation
      */
     public function resolveDefaultLanguagePageId(int $pageId): int
     {
-        if (!empty(\pll_current_language())) {
+        if (!empty(pll_current_language())) {
             return $pageId;
         }
 
-        $defaultLanguage = \pll_default_language();
+        $defaultLanguage = pll_default_language();
 
         if (!$defaultLanguage) {
             return $pageId;
         }
 
-        $defaultPageId = \pll_get_post($pageId, $defaultLanguage);
+        $defaultPageId = pll_get_post($pageId, $defaultLanguage);
 
         if (!$defaultPageId) {
             return $pageId;

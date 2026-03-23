@@ -44,7 +44,7 @@ namespace n5s\PageForCustomPostType {
 
             $postType = $wpQuery->{Api::QUERY_VAR_IS_PFCPT} ?? null;
 
-            if (!\is_string($postType)) {
+            if (!is_string($postType)) {
                 return null;
             }
         }
@@ -66,49 +66,57 @@ namespace n5s\PageForCustomPostType {
             return null;
         }
 
-        $url = \get_permalink($pageId);
+        $url = get_permalink($pageId);
 
         return $url !== false ? $url : null;
     }
 }
 
 namespace {
-    if (!\function_exists('is_page_for_custom_post_type')) {
+    if (!function_exists('is_page_for_custom_post_type')) {
         /**
-         * Check if the current page is a page for custom post type.
+         * @deprecated 1.0.0 Use \n5s\PageForCustomPostType\is_page_for_custom_post_type() instead.
          */
         function is_page_for_custom_post_type(?string $postType = null): bool
         {
+            _deprecated_function(__FUNCTION__, '1.0.0', '\n5s\PageForCustomPostType\is_page_for_custom_post_type()');
+
             return \n5s\PageForCustomPostType\is_page_for_custom_post_type($postType);
         }
     }
 
-    if (!\function_exists('get_custom_post_type_for_page')) {
+    if (!function_exists('get_custom_post_type_for_page')) {
         /**
-         * Get the custom post type associated with a page ID.
+         * @deprecated 1.0.0 Use \n5s\PageForCustomPostType\get_custom_post_type_for_page() instead.
          */
         function get_custom_post_type_for_page(int $pageId): ?string
         {
+            _deprecated_function(__FUNCTION__, '1.0.0', '\n5s\PageForCustomPostType\get_custom_post_type_for_page()');
+
             return \n5s\PageForCustomPostType\get_custom_post_type_for_page($pageId);
         }
     }
 
-    if (!\function_exists('get_page_id_for_custom_post_type')) {
+    if (!function_exists('get_page_id_for_custom_post_type')) {
         /**
-         * Get the page ID assigned to a custom post type.
+         * @deprecated 1.0.0 Use \n5s\PageForCustomPostType\get_page_id_for_custom_post_type() instead.
          */
         function get_page_id_for_custom_post_type(?string $postType = null): ?int
         {
+            _deprecated_function(__FUNCTION__, '1.0.0', '\n5s\PageForCustomPostType\get_page_id_for_custom_post_type()');
+
             return \n5s\PageForCustomPostType\get_page_id_for_custom_post_type($postType);
         }
     }
 
-    if (!\function_exists('get_page_url_for_custom_post_type')) {
+    if (!function_exists('get_page_url_for_custom_post_type')) {
         /**
-         * Get the URL for a custom post type's archive page.
+         * @deprecated 1.0.0 Use \n5s\PageForCustomPostType\get_page_url_for_custom_post_type() instead.
          */
         function get_page_url_for_custom_post_type(?string $postType = null): ?string
         {
+            _deprecated_function(__FUNCTION__, '1.0.0', '\n5s\PageForCustomPostType\get_page_url_for_custom_post_type()');
+
             return \n5s\PageForCustomPostType\get_page_url_for_custom_post_type($postType);
         }
     }

@@ -37,7 +37,7 @@ final class LifecycleManager
         $useSlugOptionName = $this->api->getUseSlugOptionName($postType);
 
         // Sanitize/validate hook
-        \add_filter(
+        add_filter(
             "sanitize_option_{$optionName}",
             $this->validator->validate(...),
             10,
@@ -45,13 +45,13 @@ final class LifecycleManager
         );
 
         // Watch for changes on page selection
-        \add_action("update_option_{$optionName}", [$this, 'onOptionUpdate'], 10, 3);
-        \add_action("add_option_{$optionName}", [$this, 'onOptionAdd'], 10, 2);
-        \add_action("delete_option_{$optionName}", [$this, 'onOptionDelete'], 10);
+        add_action("update_option_{$optionName}", [$this, 'onOptionUpdate'], 10, 3);
+        add_action("add_option_{$optionName}", [$this, 'onOptionAdd'], 10, 2);
+        add_action("delete_option_{$optionName}", [$this, 'onOptionDelete'], 10);
 
         // Watch for changes on "use slug" checkbox
-        \add_action("update_option_{$useSlugOptionName}", [$this, 'onUseSlugOptionUpdate'], 10, 3);
-        \add_action("add_option_{$useSlugOptionName}", [$this, 'onUseSlugOptionAdd'], 10, 2);
+        add_action("update_option_{$useSlugOptionName}", [$this, 'onUseSlugOptionUpdate'], 10, 3);
+        add_action("add_option_{$useSlugOptionName}", [$this, 'onUseSlugOptionAdd'], 10, 2);
     }
 
     /**
@@ -116,9 +116,9 @@ final class LifecycleManager
      */
     private function getPostTypeFromUseSlugOptionName(string $name): string
     {
-        $withoutPrefix = \substr($name, \strlen(Api::OPTION_PREFIX));
+        $withoutPrefix = substr($name, strlen(Api::OPTION_PREFIX));
 
-        return \substr($withoutPrefix, 0, -\strlen(Api::OPTION_SUFFIX_USE_SLUG));
+        return substr($withoutPrefix, 0, -strlen(Api::OPTION_SUFFIX_USE_SLUG));
     }
 
     /**
@@ -151,7 +151,7 @@ final class LifecycleManager
     public function onDeletedPost(int $postId, ?WP_Post $post = null): void
     {
         if ($post === null) {
-            $post = \get_post($postId);
+            $post = get_post($postId);
         }
 
         if (!$post instanceof WP_Post) {
@@ -201,10 +201,10 @@ final class LifecycleManager
         $postType = $this->getPostTypeFromOptionName($name);
 
         // Update the aggregated option
-        $pageIds = (array) \get_option(Api::OPTION_PAGE_IDS, []);
+        $pageIds = (array) get_option(Api::OPTION_PAGE_IDS, []);
         $pageIds[$postType] = $value;
 
-        \update_option(Api::OPTION_PAGE_IDS, \array_filter($pageIds));
+        update_option(Api::OPTION_PAGE_IDS, array_filter($pageIds));
 
         $this->rewriteManager->flushRewriteRules($postType);
     }
@@ -214,7 +214,7 @@ final class LifecycleManager
      */
     private function deleteOption(string $postType): void
     {
-        \delete_option($this->api->getOptionName($postType));
+        delete_option($this->api->getOptionName($postType));
     }
 
     /**
@@ -222,6 +222,6 @@ final class LifecycleManager
      */
     private function getPostTypeFromOptionName(string $name): string
     {
-        return \substr($name, \strlen(Api::OPTION_PREFIX));
+        return substr($name, strlen(Api::OPTION_PREFIX));
     }
 }

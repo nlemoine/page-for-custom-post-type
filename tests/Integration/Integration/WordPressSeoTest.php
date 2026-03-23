@@ -84,7 +84,6 @@ class WordPressSeoTest extends TestCase
         $this->assertEquals($expected, $meta->breadcrumbs);
     }
 
-    // #[WithoutErrorHandler]
     public function testBreadcrumbsOnSinglePostIncludesPfcptPage(): void
     {
         // Get a random book for testing

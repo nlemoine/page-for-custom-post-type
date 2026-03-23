@@ -9,10 +9,10 @@ use n5s\PageForCustomPostType\Core\Api;
 use n5s\PageForCustomPostType\Core\RewriteManager;
 use n5s\PageForCustomPostType\Frontend\Handler;
 use n5s\PageForCustomPostType\Frontend\QueryFilter;
+use n5s\PageForCustomPostType\Integration\Autodescription;
 use n5s\PageForCustomPostType\Integration\IntegrationInterface;
 use n5s\PageForCustomPostType\Integration\Polylang;
 use n5s\PageForCustomPostType\Integration\WordPressSeo;
-use n5s\PageForCustomPostType\Integration\Autodescription;
 use n5s\PageForCustomPostType\Lifecycle\LifecycleManager;
 use n5s\PageForCustomPostType\PostType\PostType;
 
@@ -103,16 +103,16 @@ final class Plugin
      */
     private function registerAdminHooks(): void
     {
-        if (!\is_admin()) {
+        if (!is_admin()) {
             return;
         }
 
         $admin = $this->container->get(Admin::class);
 
-        \add_action('admin_menu', [$admin, 'addPostTypeSubmenus']);
-        \add_action('admin_init', [$admin, 'addReadingSettings']);
-        \add_action('admin_bar_menu', [$admin, 'addAdminBarArchiveLink'], 80);
-        \add_filter('display_post_states', [$admin, 'displayPostStates'], 100, 2);
+        add_action('admin_menu', [$admin, 'addPostTypeSubmenus']);
+        add_action('admin_init', [$admin, 'addReadingSettings']);
+        add_action('admin_bar_menu', [$admin, 'addAdminBarArchiveLink'], 80);
+        add_filter('display_post_states', [$admin, 'displayPostStates'], 100, 2);
     }
 
     /**
@@ -120,16 +120,16 @@ final class Plugin
      */
     private function registerFrontendHooks(): void
     {
-        if (\is_admin()) {
+        if (is_admin()) {
             return;
         }
 
         $handler = $this->container->get(Handler::class);
         $queryFilter = $this->container->get(QueryFilter::class);
 
-        \add_action('parse_query', [$handler, 'setQueryProperties'], 1);
-        \add_filter('posts_where', [$queryFilter, 'filterPostsWhere'], 10, 2);
-        \add_filter('wp_nav_menu_objects', [$queryFilter, 'setCurrentAncestor'], 10, 2);
+        add_action('parse_query', [$handler, 'withQueryProperties'], 1);
+        add_filter('posts_where', [$queryFilter, 'filterPostsWhere'], 10, 2);
+        add_filter('wp_nav_menu_objects', [$queryFilter, 'withCurrentAncestor'], 10, 2);
     }
 
     /**
@@ -141,20 +141,20 @@ final class Plugin
         $postType = $this->container->get(PostType::class);
 
         // Post type registration hooks
-        \add_filter('register_post_type_args', [$postType, 'updatePostTypeArgs'], 10, 2);
-        \add_action('registered_post_type', [$postType, 'addPaginationRewriteTags'], 10, 2);
+        add_filter('register_post_type_args', [$postType, 'updatePostTypeArgs'], 10, 2);
+        add_action('registered_post_type', [$postType, 'addPaginationRewriteTags'], 10, 2);
 
         // Option lifecycle hooks (watch for each post type)
-        \add_action('registered_post_type', [$lifecycle, 'watchOptions'], 10, 2);
+        add_action('registered_post_type', [$lifecycle, 'watchOptions'], 10, 2);
 
         // Post lifecycle hooks
-        \add_action('transition_post_status', [$lifecycle, 'onTransitionPostStatus'], 10, 3);
-        \add_action('delete_post', [$lifecycle, 'onDeletedPost']);
-        \add_action('wp_trash_post', [$lifecycle, 'onDeletedPost']);
-        \add_action('post_updated', [$lifecycle, 'onSlugChange'], 10, 3);
+        add_action('transition_post_status', [$lifecycle, 'onTransitionPostStatus'], 10, 3);
+        add_action('delete_post', [$lifecycle, 'onDeletedPost']);
+        add_action('wp_trash_post', [$lifecycle, 'onDeletedPost']);
+        add_action('post_updated', [$lifecycle, 'onSlugChange'], 10, 3);
 
         // Template redirect
-        \add_action('template_redirect', [$this, 'onTemplateRedirect']);
+        add_action('template_redirect', [$this, 'onTemplateRedirect']);
     }
 
     /**
@@ -168,7 +168,7 @@ final class Plugin
             return;
         }
 
-        \do_action('pfcpt/template_redirect');
+        do_action('pfcpt/template_redirect');
     }
 
     /**
@@ -192,6 +192,7 @@ final class Plugin
     /**
      * @deprecated Use getApi()->isPageForCustomPostType() instead
      */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     public function is_page_for_custom_post_type(?string $postType = null): bool
     {
         return $this->getApi()->isPageForCustomPostType($postType);
@@ -200,6 +201,7 @@ final class Plugin
     /**
      * @deprecated Use getApi()->isQueryPageForCustomPostType() instead
      */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     public function is_query_page_for_custom_post_type(): bool
     {
         return $this->getApi()->isQueryPageForCustomPostType();
@@ -208,6 +210,7 @@ final class Plugin
     /**
      * @deprecated Use getApi()->getPostTypeFromPageId() instead
      */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     public function get_post_type_from_page_id(int $pageId): ?string
     {
         return $this->getApi()->getPostTypeFromPageId($pageId);
@@ -216,6 +219,7 @@ final class Plugin
     /**
      * @deprecated Use getApi()->getPageIdFromPostType() instead
      */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     public function get_page_id_from_post_type(string $postType, bool $applyFilters = true): ?int
     {
         return $this->getApi()->getPageIdFromPostType($postType, $applyFilters);
@@ -226,6 +230,7 @@ final class Plugin
      *
      * @return array<string, int>
      */
+
     public function get_page_ids(bool $applyFilters = true): array
     {
         return $this->getApi()->getPageIds($applyFilters);
@@ -234,6 +239,7 @@ final class Plugin
     /**
      * @deprecated Use getApi()->getOptionName() instead
      */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     public function get_option_name(string $postType): string
     {
         return $this->getApi()->getOptionName($postType);
@@ -242,6 +248,7 @@ final class Plugin
     /**
      * @deprecated Use RewriteManager::getPageSlug() instead
      */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     public function get_page_slug(int $pageId): ?string
     {
         return $this->container->get(RewriteManager::class)->getPageSlug($pageId);
@@ -250,6 +257,8 @@ final class Plugin
     /**
      * @deprecated Use RewriteManager::flushRewriteRules() instead
      */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+
     public function flush_rewrite_rules(string $postType): void
     {
         $this->container->get(RewriteManager::class)->flushRewriteRules($postType);
@@ -258,6 +267,7 @@ final class Plugin
     /**
      * @deprecated Use getInstance() instead
      */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     public static function get_instance(): self
     {
         return self::getInstance();

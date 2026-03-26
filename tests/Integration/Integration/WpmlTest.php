@@ -62,12 +62,12 @@ class WpmlTest extends TestCase
 
     protected function tearDown(): void
     {
-        \remove_all_filters('wpml_current_language');
-        \remove_all_filters('wpml_default_language');
-        \remove_all_filters('wpml_object_id');
-        \remove_all_filters('wpml_active_languages');
-        \remove_all_filters('wpml_home_url');
-        \remove_all_actions('wpml_switch_language');
+        remove_all_filters('wpml_current_language');
+        remove_all_filters('wpml_default_language');
+        remove_all_filters('wpml_object_id');
+        remove_all_filters('wpml_active_languages');
+        remove_all_filters('wpml_home_url');
+        remove_all_actions('wpml_switch_language');
 
         parent::tearDown();
     }
@@ -78,8 +78,8 @@ class WpmlTest extends TestCase
 
     public function testIsSupportedWhenWpmlConstantDefined(): void
     {
-        if (!\defined('ICL_SITEPRESS_VERSION')) {
-            \define('ICL_SITEPRESS_VERSION', '4.6.0');
+        if (!defined('ICL_SITEPRESS_VERSION')) {
+            define('ICL_SITEPRESS_VERSION', '4.6.0');
         }
 
         $api = new Api();
@@ -105,7 +105,7 @@ class WpmlTest extends TestCase
         $admin = new Admin();
         $admin->registerHooks();
 
-        $args = \apply_filters('pfcpt/dropdown_page_args', [
+        $args = apply_filters('pfcpt/dropdown_page_args', [
             'post_type' => 'page',
         ]);
 
@@ -117,8 +117,8 @@ class WpmlTest extends TestCase
     public function testDropdownArgsUnchangedWhenNoDefaultLanguage(): void
     {
         // Override the default language to return empty
-        \remove_all_filters('wpml_default_language');
-        \add_filter('wpml_default_language', static fn () => '');
+        remove_all_filters('wpml_default_language');
+        add_filter('wpml_default_language', static fn () => '');
 
         $admin = new Admin();
         $admin->registerHooks();
@@ -127,7 +127,7 @@ class WpmlTest extends TestCase
             'post_type' => 'page',
             'custom' => 'value',
         ];
-        $result = \apply_filters('pfcpt/dropdown_page_args', $original);
+        $result = apply_filters('pfcpt/dropdown_page_args', $original);
 
         $this->assertEquals($original, $result);
     }
@@ -139,7 +139,7 @@ class WpmlTest extends TestCase
         $admin = new Admin();
         $admin->registerHooks();
 
-        \apply_filters('pfcpt/dropdown_page_args', [
+        apply_filters('pfcpt/dropdown_page_args', [
             'post_type' => 'page',
         ]);
 
@@ -147,13 +147,13 @@ class WpmlTest extends TestCase
         $this->assertEquals('en', $this->currentLanguage);
 
         // Simulate get_pages filter being called (which restores the language)
-        \apply_filters('get_pages', []);
+        apply_filters('get_pages', []);
 
         // Language should be restored (wpml_switch_language called with null)
         // Since our mock sets currentLanguage to the passed value, and the
         // restoreLanguage closure calls wpml_switch_language with null,
         // we verify the filter was removed
-        $this->assertFalse(\has_filter('get_pages'));
+        $this->assertFalse(has_filter('get_pages'));
     }
 
     // -------------------------------------------------------------------------
@@ -167,7 +167,7 @@ class WpmlTest extends TestCase
         $translation = new Translation();
         $translation->registerHooks();
 
-        $pageIds = \apply_filters('pfcpt/page_ids', [
+        $pageIds = apply_filters('pfcpt/page_ids', [
             self::BOOK_POST_TYPE => $this->homeForBookId,
             self::BIKE_POST_TYPE => $this->homeForBikeId,
         ]);
@@ -188,7 +188,7 @@ class WpmlTest extends TestCase
             self::BIKE_POST_TYPE => $this->homeForBikeId,
         ];
 
-        $pageIds = \apply_filters('pfcpt/page_ids', $originalIds);
+        $pageIds = apply_filters('pfcpt/page_ids', $originalIds);
 
         $this->assertEquals($originalIds, $pageIds);
     }
@@ -196,8 +196,8 @@ class WpmlTest extends TestCase
     public function testPageIdsNotTranslatedWhenNoCurrentLanguage(): void
     {
         // Override current language to return null
-        \remove_all_filters('wpml_current_language');
-        \add_filter('wpml_current_language', static fn () => null);
+        remove_all_filters('wpml_current_language');
+        add_filter('wpml_current_language', static fn () => null);
 
         $translation = new Translation();
         $translation->registerHooks();
@@ -207,7 +207,7 @@ class WpmlTest extends TestCase
             self::BIKE_POST_TYPE => $this->homeForBikeId,
         ];
 
-        $pageIds = \apply_filters('pfcpt/page_ids', $originalIds);
+        $pageIds = apply_filters('pfcpt/page_ids', $originalIds);
 
         $this->assertEquals($originalIds, $pageIds);
     }
@@ -219,7 +219,7 @@ class WpmlTest extends TestCase
         $translation = new Translation();
         $translation->registerHooks();
 
-        $pageIds = \apply_filters('pfcpt/page_ids', []);
+        $pageIds = apply_filters('pfcpt/page_ids', []);
 
         $this->assertEmpty($pageIds);
     }
@@ -231,12 +231,12 @@ class WpmlTest extends TestCase
         $translation = new Translation();
         $translation->registerHooks();
 
-        \apply_filters('pfcpt/page_ids', [
+        apply_filters('pfcpt/page_ids', [
             self::BOOK_POST_TYPE => $this->homeForBookId,
         ]);
 
         $cacheKey = $translation->getCacheKey('fr');
-        $cached = \get_transient($cacheKey);
+        $cached = get_transient($cacheKey);
 
         $this->assertIsArray($cached);
         $this->assertEquals($this->homeForBookFrId, $cached[self::BOOK_POST_TYPE]);
@@ -251,11 +251,11 @@ class WpmlTest extends TestCase
 
         // Pre-populate cache with custom values
         $cacheKey = $translation->getCacheKey('fr');
-        \set_transient($cacheKey, [
+        set_transient($cacheKey, [
             self::BOOK_POST_TYPE => 99999,
         ]);
 
-        $pageIds = \apply_filters('pfcpt/page_ids', [
+        $pageIds = apply_filters('pfcpt/page_ids', [
             self::BOOK_POST_TYPE => $this->homeForBookId,
         ]);
 
@@ -280,13 +280,13 @@ class WpmlTest extends TestCase
     public function testResolveDefaultLanguagePageId(): void
     {
         // No current language set
-        \remove_all_filters('wpml_current_language');
-        \add_filter('wpml_current_language', static fn () => null);
+        remove_all_filters('wpml_current_language');
+        add_filter('wpml_current_language', static fn () => null);
 
         $translation = new Translation();
         $translation->registerHooks();
 
-        $resolved = \apply_filters('pfcpt/post_type_from_id/page_id', $this->homeForBookFrId);
+        $resolved = apply_filters('pfcpt/post_type_from_id/page_id', $this->homeForBookFrId);
 
         $this->assertEquals($this->homeForBookId, $resolved);
     }
@@ -298,23 +298,23 @@ class WpmlTest extends TestCase
         $translation = new Translation();
         $translation->registerHooks();
 
-        $resolved = \apply_filters('pfcpt/post_type_from_id/page_id', $this->homeForBookFrId);
+        $resolved = apply_filters('pfcpt/post_type_from_id/page_id', $this->homeForBookFrId);
 
         $this->assertEquals($this->homeForBookFrId, $resolved);
     }
 
     public function testResolvePageIdUnchangedWhenNoDefaultLanguage(): void
     {
-        \remove_all_filters('wpml_current_language');
-        \add_filter('wpml_current_language', static fn () => null);
-        \remove_all_filters('wpml_default_language');
-        \add_filter('wpml_default_language', static fn () => null);
+        remove_all_filters('wpml_current_language');
+        add_filter('wpml_current_language', static fn () => null);
+        remove_all_filters('wpml_default_language');
+        add_filter('wpml_default_language', static fn () => null);
 
         $translation = new Translation();
         $translation->registerHooks();
 
         $pageId = $this->homeForBookFrId;
-        $resolved = \apply_filters('pfcpt/post_type_from_id/page_id', $pageId);
+        $resolved = apply_filters('pfcpt/post_type_from_id/page_id', $pageId);
 
         $this->assertEquals($pageId, $resolved);
     }
@@ -331,7 +331,7 @@ class WpmlTest extends TestCase
             'post_type' => 'page',
         ]);
 
-        $pageIds = \apply_filters('pfcpt/page_ids', [
+        $pageIds = apply_filters('pfcpt/page_ids', [
             'custom_type' => $untranslatedPageId,
         ]);
 
@@ -351,23 +351,23 @@ class WpmlTest extends TestCase
         $lifecycle->registerHooks();
 
         // Set transients for each language
-        \set_transient($translation->getCacheKey('en'), [
+        set_transient($translation->getCacheKey('en'), [
             'book' => 1,
         ]);
-        \set_transient($translation->getCacheKey('fr'), [
+        set_transient($translation->getCacheKey('fr'), [
             'book' => 2,
         ]);
 
         $lifecycle->flushCache();
 
-        $this->assertFalse(\get_transient($translation->getCacheKey('en')));
-        $this->assertFalse(\get_transient($translation->getCacheKey('fr')));
+        $this->assertFalse(get_transient($translation->getCacheKey('en')));
+        $this->assertFalse(get_transient($translation->getCacheKey('fr')));
     }
 
     public function testFlushCacheDoesNothingWithNoActiveLanguages(): void
     {
-        \remove_all_filters('wpml_active_languages');
-        \add_filter('wpml_active_languages', static fn () => null);
+        remove_all_filters('wpml_active_languages');
+        add_filter('wpml_active_languages', static fn () => null);
 
         $api = new Api();
         $translation = new Translation();
@@ -375,13 +375,13 @@ class WpmlTest extends TestCase
 
         // Set a transient that should NOT be cleared
         $cacheKey = $translation->getCacheKey('en');
-        \set_transient($cacheKey, [
+        set_transient($cacheKey, [
             'book' => 1,
         ]);
 
         $lifecycle->flushCache();
 
-        $this->assertNotFalse(\get_transient($cacheKey));
+        $this->assertNotFalse(get_transient($cacheKey));
     }
 
     public function testOnTranslationCompletedFlushesForPfcptPage(): void
@@ -392,14 +392,14 @@ class WpmlTest extends TestCase
         $lifecycle->registerHooks();
 
         $cacheKey = $translation->getCacheKey('en');
-        \set_transient($cacheKey, [
+        set_transient($cacheKey, [
             'book' => $this->homeForBookId,
         ]);
 
         // Simulate WPML translation completed for the French version of the book page
-        \do_action('wpml_pro_translation_completed', $this->homeForBookFrId);
+        do_action('wpml_pro_translation_completed', $this->homeForBookFrId);
 
-        $this->assertFalse(\get_transient($cacheKey));
+        $this->assertFalse(get_transient($cacheKey));
     }
 
     public function testOnTranslationCompletedIgnoresNonPfcptPage(): void
@@ -410,7 +410,7 @@ class WpmlTest extends TestCase
         $lifecycle->registerHooks();
 
         $cacheKey = $translation->getCacheKey('en');
-        \set_transient($cacheKey, [
+        set_transient($cacheKey, [
             'book' => $this->homeForBookId,
         ]);
 
@@ -418,9 +418,9 @@ class WpmlTest extends TestCase
         $regularPageId = self::factory()->post->create([
             'post_type' => 'page',
         ]);
-        \do_action('wpml_pro_translation_completed', $regularPageId);
+        do_action('wpml_pro_translation_completed', $regularPageId);
 
-        $this->assertNotFalse(\get_transient($cacheKey));
+        $this->assertNotFalse(get_transient($cacheKey));
     }
 
     public function testOnMakeDuplicateFlushesForPfcptPage(): void
@@ -431,14 +431,14 @@ class WpmlTest extends TestCase
         $lifecycle->registerHooks();
 
         $cacheKey = $translation->getCacheKey('en');
-        \set_transient($cacheKey, [
+        set_transient($cacheKey, [
             'book' => $this->homeForBookId,
         ]);
 
         // Simulate WPML duplicate creation for the book page
-        \do_action('icl_make_duplicate', $this->homeForBookId, 'fr', [], $this->homeForBookFrId);
+        do_action('icl_make_duplicate', $this->homeForBookId, 'fr', [], $this->homeForBookFrId);
 
-        $this->assertFalse(\get_transient($cacheKey));
+        $this->assertFalse(get_transient($cacheKey));
     }
 
     public function testOnMakeDuplicateIgnoresNonPfcptPage(): void
@@ -449,16 +449,16 @@ class WpmlTest extends TestCase
         $lifecycle->registerHooks();
 
         $cacheKey = $translation->getCacheKey('en');
-        \set_transient($cacheKey, [
+        set_transient($cacheKey, [
             'book' => $this->homeForBookId,
         ]);
 
         $regularPageId = self::factory()->post->create([
             'post_type' => 'page',
         ]);
-        \do_action('icl_make_duplicate', $regularPageId, 'fr', [], 999);
+        do_action('icl_make_duplicate', $regularPageId, 'fr', [], 999);
 
-        $this->assertNotFalse(\get_transient($cacheKey));
+        $this->assertNotFalse(get_transient($cacheKey));
     }
 
     public function testFlushRewriteRulesTriggersFlushCache(): void
@@ -468,17 +468,17 @@ class WpmlTest extends TestCase
         $lifecycle = new Lifecycle($api, new RewriteManager($api), $translation);
         $lifecycle->registerHooks();
 
-        \set_transient($translation->getCacheKey('en'), [
+        set_transient($translation->getCacheKey('en'), [
             'book' => 1,
         ]);
-        \set_transient($translation->getCacheKey('fr'), [
+        set_transient($translation->getCacheKey('fr'), [
             'book' => 2,
         ]);
 
-        \do_action('pfcpt/flush_rewrite_rules');
+        do_action('pfcpt/flush_rewrite_rules');
 
-        $this->assertFalse(\get_transient($translation->getCacheKey('en')));
-        $this->assertFalse(\get_transient($translation->getCacheKey('fr')));
+        $this->assertFalse(get_transient($translation->getCacheKey('en')));
+        $this->assertFalse(get_transient($translation->getCacheKey('fr')));
     }
 
     // -------------------------------------------------------------------------
@@ -498,16 +498,16 @@ class WpmlTest extends TestCase
 
         $languages = [
             'en' => [
-                'url' => \home_url('/home-for-books/'),
+                'url' => home_url('/home-for-books/'),
                 'native_name' => 'English',
             ],
             'fr' => [
-                'url' => \home_url('/fr/'),
+                'url' => home_url('/fr/'),
                 'native_name' => 'Français',
             ],
         ];
 
-        $result = \apply_filters('wpml_ls_languages', $languages);
+        $result = apply_filters('wpml_ls_languages', $languages);
 
         // French URL should be updated to point to the translated page
         $this->assertStringContainsString('accueil-livres', $result['fr']['url']);
@@ -526,16 +526,16 @@ class WpmlTest extends TestCase
 
         $languages = [
             'en' => [
-                'url' => \home_url('/some-page/'),
+                'url' => home_url('/some-page/'),
                 'native_name' => 'English',
             ],
             'fr' => [
-                'url' => \home_url('/fr/some-page/'),
+                'url' => home_url('/fr/some-page/'),
                 'native_name' => 'Français',
             ],
         ];
 
-        $result = \apply_filters('wpml_ls_languages', $languages);
+        $result = apply_filters('wpml_ls_languages', $languages);
 
         // URLs should remain unchanged
         $this->assertEquals($languages, $result);
@@ -553,19 +553,19 @@ class WpmlTest extends TestCase
 
         $languages = [
             'en' => [
-                'url' => \home_url('/home-for-books/'),
+                'url' => home_url('/home-for-books/'),
                 'native_name' => 'English',
             ],
             'fr' => [
-                'url' => \home_url('/fr/'),
+                'url' => home_url('/fr/'),
                 'native_name' => 'Français',
             ],
         ];
 
         // First call computes URLs
-        $result1 = \apply_filters('wpml_ls_languages', $languages);
+        $result1 = apply_filters('wpml_ls_languages', $languages);
         // Second call should use cache
-        $result2 = \apply_filters('wpml_ls_languages', $languages);
+        $result2 = apply_filters('wpml_ls_languages', $languages);
 
         $this->assertEquals($result1, $result2);
     }
@@ -582,11 +582,11 @@ class WpmlTest extends TestCase
 
         $languages = [
             'en' => [
-                'url' => \home_url('/home-for-books/'),
+                'url' => home_url('/home-for-books/'),
                 'native_name' => 'English',
             ],
             'fr' => [
-                'url' => \home_url('/fr/'),
+                'url' => home_url('/fr/'),
                 'native_name' => 'Français',
             ],
         ];
@@ -595,7 +595,7 @@ class WpmlTest extends TestCase
         $urlTranslation2 = new UrlTranslation($api);
         $urlTranslation2->registerHooks();
 
-        $result = \apply_filters('icl_ls_languages', $languages);
+        $result = apply_filters('icl_ls_languages', $languages);
 
         $this->assertIsArray($result);
         $this->assertArrayHasKey('en', $result);
@@ -616,16 +616,16 @@ class WpmlTest extends TestCase
 
         $languages = [
             'en' => [
-                'url' => \home_url('/home-for-books/'),
+                'url' => home_url('/home-for-books/'),
                 'native_name' => 'English',
             ],
             'fr' => [
-                'url' => \home_url('/fr/'),
+                'url' => home_url('/fr/'),
                 'native_name' => 'Français',
             ],
         ];
 
-        \apply_filters('wpml_ls_languages', $languages);
+        apply_filters('wpml_ls_languages', $languages);
 
         // Language should be restored to original after filtering
         $this->assertEquals('en', $this->currentLanguage);
@@ -650,17 +650,17 @@ class WpmlTest extends TestCase
      */
     private function registerWpmlFilters(): void
     {
-        \add_filter('wpml_current_language', fn () => $this->currentLanguage);
-        \add_filter('wpml_default_language', fn () => $this->defaultLanguage);
+        add_filter('wpml_current_language', fn () => $this->currentLanguage);
+        add_filter('wpml_default_language', fn () => $this->defaultLanguage);
 
-        \add_filter('wpml_object_id', function ($id, $type, $returnOriginal, $lang) {
+        add_filter('wpml_object_id', function ($id, $type, $returnOriginal, $lang) {
             if ($lang === 'fr' && isset($this->translationMap[$id])) {
                 return $this->translationMap[$id];
             }
 
             if ($lang === 'en') {
                 // Reverse lookup: find original from translation
-                $originalId = \array_search($id, $this->translationMap, true);
+                $originalId = array_search($id, $this->translationMap, true);
                 if ($originalId !== false) {
                     return $originalId;
                 }
@@ -669,17 +669,17 @@ class WpmlTest extends TestCase
             return $returnOriginal ? $id : null;
         }, 10, 4);
 
-        \add_filter('wpml_active_languages', fn () => $this->activeLanguages);
+        add_filter('wpml_active_languages', fn () => $this->activeLanguages);
 
-        \add_filter('wpml_home_url', static function ($url, $lang) {
+        add_filter('wpml_home_url', static function ($url, $lang) {
             if ($lang === 'fr') {
-                return \home_url('/fr/');
+                return home_url('/fr/');
             }
 
             return $url;
         }, 10, 2);
 
-        \add_action('wpml_switch_language', function (?string $lang): void {
+        add_action('wpml_switch_language', function (?string $lang): void {
             if ($lang !== null) {
                 $this->currentLanguage = $lang;
             }

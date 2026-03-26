@@ -31,9 +31,9 @@ final class UrlTranslation
     public function registerHooks(): void
     {
         // Different WPML language switcher filters depending on how it's rendered
-        \add_filter('wpml_ls_languages', [$this, 'filterLanguageSwitcherUrls'], 20);
-        \add_filter('icl_ls_languages', [$this, 'filterLanguageSwitcherUrls'], 20);
-        \add_filter('wpml_active_languages', [$this, 'filterLanguageSwitcherUrls'], 20);
+        add_filter('wpml_ls_languages', [$this, 'filterLanguageSwitcherUrls'], 20);
+        add_filter('icl_ls_languages', [$this, 'filterLanguageSwitcherUrls'], 20);
+        add_filter('wpml_active_languages', [$this, 'filterLanguageSwitcherUrls'], 20);
     }
 
     /**
@@ -59,7 +59,7 @@ final class UrlTranslation
 
         // Check if the main query has PFCPT flag
         $postType = $mainQuery->{Api::QUERY_VAR_IS_PFCPT} ?? null;
-        if (!\is_string($postType) || $postType === '') {
+        if (!is_string($postType) || $postType === '') {
             return $languages;
         }
 
@@ -71,7 +71,7 @@ final class UrlTranslation
 
         // Save current language to restore later
         /** @var string|null $currentLanguage */
-        $currentLanguage = \apply_filters('wpml_current_language', null);
+        $currentLanguage = apply_filters('wpml_current_language', null);
 
         // Build URL cache
         $this->urlCache = [];
@@ -84,7 +84,7 @@ final class UrlTranslation
         }
 
         // Restore original language
-        \do_action('wpml_switch_language', $currentLanguage);
+        do_action('wpml_switch_language', $currentLanguage);
 
         return $this->applyUrlCache($languages);
     }
@@ -97,16 +97,16 @@ final class UrlTranslation
     private function getTranslatedPageUrl(int $pageId, string $langCode): ?string
     {
         /** @var int|null $translatedId */
-        $translatedId = \apply_filters('wpml_object_id', $pageId, 'page', true, $langCode);
+        $translatedId = apply_filters('wpml_object_id', $pageId, 'page', true, $langCode);
 
-        if (!\is_int($translatedId) || $translatedId <= 0) {
+        if (!is_int($translatedId) || $translatedId <= 0) {
             return null;
         }
 
         // Switch to target language to get correct page data and slug
-        \do_action('wpml_switch_language', $langCode);
+        do_action('wpml_switch_language', $langCode);
 
-        $translatedPage = \get_post($translatedId);
+        $translatedPage = get_post($translatedId);
         if (!$translatedPage instanceof WP_Post) {
             return null;
         }
@@ -116,17 +116,17 @@ final class UrlTranslation
 
         // For hierarchical pages, build the full path
         if ($translatedPage->post_parent > 0) {
-            $pageSlug = \get_page_uri($translatedPage);
+            $pageSlug = get_page_uri($translatedPage);
         }
 
-        if (!\is_string($pageSlug) || $pageSlug === '') {
+        if (!is_string($pageSlug) || $pageSlug === '') {
             return null;
         }
 
         /** @var string $langHomeUrl */
-        $langHomeUrl = \apply_filters('wpml_home_url', \home_url('/'), $langCode);
+        $langHomeUrl = apply_filters('wpml_home_url', home_url('/'), $langCode);
 
-        return \trailingslashit($langHomeUrl) . $pageSlug . '/';
+        return trailingslashit($langHomeUrl) . $pageSlug . '/';
     }
 
     /**

@@ -72,8 +72,8 @@ abstract class TestCase extends Test_Case
             \unregister_taxonomy(self::GENRE_TAXONOMY);
         }
         \register_taxonomy(self::GENRE_TAXONOMY, self::BOOK_POST_TYPE, [
-            'public'  => true,
-            'label'   => 'Genres',
+            'public' => true,
+            'label' => 'Genres',
             'rewrite' => [
                 'slug' => 'genres',
             ],
@@ -165,11 +165,11 @@ abstract class TestCase extends Test_Case
     protected function getOrCreatePosts(string $postType, int $count): array
     {
         $existingIds = \get_posts([
-            'post_type'      => $postType,
+            'post_type' => $postType,
             'posts_per_page' => -1,
-            'fields'         => 'ids',
-            'orderby'        => 'ID',
-            'order'          => 'ASC',
+            'fields' => 'ids',
+            'orderby' => 'ID',
+            'order' => 'ASC',
         ]);
 
         if (\count($existingIds) >= $count) {
@@ -197,9 +197,9 @@ abstract class TestCase extends Test_Case
         }
 
         return self::factory()->post->create([
-            'post_type'  => 'page',
+            'post_type' => 'page',
             'post_title' => $title,
-            'post_name'  => $slug,
+            'post_name' => $slug,
         ]);
     }
 
@@ -220,7 +220,7 @@ abstract class TestCase extends Test_Case
 
         return self::factory()->term->create([
             'taxonomy' => $taxonomy,
-            'name'     => $name,
+            'name' => $name,
         ]);
     }
 
@@ -334,20 +334,20 @@ abstract class TestCase extends Test_Case
             // Use PLL()->model directly, same approach as PolylangTest::setUpLanguages().
             $languages = [
                 [
-                    'name'       => 'English',
-                    'slug'       => 'en',
-                    'locale'     => 'en_US',
-                    'rtl'        => false,
+                    'name' => 'English',
+                    'slug' => 'en',
+                    'locale' => 'en_US',
+                    'rtl' => false,
                     'term_group' => 0,
-                    'flag'       => 'us',
+                    'flag' => 'us',
                 ],
                 [
-                    'name'       => 'Français',
-                    'slug'       => 'fr',
-                    'locale'     => 'fr_FR',
-                    'rtl'        => false,
+                    'name' => 'Français',
+                    'slug' => 'fr',
+                    'locale' => 'fr_FR',
+                    'rtl' => false,
                     'term_group' => 1,
-                    'flag'       => 'fr',
+                    'flag' => 'fr',
                 ],
             ];
 

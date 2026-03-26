@@ -49,16 +49,16 @@ class EdgeCaseTest extends TestCase
     public function testNestedPageSlug(): void
     {
         $parentPageId = static::factory()->post->create([
-            'post_type'   => 'page',
-            'post_title'  => 'Parent Page',
-            'post_name'   => 'parent-page',
+            'post_type' => 'page',
+            'post_title' => 'Parent Page',
+            'post_name' => 'parent-page',
             'post_status' => 'publish',
         ]);
 
         $childPageId = static::factory()->post->create([
-            'post_type'   => 'page',
-            'post_title'  => 'Nested Book Home',
-            'post_name'   => 'nested-book-home',
+            'post_type' => 'page',
+            'post_title' => 'Nested Book Home',
+            'post_name' => 'nested-book-home',
             'post_status' => 'publish',
             'post_parent' => $parentPageId,
         ]);

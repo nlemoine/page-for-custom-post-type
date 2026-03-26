@@ -89,21 +89,21 @@ class RewriteManagerTest extends TestCase
     {
         // Create a draft page and assign it
         $draftPageId = static::factory()->post->create([
-            'post_type'   => 'page',
+            'post_type' => 'page',
             'post_status' => 'draft',
-            'post_name'   => 'draft-page',
+            'post_name' => 'draft-page',
         ]);
 
         // Register a new post type with the draft page
         \register_post_type('drafttest', [
-            'public'             => true,
+            'public' => true,
             'publicly_queryable' => true,
         ]);
         \update_option('page_for_drafttest', $draftPageId);
         \update_option(Api::OPTION_PAGE_IDS, [
             self::BOOK_POST_TYPE => $this->homeForBookId,
             self::BIKE_POST_TYPE => $this->homeForBikeId,
-            'drafttest'          => $draftPageId,
+            'drafttest' => $draftPageId,
         ]);
 
         $slug = $this->rewriteManager->getCachedPageSlug('drafttest');
@@ -167,10 +167,10 @@ class RewriteManagerTest extends TestCase
     public function testAddRewriteTagsForHierarchicalPostType(): void
     {
         \register_post_type('hierarchical_cpt', [
-            'public'             => true,
+            'public' => true,
             'publicly_queryable' => true,
-            'hierarchical'       => true,
-            'query_var'          => 'hierarchical_cpt',
+            'hierarchical' => true,
+            'query_var' => 'hierarchical_cpt',
         ]);
 
         $postTypeObject = \get_post_type_object('hierarchical_cpt');
@@ -193,10 +193,10 @@ class RewriteManagerTest extends TestCase
     public function testAddRewriteTagsWithCustomPermastruct(): void
     {
         \register_post_type('perma_cpt', [
-            'public'             => true,
+            'public' => true,
             'publicly_queryable' => true,
-            'rewrite'            => [
-                'slug'        => 'perma',
+            'rewrite' => [
+                'slug' => 'perma',
                 'permastruct' => '/perma/%category%/%postname%/',
             ],
         ]);
@@ -221,9 +221,9 @@ class RewriteManagerTest extends TestCase
     public function testAddRewriteTagsWithPermastructSkipsNonMatchingTags(): void
     {
         \register_post_type('perma_cpt2', [
-            'public'             => true,
+            'public' => true,
             'publicly_queryable' => true,
-            'rewrite'            => [
+            'rewrite' => [
                 'slug' => 'perma2',
                 // No %category% or %author% before %postname% — just a direct slug
                 'permastruct' => '/perma2/%postname%/',

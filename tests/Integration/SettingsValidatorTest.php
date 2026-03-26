@@ -52,7 +52,7 @@ class SettingsValidatorTest extends TestCase
     public function testValidateWithNonNumericValueReturnsFallback(mixed $value): void
     {
         $pageId = static::factory()->post->create([
-            'post_type'   => 'page',
+            'post_type' => 'page',
             'post_status' => 'publish',
         ]);
         \update_option('page_for_' . self::BOOK_POST_TYPE, $pageId);
@@ -82,7 +82,7 @@ class SettingsValidatorTest extends TestCase
     public function testValidateWithUnpublishedPageAddsError(): void
     {
         $draftPageId = static::factory()->post->create([
-            'post_type'   => 'page',
+            'post_type' => 'page',
             'post_status' => 'draft',
         ]);
 
@@ -95,13 +95,13 @@ class SettingsValidatorTest extends TestCase
     public function testValidateWithUnpublishedPageReturnsFallback(): void
     {
         $publishedPageId = static::factory()->post->create([
-            'post_type'   => 'page',
+            'post_type' => 'page',
             'post_status' => 'publish',
         ]);
         \update_option('page_for_' . self::BOOK_POST_TYPE, $publishedPageId);
 
         $draftPageId = static::factory()->post->create([
-            'post_type'   => 'page',
+            'post_type' => 'page',
             'post_status' => 'draft',
         ]);
 
@@ -113,7 +113,7 @@ class SettingsValidatorTest extends TestCase
     public function testValidateWithDuplicatePageIdAddsError(): void
     {
         $pageId = static::factory()->post->create([
-            'post_type'   => 'page',
+            'post_type' => 'page',
             'post_status' => 'publish',
         ]);
 
@@ -132,13 +132,13 @@ class SettingsValidatorTest extends TestCase
     public function testValidateWithDuplicatePageIdReturnsFallback(): void
     {
         $existingPageId = static::factory()->post->create([
-            'post_type'   => 'page',
+            'post_type' => 'page',
             'post_status' => 'publish',
         ]);
         \update_option('page_for_' . self::BOOK_POST_TYPE, $existingPageId);
 
         $duplicatePageId = static::factory()->post->create([
-            'post_type'   => 'page',
+            'post_type' => 'page',
             'post_status' => 'publish',
         ]);
 
@@ -156,7 +156,7 @@ class SettingsValidatorTest extends TestCase
     public function testValidateWithValidPageIdReturnsAbsint(): void
     {
         $pageId = static::factory()->post->create([
-            'post_type'   => 'page',
+            'post_type' => 'page',
             'post_status' => 'publish',
         ]);
 
@@ -168,7 +168,7 @@ class SettingsValidatorTest extends TestCase
     public function testValidateWithUnknownPostTypeReturnsValue(): void
     {
         $pageId = static::factory()->post->create([
-            'post_type'   => 'page',
+            'post_type' => 'page',
             'post_status' => 'publish',
         ]);
 

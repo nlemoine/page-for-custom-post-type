@@ -383,20 +383,20 @@ class PolylangTest extends TestCase
 
         if (!\in_array('en', $existingLanguages, true)) {
             \PLL()->model->add_language([
-                'name'       => 'English',
-                'slug'       => 'en',
-                'locale'     => 'en_US',
-                'rtl'        => false,
+                'name' => 'English',
+                'slug' => 'en',
+                'locale' => 'en_US',
+                'rtl' => false,
                 'term_group' => 0,
             ]);
         }
 
         if (!\in_array('fr', $existingLanguages, true)) {
             \PLL()->model->add_language([
-                'name'       => 'Français',
-                'slug'       => 'fr',
-                'locale'     => 'fr_FR',
-                'rtl'        => false,
+                'name' => 'Français',
+                'slug' => 'fr',
+                'locale' => 'fr_FR',
+                'rtl' => false,
                 'term_group' => 1,
             ]);
         }

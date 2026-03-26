@@ -23,8 +23,8 @@ class LifecycleTest extends TestCase
     public function testOptionUpdateUpdatesAggregatedOption(): void
     {
         $newPageId = self::factory()->post->create([
-            'post_type'   => 'page',
-            'post_title'  => 'New Book Page',
+            'post_type' => 'page',
+            'post_title' => 'New Book Page',
             'post_status' => 'publish',
         ]);
 
@@ -47,7 +47,7 @@ class LifecycleTest extends TestCase
     public function testPageUnpublishClearsOption(): void
     {
         \wp_update_post([
-            'ID'          => $this->homeForBookId,
+            'ID' => $this->homeForBookId,
             'post_status' => 'draft',
         ]);
 
@@ -77,7 +77,7 @@ class LifecycleTest extends TestCase
     public function testNonPfcptPageStatusChangeHasNoEffect(): void
     {
         \wp_update_post([
-            'ID'          => $this->staticFrontPageId,
+            'ID' => $this->staticFrontPageId,
             'post_status' => 'draft',
         ]);
 
@@ -95,7 +95,7 @@ class LifecycleTest extends TestCase
         });
 
         \wp_update_post([
-            'ID'        => $this->homeForBookId,
+            'ID' => $this->homeForBookId,
             'post_name' => 'new-book-page-slug',
         ]);
 
@@ -115,7 +115,7 @@ class LifecycleTest extends TestCase
 
         // Update with same slug
         \wp_update_post([
-            'ID'        => $this->homeForBookId,
+            'ID' => $this->homeForBookId,
             'post_name' => $currentSlug,
         ]);
 
@@ -127,7 +127,7 @@ class LifecycleTest extends TestCase
         $bookId = $this->bookIds[0];
 
         \wp_update_post([
-            'ID'          => $bookId,
+            'ID' => $bookId,
             'post_status' => 'draft',
         ]);
 
@@ -140,13 +140,13 @@ class LifecycleTest extends TestCase
     {
         // Unpublish page (clears option)
         \wp_update_post([
-            'ID'          => $this->homeForBookId,
+            'ID' => $this->homeForBookId,
             'post_status' => 'draft',
         ]);
 
         // Republish page
         \wp_update_post([
-            'ID'          => $this->homeForBookId,
+            'ID' => $this->homeForBookId,
             'post_status' => 'publish',
         ]);
 

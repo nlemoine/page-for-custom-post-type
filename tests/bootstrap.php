@@ -15,8 +15,8 @@ putenv("CACHEDIR={$rootDir}/tmp/test-cache");
  * Determine which plugins to load based on PLUGINS env variable.
  */
 $availablePlugins = [
-    'wordpress-seo'   => 'wordpress-seo/wp-seo.php',
-    'polylang'        => 'polylang/polylang.php',
+    'wordpress-seo' => 'wordpress-seo/wp-seo.php',
+    'polylang' => 'polylang/polylang.php',
     'autodescription' => 'autodescription/autodescription.php',
 ];
 $requestedPlugins = array_filter(explode(',', getenv('PLUGINS') ?: ''));
@@ -36,26 +36,26 @@ $manager = manager()
     })
     ->init(static function (): void {
         register_post_type('bike', [
-            'public'             => true,
+            'public' => true,
             'publicly_queryable' => true,
-            'label'              => 'Bikes',
-            'has_archive'        => true,
-            'rewrite'            => [
+            'label' => 'Bikes',
+            'has_archive' => true,
+            'rewrite' => [
                 'slug' => 'bikes',
             ],
         ]);
         register_post_type('book', [
-            'public'             => true,
+            'public' => true,
             'publicly_queryable' => true,
-            'label'              => 'Books',
-            'has_archive'        => true,
-            'rewrite'            => [
+            'label' => 'Books',
+            'has_archive' => true,
+            'rewrite' => [
                 'slug' => 'books',
             ],
         ]);
         register_taxonomy('genre', 'book', [
-            'public'  => true,
-            'label'   => 'Genres',
+            'public' => true,
+            'label' => 'Genres',
             'rewrite' => [
                 'slug' => 'genres',
             ],

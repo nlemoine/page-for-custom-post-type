@@ -33,10 +33,10 @@ class PostTypeTest extends TestCase
         $postType = new PostType($api, $rewriteManager);
 
         $args = [
-            'public'             => true,
+            'public' => true,
             'publicly_queryable' => true,
-            'has_archive'        => true,
-            'rewrite'            => [
+            'has_archive' => true,
+            'rewrite' => [
                 'slug' => 'books',
             ],
         ];
@@ -57,10 +57,10 @@ class PostTypeTest extends TestCase
         $postType = new PostType($api, $rewriteManager);
 
         $args = [
-            'public'             => true,
+            'public' => true,
             'publicly_queryable' => true,
-            'has_archive'        => true,
-            'rewrite'            => [
+            'has_archive' => true,
+            'rewrite' => [
                 'slug' => 'books',
             ],
         ];
@@ -81,10 +81,10 @@ class PostTypeTest extends TestCase
         $postType = new PostType($api, $rewriteManager);
 
         $args = [
-            'public'             => true,
+            'public' => true,
             'publicly_queryable' => true,
-            'has_archive'        => true,
-            'rewrite'            => [
+            'has_archive' => true,
+            'rewrite' => [
                 'slug' => 'books',
             ],
         ];
@@ -105,10 +105,10 @@ class PostTypeTest extends TestCase
         $postType = new PostType($api, $rewriteManager);
 
         $args = [
-            'public'             => true,
+            'public' => true,
             'publicly_queryable' => true,
-            'has_archive'        => true,
-            'rewrite'            => [
+            'has_archive' => true,
+            'rewrite' => [
                 'slug' => 'books',
             ],
         ];
@@ -129,10 +129,10 @@ class PostTypeTest extends TestCase
         $postType = new PostType($api, $rewriteManager);
 
         $args = [
-            'public'             => true,
+            'public' => true,
             'publicly_queryable' => true,
-            'has_archive'        => true,
-            'rewrite'            => [
+            'has_archive' => true,
+            'rewrite' => [
                 'slug' => 'books',
             ],
         ];
@@ -159,15 +159,15 @@ class PostTypeTest extends TestCase
     {
         yield 'builtin' => [
             [
-                '_builtin'    => true,
-                'public'      => true,
+                '_builtin' => true,
+                'public' => true,
                 'has_archive' => true,
             ],
             'post',
         ];
         yield 'non-public' => [
             [
-                'public'      => false,
+                'public' => false,
                 'has_archive' => true,
             ],
             'private_type',
@@ -175,7 +175,7 @@ class PostTypeTest extends TestCase
         yield 'non-publicly-queryable' => [
             [
                 'publicly_queryable' => false,
-                'has_archive'        => true,
+                'has_archive' => true,
             ],
             'internal_type',
         ];
@@ -192,19 +192,19 @@ class PostTypeTest extends TestCase
         $postType = new PostType($api, $rewriteManager);
 
         $bookArgs = [
-            'public'             => true,
+            'public' => true,
             'publicly_queryable' => true,
-            'has_archive'        => true,
-            'rewrite'            => [
+            'has_archive' => true,
+            'rewrite' => [
                 'slug' => 'books',
             ],
         ];
 
         $bikeArgs = [
-            'public'             => true,
+            'public' => true,
             'publicly_queryable' => true,
-            'has_archive'        => true,
-            'rewrite'            => [
+            'has_archive' => true,
+            'rewrite' => [
                 'slug' => 'bikes',
             ],
         ];

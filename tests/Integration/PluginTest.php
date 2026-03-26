@@ -234,11 +234,11 @@ class PluginTest extends TestCase
     {
         return [
             'register_post_type_args' => \has_filter('register_post_type_args'),
-            'registered_post_type'    => \has_action('registered_post_type'),
-            'template_redirect'       => \has_action('template_redirect'),
-            'parse_query'             => \has_filter('parse_query'),
-            'posts_where'             => \has_filter('posts_where'),
-            'wp_nav_menu_objects'     => \has_filter('wp_nav_menu_objects'),
+            'registered_post_type' => \has_action('registered_post_type'),
+            'template_redirect' => \has_action('template_redirect'),
+            'parse_query' => \has_filter('parse_query'),
+            'posts_where' => \has_filter('posts_where'),
+            'wp_nav_menu_objects' => \has_filter('wp_nav_menu_objects'),
         ];
     }
 }

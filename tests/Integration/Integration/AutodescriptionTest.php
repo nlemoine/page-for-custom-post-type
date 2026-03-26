@@ -95,9 +95,9 @@ class AutodescriptionTest extends TestCase
     public function testBreadcrumbsOnSinglePostIncludesPfcptPage(): void
     {
         $books = \get_posts([
-            'post_type'      => self::BOOK_POST_TYPE,
+            'post_type' => self::BOOK_POST_TYPE,
             'posts_per_page' => 1,
-            'orderby'        => 'rand',
+            'orderby' => 'rand',
         ]);
         $book = $books[0];
         $this->get(\get_permalink($book));
@@ -136,7 +136,7 @@ class AutodescriptionTest extends TestCase
 
         // Use explicit args to avoid TSF's function-level memoization
         $breadcrumbs = TsfBreadcrumbs::get_breadcrumb_list([
-            'id'  => $genreId,
+            'id' => $genreId,
             'tax' => self::GENRE_TAXONOMY,
         ]);
 
@@ -191,7 +191,7 @@ class AutodescriptionTest extends TestCase
     public function testPostTypeWithoutPfcptPageHasNoBreadcrumbChange(): void
     {
         $postId = self::factory()->post->create([
-            'post_type'  => 'post',
+            'post_type' => 'post',
             'post_title' => 'Regular Post',
         ]);
         $this->get(\get_permalink($postId));

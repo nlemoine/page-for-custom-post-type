@@ -64,13 +64,13 @@ class WordPressSeoTest extends TestCase
 
         $expected = [
             [
-                'url'  => \home_url('/'),
+                'url' => \home_url('/'),
                 'text' => 'Home',
             ],
             [
-                'url'  => $this->getBookHomeUrl(),
+                'url' => $this->getBookHomeUrl(),
                 'text' => 'Home for Books',
-                'id'   => $this->homeForBookId,
+                'id' => $this->homeForBookId,
             ],
         ];
 
@@ -81,9 +81,9 @@ class WordPressSeoTest extends TestCase
     {
         // Get a random book for testing
         $books = \get_posts([
-            'post_type'      => self::BOOK_POST_TYPE,
+            'post_type' => self::BOOK_POST_TYPE,
             'posts_per_page' => 1,
-            'orderby'        => 'rand',
+            'orderby' => 'rand',
         ]);
         $book = $books[0];
         $this->get(\get_permalink($book));

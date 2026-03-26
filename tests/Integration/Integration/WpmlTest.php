@@ -42,11 +42,11 @@ class WpmlTest extends TestCase
      */
     private array $activeLanguages = [
         'en' => [
-            'code'        => 'en',
+            'code' => 'en',
             'native_name' => 'English',
         ],
         'fr' => [
-            'code'        => 'fr',
+            'code' => 'fr',
             'native_name' => 'Français',
         ],
     ];
@@ -118,14 +118,14 @@ class WpmlTest extends TestCase
     {
         // Override the default language to return empty
         \remove_all_filters('wpml_default_language');
-        \add_filter('wpml_default_language', fn () => '');
+        \add_filter('wpml_default_language', static fn () => '');
 
         $admin = new Admin();
         $admin->registerHooks();
 
         $original = [
             'post_type' => 'page',
-            'custom'    => 'value',
+            'custom' => 'value',
         ];
         $result = \apply_filters('pfcpt/dropdown_page_args', $original);
 
@@ -197,7 +197,7 @@ class WpmlTest extends TestCase
     {
         // Override current language to return null
         \remove_all_filters('wpml_current_language');
-        \add_filter('wpml_current_language', fn () => null);
+        \add_filter('wpml_current_language', static fn () => null);
 
         $translation = new Translation();
         $translation->registerHooks();
@@ -281,7 +281,7 @@ class WpmlTest extends TestCase
     {
         // No current language set
         \remove_all_filters('wpml_current_language');
-        \add_filter('wpml_current_language', fn () => null);
+        \add_filter('wpml_current_language', static fn () => null);
 
         $translation = new Translation();
         $translation->registerHooks();
@@ -306,9 +306,9 @@ class WpmlTest extends TestCase
     public function testResolvePageIdUnchangedWhenNoDefaultLanguage(): void
     {
         \remove_all_filters('wpml_current_language');
-        \add_filter('wpml_current_language', fn () => null);
+        \add_filter('wpml_current_language', static fn () => null);
         \remove_all_filters('wpml_default_language');
-        \add_filter('wpml_default_language', fn () => null);
+        \add_filter('wpml_default_language', static fn () => null);
 
         $translation = new Translation();
         $translation->registerHooks();
@@ -367,7 +367,7 @@ class WpmlTest extends TestCase
     public function testFlushCacheDoesNothingWithNoActiveLanguages(): void
     {
         \remove_all_filters('wpml_active_languages');
-        \add_filter('wpml_active_languages', fn () => null);
+        \add_filter('wpml_active_languages', static fn () => null);
 
         $api = new Api();
         $translation = new Translation();
@@ -498,11 +498,11 @@ class WpmlTest extends TestCase
 
         $languages = [
             'en' => [
-                'url'         => \home_url('/home-for-books/'),
+                'url' => \home_url('/home-for-books/'),
                 'native_name' => 'English',
             ],
             'fr' => [
-                'url'         => \home_url('/fr/'),
+                'url' => \home_url('/fr/'),
                 'native_name' => 'Français',
             ],
         ];
@@ -526,11 +526,11 @@ class WpmlTest extends TestCase
 
         $languages = [
             'en' => [
-                'url'         => \home_url('/some-page/'),
+                'url' => \home_url('/some-page/'),
                 'native_name' => 'English',
             ],
             'fr' => [
-                'url'         => \home_url('/fr/some-page/'),
+                'url' => \home_url('/fr/some-page/'),
                 'native_name' => 'Français',
             ],
         ];
@@ -553,11 +553,11 @@ class WpmlTest extends TestCase
 
         $languages = [
             'en' => [
-                'url'         => \home_url('/home-for-books/'),
+                'url' => \home_url('/home-for-books/'),
                 'native_name' => 'English',
             ],
             'fr' => [
-                'url'         => \home_url('/fr/'),
+                'url' => \home_url('/fr/'),
                 'native_name' => 'Français',
             ],
         ];
@@ -582,11 +582,11 @@ class WpmlTest extends TestCase
 
         $languages = [
             'en' => [
-                'url'         => \home_url('/home-for-books/'),
+                'url' => \home_url('/home-for-books/'),
                 'native_name' => 'English',
             ],
             'fr' => [
-                'url'         => \home_url('/fr/'),
+                'url' => \home_url('/fr/'),
                 'native_name' => 'Français',
             ],
         ];
@@ -616,11 +616,11 @@ class WpmlTest extends TestCase
 
         $languages = [
             'en' => [
-                'url'         => \home_url('/home-for-books/'),
+                'url' => \home_url('/home-for-books/'),
                 'native_name' => 'English',
             ],
             'fr' => [
-                'url'         => \home_url('/fr/'),
+                'url' => \home_url('/fr/'),
                 'native_name' => 'Français',
             ],
         ];
@@ -671,7 +671,7 @@ class WpmlTest extends TestCase
 
         \add_filter('wpml_active_languages', fn () => $this->activeLanguages);
 
-        \add_filter('wpml_home_url', function ($url, $lang) {
+        \add_filter('wpml_home_url', static function ($url, $lang) {
             if ($lang === 'fr') {
                 return \home_url('/fr/');
             }

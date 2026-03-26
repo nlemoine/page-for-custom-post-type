@@ -14,7 +14,7 @@ use n5s\PageForCustomPostType\Core\Api;
  */
 final class Translation
 {
-    private const CACHE_TTL = HOUR_IN_SECONDS;
+    private const CACHE_TTL = \HOUR_IN_SECONDS;
 
     public function registerHooks(): void
     {

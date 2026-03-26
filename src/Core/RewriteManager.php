@@ -173,7 +173,7 @@ final class RewriteManager
             }
 
             $replacements[] = [
-                'tag'   => $part,
+                'tag' => $part,
                 'regex' => $excludePageRegex . $wp_rewrite->rewritereplace[$tagIndex],
                 'query' => $wp_rewrite->queryreplace[$tagIndex],
             ];

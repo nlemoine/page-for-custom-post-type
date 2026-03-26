@@ -90,11 +90,11 @@ class AdminScreenTest extends TestCase
     public function testGetExcludedPageIdsExcludesFrontPageAndPostsPage(): void
     {
         $frontPageId = static::factory()->post->create([
-            'post_type'   => 'page',
+            'post_type' => 'page',
             'post_status' => 'publish',
         ]);
         $postsPageId = static::factory()->post->create([
-            'post_type'   => 'page',
+            'post_type' => 'page',
             'post_status' => 'publish',
         ]);
 
@@ -135,10 +135,10 @@ class AdminScreenTest extends TestCase
     public function testGetDefaultLabelWithoutArchive(): void
     {
         \register_post_type('noarchive_cpt', [
-            'public'             => true,
+            'public' => true,
             'publicly_queryable' => true,
-            'has_archive'        => false,
-            'label'              => 'No Archive CPT',
+            'has_archive' => false,
+            'label' => 'No Archive CPT',
         ]);
 
         $method = new \ReflectionMethod(Admin::class, 'getDefaultLabel');

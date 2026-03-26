@@ -36,10 +36,10 @@ class PostTypeTest extends TestCase
     {
         // Register a new post type without a page assigned
         \register_post_type('movie', [
-            'public'             => true,
+            'public' => true,
             'publicly_queryable' => true,
-            'has_archive'        => true,
-            'rewrite'            => [
+            'has_archive' => true,
+            'rewrite' => [
                 'slug' => 'movies',
             ],
         ]);

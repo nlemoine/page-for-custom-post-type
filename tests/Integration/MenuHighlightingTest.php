@@ -26,9 +26,9 @@ class MenuHighlightingTest extends TestCase
         $this->get(\get_permalink($this->bookIds[0]));
 
         $menuItem = $this->createMenuItem([
-            'type'      => 'post_type',
+            'type' => 'post_type',
             'object_id' => $this->homeForBookId,
-            'classes'   => [],
+            'classes' => [],
         ]);
 
         $result = $this->queryFilter->withCurrentAncestor([$menuItem], new \stdClass());
@@ -42,9 +42,9 @@ class MenuHighlightingTest extends TestCase
         $this->get($this->getBookHomeUrl());
 
         $menuItem = $this->createMenuItem([
-            'type'      => 'post_type',
+            'type' => 'post_type',
             'object_id' => $this->homeForBookId,
-            'classes'   => [],
+            'classes' => [],
         ]);
 
         $result = $this->queryFilter->withCurrentAncestor([$menuItem], new \stdClass());
@@ -57,9 +57,9 @@ class MenuHighlightingTest extends TestCase
         $this->get(\get_permalink($this->bookIds[0]));
 
         $menuItem = $this->createMenuItem([
-            'type'      => 'custom',
+            'type' => 'custom',
             'object_id' => $this->homeForBookId,
-            'classes'   => [],
+            'classes' => [],
         ]);
 
         $result = $this->queryFilter->withCurrentAncestor([$menuItem], new \stdClass());
@@ -73,9 +73,9 @@ class MenuHighlightingTest extends TestCase
         $this->get(\get_permalink($this->bookIds[0]));
 
         $menuItem = $this->createMenuItem([
-            'type'      => 'post_type',
+            'type' => 'post_type',
             'object_id' => $this->staticFrontPageId,
-            'classes'   => [],
+            'classes' => [],
         ]);
 
         $result = $this->queryFilter->withCurrentAncestor([$menuItem], new \stdClass());
@@ -89,9 +89,9 @@ class MenuHighlightingTest extends TestCase
         $this->get(\get_permalink($this->bikeIds[0]));
 
         $menuItem = $this->createMenuItem([
-            'type'      => 'post_type',
+            'type' => 'post_type',
             'object_id' => $this->homeForBookId,
-            'classes'   => [],
+            'classes' => [],
         ]);
 
         $result = $this->queryFilter->withCurrentAncestor([$menuItem], new \stdClass());
@@ -105,9 +105,9 @@ class MenuHighlightingTest extends TestCase
         $this->get(\get_permalink($this->bookIds[0]));
 
         $menuItem = $this->createMenuItem([
-            'type'      => 'post_type',
+            'type' => 'post_type',
             'object_id' => $this->homeForBookId,
-            'classes'   => ['menu-item', 'existing-class'],
+            'classes' => ['menu-item', 'existing-class'],
         ]);
 
         $result = $this->queryFilter->withCurrentAncestor([$menuItem], new \stdClass());
@@ -123,9 +123,9 @@ class MenuHighlightingTest extends TestCase
         $this->get(\get_permalink($this->bookIds[0]));
 
         $menuItem = $this->createMenuItem([
-            'type'      => 'post_type',
+            'type' => 'post_type',
             'object_id' => 0,
-            'classes'   => [],
+            'classes' => [],
         ]);
 
         $result = $this->queryFilter->withCurrentAncestor([$menuItem], new \stdClass());

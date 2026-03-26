@@ -58,7 +58,7 @@ final class Breadcrumbs
         }
 
         $crumb = [
-            'url'  => $url,
+            'url' => $url,
             'name' => \get_the_title($pageId),
         ];
 

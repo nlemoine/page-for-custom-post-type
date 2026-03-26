@@ -81,10 +81,10 @@ final class Admin
         }
 
         $adminBar->add_menu([
-            'id'    => 'archive',
+            'id' => 'archive',
             'title' => $postTypeObject->labels->view_items,
-            'href'  => $archiveUrl,
-            'meta'  => [
+            'href' => $archiveUrl,
+            'meta' => [
                 'target' => '_blank',
             ],
         ]);
@@ -143,7 +143,7 @@ final class Admin
             ]);
 
             \register_setting('reading', $useSlugFieldId, [
-                'type'    => 'boolean',
+                'type' => 'boolean',
                 'default' => false,
             ]);
 
@@ -156,12 +156,12 @@ final class Admin
                 'reading',
                 'page_for_custom_post_type',
                 [
-                    'name'         => $fieldId,
-                    'useSlugName'  => $useSlugFieldId,
-                    'postType'     => $postTypeObj,
-                    'value'        => $value,
+                    'name' => $fieldId,
+                    'useSlugName' => $useSlugFieldId,
+                    'postType' => $postTypeObj,
+                    'value' => $value,
                     'useSlugValue' => $useSlugValue,
-                    'label_for'    => $fieldId . '_dropdown',
+                    'label_for' => $fieldId . '_dropdown',
                 ]
             );
         }
@@ -181,11 +181,11 @@ final class Admin
 
         /** @var array{name?: string, id?: string, selected?: int|string, show_option_none?: string, exclude?: int[], echo?: bool|int} $dropdownArgs */
         $dropdownArgs = \apply_filters('pfcpt/dropdown_page_args', [
-            'name'             => \esc_attr($args['name']),
-            'id'               => \esc_attr($args['name'] . '_dropdown'),
-            'selected'         => $value,
+            'name' => \esc_attr($args['name']),
+            'id' => \esc_attr($args['name'] . '_dropdown'),
+            'selected' => $value,
             'show_option_none' => $defaultLabel ?? \__('— Select —', 'pfcpt'),
-            'exclude'          => $this->getExcludedPageIds(),
+            'exclude' => $this->getExcludedPageIds(),
         ]);
 
         if (!\is_array($dropdownArgs)) {
@@ -227,17 +227,17 @@ final class Admin
                     \esc_html__('Selected page slug replaces default "%s" post type slug', 'pfcpt'),
                     \esc_html(\mb_strtolower(\is_string($args['postType']->labels->name) ? $args['postType']->labels->name : $args['postType']->name))
                 );
-        ?>
+                ?>
             </label>
             <p class="description">
                 ⚠️
                 <?php
-        \printf(
+                \printf(
             /* translators: %s: plural post type name */
-            \esc_html__('Changing this option will alter all single "%s" URLs. This may affect SEO and existing links.', 'pfcpt'),
-            \esc_html(\mb_strtolower(\is_string($args['postType']->labels->name) ? $args['postType']->labels->name : $args['postType']->name))
-        );
-        ?>
+                    \esc_html__('Changing this option will alter all single "%s" URLs. This may affect SEO and existing links.', 'pfcpt'),
+                    \esc_html(\mb_strtolower(\is_string($args['postType']->labels->name) ? $args['postType']->labels->name : $args['postType']->name))
+                );
+                ?>
             </p>
         </div>
         <script>

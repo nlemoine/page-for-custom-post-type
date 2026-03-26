@@ -169,7 +169,7 @@ final class Api
         return \get_post_types(
             [
                 'publicly_queryable' => true,
-                '_builtin'           => false,
+                '_builtin' => false,
             ],
             'objects'
         );

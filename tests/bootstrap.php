@@ -8,8 +8,8 @@ require_once __DIR__ . '/../vendor/autoload.php';
 $rootDir = realpath(__DIR__ . '/..');
 
 // phpcs:disable WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_putenv
-putenv("WP_CORE_DIR={$rootDir}/tmp/wordpress");
-putenv("CACHEDIR={$rootDir}/tmp/test-cache");
+putenv("WP_CORE_DIR=$rootDir/tmp/wordpress");
+putenv("CACHEDIR=$rootDir/tmp/test-cache");
 
 /**
  * Determine which plugins to load based on PLUGINS env variable.
@@ -24,7 +24,7 @@ $plugins = array_values(array_filter(array_map(static function (string $p) use (
     return $availablePlugins[$p] ?? null;
 }, $requestedPlugins)));
 
-$isPolylang = in_array('polylang', $requestedPlugins, true);
+$isPolylang = \in_array('polylang', $requestedPlugins, true);
 
 $manager = manager()
     ->with_sqlite()
@@ -71,14 +71,6 @@ if ($isPolylang) {
         if (!defined('POLYLANG_DIR')) {
             return;
         }
-
-        // Force a Polylang context so init_context() runs even without languages.
-        // Without this, PLL() and the Polylang API are never loaded because
-        // Polylang skips init_context() when no languages exist and the request
-        // is not detected as admin, settings, or REST.
-        add_filter('pll_context', static function (string $class): string {
-            return $class ?: 'PLL_Admin';
-        });
 
         $polylangBootstrap = new \Polylang();
         $polylangBootstrap->init();

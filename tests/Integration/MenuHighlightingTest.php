@@ -21,9 +21,20 @@ class MenuHighlightingTest extends TestCase
         $this->queryFilter = $container->get(QueryFilter::class);
     }
 
+    private function createMenuItem(array $props = []): \stdClass
+    {
+        $item = new \stdClass();
+        $item->type = $props['type'] ?? 'post_type';
+        $item->object_id = $props['object_id'] ?? 0;
+        $item->classes = $props['classes'] ?? [];
+        $item->current_item_ancestor = $props['current_item_ancestor'] ?? false;
+
+        return $item;
+    }
+
     public function testAncestorSetOnSingleCptPost(): void
     {
-        $this->get(\get_permalink($this->bookIds[0]));
+        $this->get(get_permalink($this->bookIds[0]));
 
         $menuItem = $this->createMenuItem([
             'type' => 'post_type',
@@ -54,7 +65,7 @@ class MenuHighlightingTest extends TestCase
 
     public function testAncestorIgnoresNonPostTypeMenuItems(): void
     {
-        $this->get(\get_permalink($this->bookIds[0]));
+        $this->get(get_permalink($this->bookIds[0]));
 
         $menuItem = $this->createMenuItem([
             'type' => 'custom',
@@ -70,7 +81,7 @@ class MenuHighlightingTest extends TestCase
 
     public function testAncestorIgnoresMenuItemsForNonPfcptPages(): void
     {
-        $this->get(\get_permalink($this->bookIds[0]));
+        $this->get(get_permalink($this->bookIds[0]));
 
         $menuItem = $this->createMenuItem([
             'type' => 'post_type',
@@ -86,7 +97,7 @@ class MenuHighlightingTest extends TestCase
 
     public function testAncestorIgnoresMismatchedPostType(): void
     {
-        $this->get(\get_permalink($this->bikeIds[0]));
+        $this->get(get_permalink($this->bikeIds[0]));
 
         $menuItem = $this->createMenuItem([
             'type' => 'post_type',
@@ -102,7 +113,7 @@ class MenuHighlightingTest extends TestCase
 
     public function testAncestorPreservesExistingClasses(): void
     {
-        $this->get(\get_permalink($this->bookIds[0]));
+        $this->get(get_permalink($this->bookIds[0]));
 
         $menuItem = $this->createMenuItem([
             'type' => 'post_type',
@@ -120,7 +131,7 @@ class MenuHighlightingTest extends TestCase
 
     public function testAncestorIgnoresMenuItemWithZeroObjectId(): void
     {
-        $this->get(\get_permalink($this->bookIds[0]));
+        $this->get(get_permalink($this->bookIds[0]));
 
         $menuItem = $this->createMenuItem([
             'type' => 'post_type',
@@ -132,16 +143,5 @@ class MenuHighlightingTest extends TestCase
 
         $this->assertNotContains('current-menu-ancestor', $result[0]->classes);
         $this->assertFalse($result[0]->current_item_ancestor);
-    }
-
-    private function createMenuItem(array $props = []): \stdClass
-    {
-        $item = new \stdClass();
-        $item->type = $props['type'] ?? 'post_type';
-        $item->object_id = $props['object_id'] ?? 0;
-        $item->classes = $props['classes'] ?? [];
-        $item->current_item_ancestor = $props['current_item_ancestor'] ?? false;
-
-        return $item;
     }
 }

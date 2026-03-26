@@ -24,7 +24,7 @@ class TemplateHierarchyTest extends TestCase
         $this->get($this->getBookHomeUrl());
 
         // Apply the home_template_hierarchy filter with default templates
-        $templates = \apply_filters('home_template_hierarchy', ['home.php', 'index.php']);
+        $templates = apply_filters('home_template_hierarchy', ['home.php', 'index.php']);
 
         $this->assertContains('home-' . self::BOOK_POST_TYPE . '.php', $templates);
     }
@@ -33,7 +33,7 @@ class TemplateHierarchyTest extends TestCase
     {
         $this->get($this->getBookHomeUrl());
 
-        $templates = \apply_filters('home_template_hierarchy', ['home.php', 'index.php']);
+        $templates = apply_filters('home_template_hierarchy', ['home.php', 'index.php']);
 
         $this->assertEquals('home-' . self::BOOK_POST_TYPE . '.php', $templates[0]);
     }
@@ -42,7 +42,7 @@ class TemplateHierarchyTest extends TestCase
     {
         $this->get($this->getBookHomeUrl());
 
-        $templates = \apply_filters('home_template_hierarchy', ['home.php', 'index.php']);
+        $templates = apply_filters('home_template_hierarchy', ['home.php', 'index.php']);
 
         $this->assertContains('home.php', $templates);
     }
@@ -51,7 +51,7 @@ class TemplateHierarchyTest extends TestCase
     {
         $this->get($this->getBookHomeUrl());
 
-        $templates = \apply_filters('home_template_hierarchy', ['home.php', 'index.php']);
+        $templates = apply_filters('home_template_hierarchy', ['home.php', 'index.php']);
 
         $this->assertContains('index.php', $templates);
     }
@@ -60,7 +60,7 @@ class TemplateHierarchyTest extends TestCase
     {
         $this->get($this->getBikeHomeUrl());
 
-        $templates = \apply_filters('home_template_hierarchy', ['home.php', 'index.php']);
+        $templates = apply_filters('home_template_hierarchy', ['home.php', 'index.php']);
 
         $this->assertEquals('home-' . self::BIKE_POST_TYPE . '.php', $templates[0]);
         $this->assertNotContains('home-' . self::BOOK_POST_TYPE . '.php', $templates);
@@ -70,7 +70,7 @@ class TemplateHierarchyTest extends TestCase
     {
         $this->get($this->getBookHomeUrl());
 
-        $templates = \apply_filters('home_template_hierarchy', ['home.php', 'index.php']);
+        $templates = apply_filters('home_template_hierarchy', ['home.php', 'index.php']);
 
         $expected = [
             'home-' . self::BOOK_POST_TYPE . '.php',
@@ -83,9 +83,9 @@ class TemplateHierarchyTest extends TestCase
 
     public function testRegularPageDoesNotModifyHomeHierarchy(): void
     {
-        $this->get(\get_permalink($this->staticFrontPageId));
+        $this->get(get_permalink($this->staticFrontPageId));
 
-        $templates = \apply_filters('home_template_hierarchy', ['home.php', 'index.php']);
+        $templates = apply_filters('home_template_hierarchy', ['home.php', 'index.php']);
 
         // Should not include any post type specific template
         $this->assertNotContains('home-' . self::BOOK_POST_TYPE . '.php', $templates);
@@ -99,7 +99,7 @@ class TemplateHierarchyTest extends TestCase
 
         // The plugin returns an empty array for frontpage_template_hierarchy
         // to prevent WordPress from using front-page.php
-        $templates = \apply_filters('frontpage_template_hierarchy', ['front-page.php']);
+        $templates = apply_filters('frontpage_template_hierarchy', ['front-page.php']);
 
         $this->assertEmpty($templates);
     }
@@ -109,7 +109,7 @@ class TemplateHierarchyTest extends TestCase
         $this->get($this->getBookHomeUrl());
 
         // Block themes pass templates without .php extension
-        $templates = \apply_filters('home_template_hierarchy', ['home', 'index']);
+        $templates = apply_filters('home_template_hierarchy', ['home', 'index']);
 
         $expected = [
             'home-' . self::BOOK_POST_TYPE,

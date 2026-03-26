@@ -20,7 +20,7 @@ final class Schema
 
     public function registerHooks(): void
     {
-        \add_filter('wpseo_schema_webpage_type', [$this, 'addCollectionPageType']);
+        add_filter('wpseo_schema_webpage_type', [$this, 'addCollectionPageType']);
     }
 
     /**

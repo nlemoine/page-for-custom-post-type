@@ -20,8 +20,8 @@ class EdgeCaseTest extends TestCase
 
         $this->get($this->getBookHomeUrl());
 
-        $this->assertTrue(\is_home());
-        $this->assertFalse(\is_front_page());
+        $this->assertTrue(is_home());
+        $this->assertFalse(is_front_page());
         $this->assertTrue(\n5s\PageForCustomPostType\is_page_for_custom_post_type());
     }
 
@@ -29,20 +29,20 @@ class EdgeCaseTest extends TestCase
     {
         $this->configureStaticFrontPage(true);
 
-        $this->get(\home_url('/'));
+        $this->get(home_url('/'));
 
         $this->assertFalse(\n5s\PageForCustomPostType\is_page_for_custom_post_type());
     }
 
     public function testPfcptWithShowOnFrontPosts(): void
     {
-        \update_option('show_on_front', 'posts');
-        \delete_option('page_on_front');
-        \delete_option('page_for_posts');
+        update_option('show_on_front', 'posts');
+        delete_option('page_on_front');
+        delete_option('page_for_posts');
 
         $this->get($this->getBookHomeUrl());
 
-        $this->assertTrue(\is_home());
+        $this->assertTrue(is_home());
         $this->assertTrue(\n5s\PageForCustomPostType\is_page_for_custom_post_type());
     }
 
@@ -63,11 +63,11 @@ class EdgeCaseTest extends TestCase
             'post_parent' => $parentPageId,
         ]);
 
-        \update_option('page_for_' . self::BOOK_POST_TYPE, $childPageId);
+        update_option('page_for_' . self::BOOK_POST_TYPE, $childPageId);
 
-        \flush_rewrite_rules();
+        flush_rewrite_rules();
 
-        $url = \get_permalink($childPageId);
+        $url = get_permalink($childPageId);
         $this->assertStringContainsString('parent-page', $url);
 
         $this->get($url);
@@ -84,7 +84,7 @@ class EdgeCaseTest extends TestCase
 
         global $wp_query;
 
-        $postIds = \wp_list_pluck($wp_query->posts, 'ID');
+        $postIds = wp_list_pluck($wp_query->posts, 'ID');
 
         $this->assertNotContains($this->homeForBookId, $postIds);
     }
@@ -93,20 +93,20 @@ class EdgeCaseTest extends TestCase
     {
         $this->get($this->getBookHomeUrl());
 
-        $this->assertTrue(\is_home());
+        $this->assertTrue(is_home());
         $this->assertTrue(\n5s\PageForCustomPostType\is_page_for_custom_post_type(self::BOOK_POST_TYPE));
         $this->assertFalse(\n5s\PageForCustomPostType\is_page_for_custom_post_type(self::BIKE_POST_TYPE));
 
         $this->get($this->getBikeHomeUrl());
 
-        $this->assertTrue(\is_home());
+        $this->assertTrue(is_home());
         $this->assertTrue(\n5s\PageForCustomPostType\is_page_for_custom_post_type(self::BIKE_POST_TYPE));
         $this->assertFalse(\n5s\PageForCustomPostType\is_page_for_custom_post_type(self::BOOK_POST_TYPE));
     }
 
     public function testPfcptPageWithNoPostsPerPage(): void
     {
-        \update_option('posts_per_page', 999);
+        update_option('posts_per_page', 999);
 
         $this->get($this->getBookHomeUrl());
 
@@ -120,9 +120,9 @@ class EdgeCaseTest extends TestCase
     {
         $bookHomeUrl = $this->getBookHomeUrl();
 
-        \delete_option('page_for_' . self::BOOK_POST_TYPE);
+        delete_option('page_for_' . self::BOOK_POST_TYPE);
 
-        \flush_rewrite_rules();
+        flush_rewrite_rules();
 
         $this->get($bookHomeUrl);
 
@@ -137,7 +137,7 @@ class EdgeCaseTest extends TestCase
     {
         $this->get($this->getBookHomeUrl());
 
-        $queriedObject = \get_queried_object();
+        $queriedObject = get_queried_object();
 
         $this->assertInstanceOf(\WP_Post::class, $queriedObject);
         $this->assertSame('page', $queriedObject->post_type);

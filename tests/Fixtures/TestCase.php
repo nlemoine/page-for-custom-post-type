@@ -68,17 +68,15 @@ abstract class TestCase extends Test_Case
         // or RewriteManager::flushRewriteRules() may leave $wp_rewrite in
         // a state where post type/taxonomy permastructs are missing.
         // Re-registering the taxonomy ensures its permastruct is present.
-        if (\taxonomy_exists(self::GENRE_TAXONOMY)) {
-            \unregister_taxonomy(self::GENRE_TAXONOMY);
+        if (taxonomy_exists(self::GENRE_TAXONOMY)) {
+            unregister_taxonomy(self::GENRE_TAXONOMY);
         }
-        \register_taxonomy(self::GENRE_TAXONOMY, self::BOOK_POST_TYPE, [
+        register_taxonomy(self::GENRE_TAXONOMY, self::BOOK_POST_TYPE, [
             'public' => true,
             'label' => 'Genres',
-            'rewrite' => [
-                'slug' => 'genres',
-            ],
+            'rewrite' => ['slug' => 'genres'],
         ]);
-        \flush_rewrite_rules();
+        flush_rewrite_rules();
     }
 
     /**
@@ -97,7 +95,7 @@ abstract class TestCase extends Test_Case
         $genreId = $this->getOrCreateTerm(self::GENRE_TAXONOMY, 'Fantasy');
 
         foreach ($this->bookIds as $bookId) {
-            \wp_set_object_terms($bookId, $genreId, self::GENRE_TAXONOMY);
+            wp_set_object_terms($bookId, $genreId, self::GENRE_TAXONOMY);
         }
     }
 
@@ -117,16 +115,16 @@ abstract class TestCase extends Test_Case
     protected function createHomePages(): void
     {
         $this->homeForBookId = $this->getOrCreatePage('home-for-books', 'Home for Books');
-        \update_option('page_for_' . self::BOOK_POST_TYPE, $this->homeForBookId);
+        update_option('page_for_' . self::BOOK_POST_TYPE, $this->homeForBookId);
 
         $this->homeForBikeId = $this->getOrCreatePage('home-for-bikes', 'Home for Bikes');
-        \update_option('page_for_' . self::BIKE_POST_TYPE, $this->homeForBikeId);
+        update_option('page_for_' . self::BIKE_POST_TYPE, $this->homeForBikeId);
 
         // When Polylang is active, assign the default language to pages
         // so they appear in language-filtered queries (e.g., wp_dropdown_pages).
         if (\function_exists('pll_set_post_language')) {
-            \pll_set_post_language($this->homeForBookId, 'en');
-            \pll_set_post_language($this->homeForBikeId, 'en');
+            pll_set_post_language($this->homeForBookId, 'en');
+            pll_set_post_language($this->homeForBikeId, 'en');
         }
     }
 
@@ -139,8 +137,8 @@ abstract class TestCase extends Test_Case
         $this->staticPageForPostsId = $this->getOrCreatePage('posts-page', 'Posts Page');
 
         if (\function_exists('pll_set_post_language')) {
-            \pll_set_post_language($this->staticFrontPageId, 'en');
-            \pll_set_post_language($this->staticPageForPostsId, 'en');
+            pll_set_post_language($this->staticFrontPageId, 'en');
+            pll_set_post_language($this->staticPageForPostsId, 'en');
         }
     }
 
@@ -149,7 +147,7 @@ abstract class TestCase extends Test_Case
      */
     protected function updatePluginOptions(): void
     {
-        \update_option(Plugin::OPTION_PAGE_IDS, [
+        update_option(Plugin::OPTION_PAGE_IDS, [
             self::BOOK_POST_TYPE => $this->homeForBookId,
             self::BIKE_POST_TYPE => $this->homeForBikeId,
         ]);
@@ -164,7 +162,7 @@ abstract class TestCase extends Test_Case
      */
     protected function getOrCreatePosts(string $postType, int $count): array
     {
-        $existingIds = \get_posts([
+        $existingIds = get_posts([
             'post_type' => $postType,
             'posts_per_page' => -1,
             'fields' => 'ids',
@@ -190,7 +188,7 @@ abstract class TestCase extends Test_Case
      */
     protected function getOrCreatePage(string $slug, string $title): int
     {
-        $page = \get_page_by_path($slug);
+        $page = get_page_by_path($slug);
 
         if ($page instanceof \WP_Post) {
             return $page->ID;
@@ -212,7 +210,7 @@ abstract class TestCase extends Test_Case
      */
     protected function getOrCreateTerm(string $taxonomy, string $name): int
     {
-        $term = \get_term_by('name', $name, $taxonomy);
+        $term = get_term_by('name', $name, $taxonomy);
 
         if ($term instanceof \WP_Term) {
             return $term->term_id;
@@ -232,16 +230,16 @@ abstract class TestCase extends Test_Case
     protected function configureStaticFrontPage(bool $enable = true): void
     {
         if (!$enable) {
-            \update_option('show_on_front', 'posts');
-            \delete_option('page_on_front');
-            \delete_option('page_for_posts');
+            update_option('show_on_front', 'posts');
+            delete_option('page_on_front');
+            delete_option('page_for_posts');
 
             return;
         }
 
-        \update_option('show_on_front', 'page');
-        \update_option('page_on_front', $this->staticFrontPageId);
-        \update_option('page_for_posts', $this->staticPageForPostsId);
+        update_option('show_on_front', 'page');
+        update_option('page_on_front', $this->staticFrontPageId);
+        update_option('page_for_posts', $this->staticPageForPostsId);
     }
 
     /**
@@ -249,7 +247,7 @@ abstract class TestCase extends Test_Case
      */
     protected function getBookHomeUrl(): string
     {
-        return \get_permalink($this->homeForBookId);
+        return get_permalink($this->homeForBookId);
     }
 
     /**
@@ -257,7 +255,7 @@ abstract class TestCase extends Test_Case
      */
     protected function getBikeHomeUrl(): string
     {
-        return \get_permalink($this->homeForBikeId);
+        return get_permalink($this->homeForBikeId);
     }
 
     /**
@@ -272,9 +270,9 @@ abstract class TestCase extends Test_Case
         foreach ($conditionals as $conditional) {
             $property = 'is_' . $conditional;
 
-            if (\property_exists($wp_query, $property)) {
+            if (property_exists($wp_query, $property)) {
                 $this->assertTrue(
-                    (bool) $wp_query->{$property},
+                    (bool) $wp_query->$property,
                     "Expected {$property} to be true"
                 );
 
@@ -303,7 +301,7 @@ abstract class TestCase extends Test_Case
     {
         global $wp_query;
 
-        $actualIds = \array_column($wp_query->posts, 'ID');
+        $actualIds = array_column($wp_query->posts, 'ID');
 
         $this->assertEquals(
             $expectedIds,
@@ -322,47 +320,33 @@ abstract class TestCase extends Test_Case
      */
     private function setPolylangDefaultLanguage(): void
     {
-        if (!\function_exists('PLL') || !\PLL() instanceof \PLL_Base) {
+        if (!\function_exists('PLL') || !PLL() instanceof \PLL_Base) {
             return;
         }
 
         // Ensure languages exist within this test's transaction.
-        $defaultLang = \PLL()->model->get_default_language();
+        $defaultLang = PLL()->model->get_default_language();
 
         if (!$defaultLang instanceof \PLL_Language) {
             // Languages were rolled back by Refresh_Database — recreate them.
             // Use PLL()->model directly, same approach as PolylangTest::setUpLanguages().
             $languages = [
-                [
-                    'name' => 'English',
-                    'slug' => 'en',
-                    'locale' => 'en_US',
-                    'rtl' => false,
-                    'term_group' => 0,
-                    'flag' => 'us',
-                ],
-                [
-                    'name' => 'Français',
-                    'slug' => 'fr',
-                    'locale' => 'fr_FR',
-                    'rtl' => false,
-                    'term_group' => 1,
-                    'flag' => 'fr',
-                ],
+                ['name' => 'English', 'slug' => 'en', 'locale' => 'en_US', 'rtl' => false, 'term_group' => 0, 'flag' => 'us'],
+                ['name' => 'Français', 'slug' => 'fr', 'locale' => 'fr_FR', 'rtl' => false, 'term_group' => 1, 'flag' => 'fr'],
             ];
 
             foreach ($languages as $language) {
-                if (!\PLL()->model->get_language($language['slug'])) {
-                    \PLL()->model->add_language($language);
+                if (!PLL()->model->get_language($language['slug'])) {
+                    PLL()->model->add_language($language);
                 }
             }
 
-            \PLL()->model->update_default_lang('en');
-            $defaultLang = \PLL()->model->get_default_language();
+            PLL()->model->update_default_lang('en');
+            $defaultLang = PLL()->model->get_default_language();
         }
 
         if ($defaultLang instanceof \PLL_Language) {
-            \PLL()->curlang = $defaultLang;
+            PLL()->curlang = $defaultLang;
         }
     }
 }

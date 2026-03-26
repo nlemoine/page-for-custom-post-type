@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 namespace n5s\PageForCustomPostType {
+
     use n5s\PageForCustomPostType\Core\Api;
 
     /**
@@ -65,7 +66,7 @@ namespace n5s\PageForCustomPostType {
             return null;
         }
 
-        $url = \get_permalink($pageId);
+        $url = get_permalink($pageId);
 
         return $url !== false ? $url : null;
     }

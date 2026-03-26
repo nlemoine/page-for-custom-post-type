@@ -13,11 +13,8 @@ use WP_Query;
 final class Api
 {
     public const QUERY_VAR_IS_PFCPT = 'is_page_for_custom_post_type';
-
     public const OPTION_PREFIX = 'page_for_';
-
     public const OPTION_SUFFIX_USE_SLUG = '_use_slug';
-
     public const OPTION_PAGE_IDS = 'pages_for_custom_post_type';
 
     /**
@@ -37,7 +34,7 @@ final class Api
             return (int) $query->queried_object_id;
         }
 
-        if (isset($query->query_vars['page_id']) && \is_numeric($query->query_vars['page_id'])) {
+        if (isset($query->query_vars['page_id']) && is_numeric($query->query_vars['page_id'])) {
             return (int) $query->query_vars['page_id'];
         }
 
@@ -87,9 +84,9 @@ final class Api
     public function getPostTypeFromPageId(int $pageId): ?string
     {
         $pageIds = $this->getPageIds();
-        $pageId = \apply_filters('pfcpt/post_type_from_id/page_id', $pageId);
+        $pageId = apply_filters('pfcpt/post_type_from_id/page_id', $pageId);
 
-        $postType = \array_search($pageId, $pageIds, true);
+        $postType = array_search($pageId, $pageIds, true);
 
         return \is_string($postType) ? $postType : null;
     }
@@ -109,11 +106,11 @@ final class Api
      */
     public function getPageIds(bool $applyFilters = true): array
     {
-        $pageIds = \get_option(self::OPTION_PAGE_IDS, []);
+        $pageIds = get_option(self::OPTION_PAGE_IDS, []);
         if (!\is_array($pageIds)) {
             $pageIds = [];
         }
-        $pageIds = $applyFilters ? \apply_filters('pfcpt/page_ids', $pageIds) : $pageIds;
+        $pageIds = $applyFilters ? apply_filters('pfcpt/page_ids', $pageIds) : $pageIds;
 
         if (!\is_array($pageIds)) {
             return [];
@@ -121,7 +118,7 @@ final class Api
 
         $result = [];
         foreach ($pageIds as $key => $value) {
-            if (\is_string($key) && \is_numeric($value)) {
+            if (\is_string($key) && is_numeric($value)) {
                 $result[$key] = (int) $value;
             }
         }
@@ -156,7 +153,7 @@ final class Api
     {
         $optionName = $this->getUseSlugOptionName($postType);
 
-        return (bool) \get_option($optionName, false);
+        return (bool) get_option($optionName, false);
     }
 
     /**
@@ -166,7 +163,7 @@ final class Api
      */
     public function getPostTypes(): array
     {
-        return \get_post_types(
+        return get_post_types(
             [
                 'publicly_queryable' => true,
                 '_builtin' => false,

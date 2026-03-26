@@ -24,14 +24,10 @@ use wpdb;
  */
 final class Container
 {
-    /**
-     * @var array<class-string, object>
-     */
+    /** @var array<class-string, object> */
     private array $services = [];
 
-    /**
-     * @var array<class-string, callable(): object>
-     */
+    /** @var array<class-string, callable(): object> */
     private array $factories;
 
     public function __construct()

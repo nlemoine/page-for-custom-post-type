@@ -36,14 +36,14 @@ class PaginationTest extends TestCase
 
         global $wp_query;
 
-        $postsPerPage = (int) \get_option('posts_per_page');
+        $postsPerPage = (int) get_option('posts_per_page');
         $expectedIds = \array_slice(
-            \array_reverse($this->bookIds),
+            array_reverse($this->bookIds),
             $postsPerPage,
             $postsPerPage
         );
 
-        $this->assertEquals($expectedIds, \array_column($wp_query->posts, 'ID'));
+        $this->assertEquals($expectedIds, array_column($wp_query->posts, 'ID'));
     }
 
     public function testPaginationConditionalsOnPageTwo(): void
@@ -53,25 +53,23 @@ class PaginationTest extends TestCase
         global $wp_query;
 
         $this->assertTrue($wp_query->is_book_page);
-        $this->assertTrue(\is_home());
-        $this->assertTrue(\is_paged());
+        $this->assertTrue(is_home());
+        $this->assertTrue(is_paged());
     }
 
     public function testPageOneIsNotPaged(): void
     {
         $this->get($this->getBookHomeUrl());
 
-        $this->assertFalse(\is_paged());
+        $this->assertFalse(is_paged());
     }
 
     public function testDifferentPostTypePagination(): void
     {
         // Create more bikes for pagination
-        $this->bikeIds = \array_merge(
+        $this->bikeIds = array_merge(
             $this->bikeIds,
-            self::factory()->post->create_many(20, [
-                'post_type' => self::BIKE_POST_TYPE,
-            ])
+            self::factory()->post->create_many(20, ['post_type' => self::BIKE_POST_TYPE])
         );
 
         $this->get($this->getBikeHomeUrl() . 'page/2/');
@@ -89,8 +87,8 @@ class PaginationTest extends TestCase
 
         global $wp_query;
 
-        $postsPerPage = (int) \get_option('posts_per_page');
-        $expectedMaxPages = (int) \ceil(\count($this->bookIds) / $postsPerPage);
+        $postsPerPage = (int) get_option('posts_per_page');
+        $expectedMaxPages = (int) ceil(\count($this->bookIds) / $postsPerPage);
 
         $this->assertEquals($expectedMaxPages, $wp_query->max_num_pages);
     }

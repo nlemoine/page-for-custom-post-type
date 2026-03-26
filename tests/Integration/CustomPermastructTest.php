@@ -15,6 +15,17 @@ class CustomPermastructTest extends TestCase
         $this->createFixtures();
     }
 
+    private function reRegisterPostType(string $postType): void
+    {
+        $postTypeObject = get_post_type_object($postType);
+        if (!$postTypeObject) {
+            return;
+        }
+        $args = get_object_vars($postTypeObject);
+        unregister_post_type($postType);
+        register_post_type($postType, $args);
+    }
+
     public function testPaginationWorksWithStandardPermastruct(): void
     {
         $this->get($this->getBookHomeUrl() . 'page/2/');
@@ -29,26 +40,26 @@ class CustomPermastructTest extends TestCase
 
     public function testSinglePostAccessibleWithPageSlugPermastruct(): void
     {
-        \update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', true);
+        update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', true);
 
         $this->reRegisterPostType(self::BOOK_POST_TYPE);
-        \flush_rewrite_rules();
+        flush_rewrite_rules();
 
-        $permalink = \get_permalink($this->bookIds[0]);
+        $permalink = get_permalink($this->bookIds[0]);
         $this->assertStringContainsString('/home-for-books/', $permalink);
 
         $this->get($permalink);
 
-        $this->assertTrue(\is_singular(self::BOOK_POST_TYPE));
-        $this->assertEquals($this->bookIds[0], \get_queried_object_id());
+        $this->assertTrue(is_singular(self::BOOK_POST_TYPE));
+        $this->assertEquals($this->bookIds[0], get_queried_object_id());
     }
 
     public function testPaginationWorksWhenUseSlugEnabled(): void
     {
-        \update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', true);
+        update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', true);
 
         $this->reRegisterPostType(self::BOOK_POST_TYPE);
-        \flush_rewrite_rules();
+        flush_rewrite_rules();
 
         $this->get($this->getBookHomeUrl() . 'page/2/');
 
@@ -56,7 +67,7 @@ class CustomPermastructTest extends TestCase
 
         $this->assertTrue($wp_query->is_home);
         $this->assertTrue(\n5s\PageForCustomPostType\is_page_for_custom_post_type());
-        $this->assertTrue(\is_paged());
+        $this->assertTrue(is_paged());
         $this->assertNotEmpty($wp_query->posts);
     }
 
@@ -65,9 +76,7 @@ class CustomPermastructTest extends TestCase
         $api = new Api();
 
         $query = new \WP_Query();
-        $query->query_vars = [
-            'name' => 'test-slug',
-        ];
+        $query->query_vars = ['name' => 'test-slug'];
         $query->queried_object_id = $this->homeForBookId;
 
         $result = $api->getPageIdFromQuery($query);
@@ -80,9 +89,7 @@ class CustomPermastructTest extends TestCase
         $api = new Api();
 
         $query = new \WP_Query();
-        $query->query_vars = [
-            'pagename' => 'test-slug',
-        ];
+        $query->query_vars = ['pagename' => 'test-slug'];
         $query->queried_object_id = $this->homeForBookId;
 
         $result = $api->getPageIdFromQuery($query);
@@ -111,20 +118,9 @@ class CustomPermastructTest extends TestCase
         global $wp_rewrite;
 
         $bookTag = '%' . self::BOOK_POST_TYPE . '%';
-        $tagIndex = \array_search($bookTag, $wp_rewrite->rewritecode, true);
+        $tagIndex = array_search($bookTag, $wp_rewrite->rewritecode, true);
 
         $this->assertNotFalse($tagIndex, 'Rewrite tag for book post type should exist');
         $this->assertStringContainsString('(?!page)', $wp_rewrite->rewritereplace[$tagIndex]);
-    }
-
-    private function reRegisterPostType(string $postType): void
-    {
-        $postTypeObject = \get_post_type_object($postType);
-        if (!$postTypeObject) {
-            return;
-        }
-        $args = \get_object_vars($postTypeObject);
-        \unregister_post_type($postType);
-        \register_post_type($postType, $args);
     }
 }

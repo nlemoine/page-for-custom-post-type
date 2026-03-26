@@ -26,7 +26,7 @@ class PostTypeTest extends TestCase
     public function testUpdatePostTypeArgsUsesPageSlugWhenEnabled(): void
     {
         // Enable option
-        \update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', true);
+        update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', true);
 
         $api = new Api();
         $rewriteManager = new RewriteManager($api);
@@ -36,9 +36,7 @@ class PostTypeTest extends TestCase
             'public' => true,
             'publicly_queryable' => true,
             'has_archive' => true,
-            'rewrite' => [
-                'slug' => 'books',
-            ],
+            'rewrite' => ['slug' => 'books'],
         ];
 
         $modifiedArgs = $postType->updatePostTypeArgs($args, self::BOOK_POST_TYPE);
@@ -50,7 +48,7 @@ class PostTypeTest extends TestCase
     public function testUpdatePostTypeArgsKeepsOriginalSlugWhenDisabled(): void
     {
         // Disable option
-        \update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', false);
+        update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', false);
 
         $api = new Api();
         $rewriteManager = new RewriteManager($api);
@@ -60,9 +58,7 @@ class PostTypeTest extends TestCase
             'public' => true,
             'publicly_queryable' => true,
             'has_archive' => true,
-            'rewrite' => [
-                'slug' => 'books',
-            ],
+            'rewrite' => ['slug' => 'books'],
         ];
 
         $modifiedArgs = $postType->updatePostTypeArgs($args, self::BOOK_POST_TYPE);
@@ -74,7 +70,7 @@ class PostTypeTest extends TestCase
     public function testUpdatePostTypeArgsKeepsOriginalSlugByDefault(): void
     {
         // Delete option to test default behavior
-        \delete_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug');
+        delete_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug');
 
         $api = new Api();
         $rewriteManager = new RewriteManager($api);
@@ -84,9 +80,7 @@ class PostTypeTest extends TestCase
             'public' => true,
             'publicly_queryable' => true,
             'has_archive' => true,
-            'rewrite' => [
-                'slug' => 'books',
-            ],
+            'rewrite' => ['slug' => 'books'],
         ];
 
         $modifiedArgs = $postType->updatePostTypeArgs($args, self::BOOK_POST_TYPE);
@@ -98,7 +92,7 @@ class PostTypeTest extends TestCase
     public function testUpdatePostTypeArgsAlwaysDisablesHasArchive(): void
     {
         // Enable option
-        \update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', true);
+        update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', true);
 
         $api = new Api();
         $rewriteManager = new RewriteManager($api);
@@ -108,9 +102,7 @@ class PostTypeTest extends TestCase
             'public' => true,
             'publicly_queryable' => true,
             'has_archive' => true,
-            'rewrite' => [
-                'slug' => 'books',
-            ],
+            'rewrite' => ['slug' => 'books'],
         ];
 
         $modifiedArgs = $postType->updatePostTypeArgs($args, self::BOOK_POST_TYPE);
@@ -122,7 +114,7 @@ class PostTypeTest extends TestCase
     public function testUpdatePostTypeArgsDisablesHasArchiveEvenWhenSlugDisabled(): void
     {
         // Disable option
-        \update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', false);
+        update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', false);
 
         $api = new Api();
         $rewriteManager = new RewriteManager($api);
@@ -132,9 +124,7 @@ class PostTypeTest extends TestCase
             'public' => true,
             'publicly_queryable' => true,
             'has_archive' => true,
-            'rewrite' => [
-                'slug' => 'books',
-            ],
+            'rewrite' => ['slug' => 'books'],
         ];
 
         $modifiedArgs = $postType->updatePostTypeArgs($args, self::BOOK_POST_TYPE);
@@ -158,25 +148,15 @@ class PostTypeTest extends TestCase
     public static function skippedPostTypeArgsProvider(): iterable
     {
         yield 'builtin' => [
-            [
-                '_builtin' => true,
-                'public' => true,
-                'has_archive' => true,
-            ],
+            ['_builtin' => true, 'public' => true, 'has_archive' => true],
             'post',
         ];
         yield 'non-public' => [
-            [
-                'public' => false,
-                'has_archive' => true,
-            ],
+            ['public' => false, 'has_archive' => true],
             'private_type',
         ];
         yield 'non-publicly-queryable' => [
-            [
-                'publicly_queryable' => false,
-                'has_archive' => true,
-            ],
+            ['publicly_queryable' => false, 'has_archive' => true],
             'internal_type',
         ];
     }
@@ -184,8 +164,8 @@ class PostTypeTest extends TestCase
     public function testDifferentPostTypesCanHaveDifferentSettings(): void
     {
         // Enable for books, disable for bikes
-        \update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', true);
-        \update_option('page_for_' . self::BIKE_POST_TYPE . '_use_slug', false);
+        update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', true);
+        update_option('page_for_' . self::BIKE_POST_TYPE . '_use_slug', false);
 
         $api = new Api();
         $rewriteManager = new RewriteManager($api);
@@ -195,18 +175,14 @@ class PostTypeTest extends TestCase
             'public' => true,
             'publicly_queryable' => true,
             'has_archive' => true,
-            'rewrite' => [
-                'slug' => 'books',
-            ],
+            'rewrite' => ['slug' => 'books'],
         ];
 
         $bikeArgs = [
             'public' => true,
             'publicly_queryable' => true,
             'has_archive' => true,
-            'rewrite' => [
-                'slug' => 'bikes',
-            ],
+            'rewrite' => ['slug' => 'bikes'],
         ];
 
         $modifiedBookArgs = $postType->updatePostTypeArgs($bookArgs, self::BOOK_POST_TYPE);

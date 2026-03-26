@@ -22,7 +22,7 @@ final class Breadcrumbs
 
     public function registerHooks(): void
     {
-        \add_filter('the_seo_framework_breadcrumb_list', [$this, 'addPfcptPageCrumb'], 10, 2);
+        add_filter('the_seo_framework_breadcrumb_list', [$this, 'addPfcptPageCrumb'], 10, 2);
     }
 
     /**
@@ -51,7 +51,7 @@ final class Breadcrumbs
             return $list;
         }
 
-        $url = \get_permalink($pageId);
+        $url = get_permalink($pageId);
 
         if ($url === false) {
             return $list;
@@ -59,11 +59,11 @@ final class Breadcrumbs
 
         $crumb = [
             'url' => $url,
-            'name' => \get_the_title($pageId),
+            'name' => get_the_title($pageId),
         ];
 
         // Insert after the first crumb (Home)
-        \array_splice($list, 1, 0, [$crumb]);
+        array_splice($list, 1, 0, [$crumb]);
 
         return $list;
     }
@@ -99,7 +99,7 @@ final class Breadcrumbs
                 return null;
             }
 
-            $post = \get_post($argId);
+            $post = get_post($argId);
 
             if ($post === null) {
                 return null;
@@ -127,8 +127,8 @@ final class Breadcrumbs
     private function resolvePostTypeFromQuery(): ?string
     {
         // Single post
-        if (\is_singular()) {
-            $postType = \get_post_type();
+        if (is_singular()) {
+            $postType = get_post_type();
 
             if (!\is_string($postType)) {
                 return null;
@@ -138,8 +138,8 @@ final class Breadcrumbs
         }
 
         // Taxonomy archive
-        if (\is_tax() || \is_category() || \is_tag()) {
-            $term = \get_queried_object();
+        if (is_tax() || is_category() || is_tag()) {
+            $term = get_queried_object();
 
             if (!$term instanceof \WP_Term) {
                 return null;
@@ -156,7 +156,7 @@ final class Breadcrumbs
      */
     private function getPostTypeForTaxonomy(string $taxonomy): ?string
     {
-        $taxonomyObject = \get_taxonomy($taxonomy);
+        $taxonomyObject = get_taxonomy($taxonomy);
 
         if ($taxonomyObject === false) {
             return null;
@@ -183,7 +183,7 @@ final class Breadcrumbs
         if ($args !== null) {
             $argId = $args['id'] ?? null;
 
-            return !empty($argId) && empty($args['tax']) && \is_numeric($argId) && (int) $argId === $pageId;
+            return !empty($argId) && empty($args['tax']) && is_numeric($argId) && (int) $argId === $pageId;
         }
 
         return $this->api->isQueryPageForCustomPostType();

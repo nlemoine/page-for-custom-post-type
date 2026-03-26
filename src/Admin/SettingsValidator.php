@@ -26,29 +26,29 @@ final class SettingsValidator
             return $value;
         }
 
-        if (!\is_numeric($value)) {
-            $this->addError($name, \__('Invalid page ID', 'pfcpt'));
+        if (!is_numeric($value)) {
+            $this->addError($name, __('Invalid page ID', 'pfcpt'));
             return $this->fallbackValue($name);
         }
 
         $value = (int) $value;
 
         $postType = $this->getPostTypeFromOptionName($name);
-        $postTypeObject = \get_post_type_object($postType);
+        $postTypeObject = get_post_type_object($postType);
         if (!$postTypeObject instanceof WP_Post_Type) {
             return $value;
         }
 
         // Check post status
-        $pageStatus = \get_post_status($value);
+        $pageStatus = get_post_status($value);
 
         if ($pageStatus !== 'publish') {
             $labelName = \is_string($postTypeObject->labels->name) ? $postTypeObject->labels->name : $postType;
             $this->addError($name, \sprintf(
                 /* translators: 1: post type name, 2: page title */
-                \__('Page for %1$s post type (%2$s) is not published', 'pfcpt'),
+                __('Page for %1$s post type (%2$s) is not published', 'pfcpt'),
                 $labelName,
-                \get_the_title($value)
+                get_the_title($value)
             ));
             return $this->fallbackValue($name);
         }
@@ -60,14 +60,14 @@ final class SettingsValidator
             $labelNameDup = \is_string($postTypeObject->labels->name) ? $postTypeObject->labels->name : $postType;
             $this->addError($name, \sprintf(
                 /* translators: 1: post type name, 2: page title */
-                \__('Page for %1$s post type (%2$s) is already used', 'pfcpt'),
+                __('Page for %1$s post type (%2$s) is already used', 'pfcpt'),
                 $labelNameDup,
-                \get_the_title($value)
+                get_the_title($value)
             ));
             return $this->fallbackValue($name);
         }
 
-        return \absint($value);
+        return absint($value);
     }
 
     /**
@@ -77,21 +77,21 @@ final class SettingsValidator
     {
         // Get all page_for_* values from POST, excluding current option
         // Nonce verified by Settings API before sanitize callback.
-        $otherPageIds = \array_filter(
+        $otherPageIds = array_filter(
             $_POST, // phpcs:ignore WordPress.Security.NonceVerification.Missing
-            static fn (string $k): bool => \str_starts_with($k, Api::OPTION_PREFIX) && $k !== $currentOptionName,
+            static fn (string $k): bool => str_starts_with($k, Api::OPTION_PREFIX) && $k !== $currentOptionName,
             \ARRAY_FILTER_USE_KEY
         );
 
-        $pageIds = \array_map(
-            static fn (mixed $v): ?int => \is_numeric($v) ? (int) $v : null,
+        $pageIds = array_map(
+            static fn (mixed $v): ?int => is_numeric($v) ? (int) $v : null,
             $otherPageIds
         );
 
-        $oldOptionValue = \get_option($currentOptionName);
-        $oldValue = \is_numeric($oldOptionValue) ? (int) $oldOptionValue : 0;
+        $oldOptionValue = get_option($currentOptionName);
+        $oldValue = is_numeric($oldOptionValue) ? (int) $oldOptionValue : 0;
 
-        return \in_array($value, \array_filter($pageIds), true) && $value !== $oldValue;
+        return \in_array($value, array_filter($pageIds), true) && $value !== $oldValue;
     }
 
     /**
@@ -99,7 +99,7 @@ final class SettingsValidator
      */
     private function addError(string $name, string $message): void
     {
-        \add_settings_error($name, "invalid_{$name}", $message, 'error');
+        add_settings_error($name, "invalid_{$name}", $message, 'error');
     }
 
     /**
@@ -107,8 +107,8 @@ final class SettingsValidator
      */
     private function fallbackValue(string $name): mixed
     {
-        $oldOptionValue = \get_option($name);
-        $oldValue = \is_numeric($oldOptionValue) ? (int) $oldOptionValue : 0;
+        $oldOptionValue = get_option($name);
+        $oldValue = is_numeric($oldOptionValue) ? (int) $oldOptionValue : 0;
 
         return !empty($oldValue) ? $oldValue : null;
     }
@@ -118,6 +118,6 @@ final class SettingsValidator
      */
     private function getPostTypeFromOptionName(string $name): string
     {
-        return \substr($name, \strlen(Api::OPTION_PREFIX));
+        return substr($name, \strlen(Api::OPTION_PREFIX));
     }
 }

@@ -23,7 +23,7 @@ final class Wpml implements IntegrationInterface
 
     public function isSupported(): bool
     {
-        return \defined('ICL_SITEPRESS_VERSION');
+        return defined('ICL_SITEPRESS_VERSION');
     }
 
     public function registerHooks(): void

@@ -23,12 +23,12 @@ final class RewriteManager
      */
     public function flushRewriteRules(string $postType): void
     {
-        \do_action('pfcpt/flush_rewrite_rules', $postType);
+        do_action('pfcpt/flush_rewrite_rules', $postType);
 
         $this->clearPageSlugCache($postType);
 
         // Delete rewrite rules, will be regenerated on next request
-        \delete_option('rewrite_rules');
+        delete_option('rewrite_rules');
     }
 
     /**
@@ -36,15 +36,15 @@ final class RewriteManager
      */
     public function getPageSlug(int $pageId): ?string
     {
-        $pageUrl = \get_permalink($pageId);
+        $pageUrl = get_permalink($pageId);
 
         if ($pageUrl === false) {
             return null;
         }
 
-        $pagePath = \parse_url($pageUrl, \PHP_URL_PATH);
+        $pagePath = parse_url($pageUrl, \PHP_URL_PATH);
 
-        return \is_string($pagePath) ? \trim($pagePath, '/') : null;
+        return \is_string($pagePath) ? trim($pagePath, '/') : null;
     }
 
     /**
@@ -53,7 +53,7 @@ final class RewriteManager
     public function getCachedPageSlug(string $postType): ?string
     {
         $cacheKey = $this->getPageSlugCacheKey($postType);
-        $cached = \get_transient($cacheKey);
+        $cached = get_transient($cacheKey);
 
         if ($cached !== false) {
             return \is_string($cached) && $cached !== '' ? $cached : null;
@@ -66,12 +66,12 @@ final class RewriteManager
         }
 
         // Make sure it's published
-        if (\get_post_status($pageId) !== 'publish') {
+        if (get_post_status($pageId) !== 'publish') {
             return null;
         }
 
         $slug = $this->getPageSlug($pageId);
-        \set_transient($cacheKey, $slug ?? '', 0);
+        set_transient($cacheKey, $slug ?? '', 0);
 
         return $slug;
     }
@@ -81,7 +81,7 @@ final class RewriteManager
      */
     public function clearPageSlugCache(string $postType): void
     {
-        \delete_transient($this->getPageSlugCacheKey($postType));
+        delete_transient($this->getPageSlugCacheKey($postType));
     }
 
     /**
@@ -100,12 +100,12 @@ final class RewriteManager
         $permastruct = \is_array($rewrite) ? ($rewrite['permastruct'] ?? null) : null;
 
         if (!\is_string($permastruct)) {
-            \remove_rewrite_tag("%{$postType->name}%");
+            remove_rewrite_tag("%{$postType->name}%");
 
             $regex = $postType->hierarchical ? '(.+?)' : '([^/]+)';
             $queryParam = $postType->hierarchical ? 'pagename' : 'name';
 
-            \add_rewrite_tag(
+            add_rewrite_tag(
                 "%{$postType->name}%",
                 "{$excludePageRegex}{$regex}",
                 $postType->query_var ? "{$postType->query_var}=" : "post_type={$postType->name}&{$queryParam}="
@@ -120,14 +120,6 @@ final class RewriteManager
     }
 
     /**
-     * Get cache key for page slug.
-     */
-    public function getPageSlugCacheKey(string $postType): string
-    {
-        return Api::OPTION_PREFIX . $postType . self::SLUG_CACHE_SUFFIX;
-    }
-
-    /**
      * Fix rewrite tags in a custom permastruct to exclude "page" from matching.
      *
      * Parses the permastruct backwards from %postname%/%post_id% and adds
@@ -138,7 +130,7 @@ final class RewriteManager
         /** @var \WP_Rewrite */
         global $wp_rewrite;
 
-        $parts = \array_reverse(\explode('/', \ltrim($permastruct, '/')));
+        $parts = array_reverse(explode('/', ltrim($permastruct, '/')));
 
         $triggerTags = ['%postname%', '%post_id%'];
         $replaceTags = ['%category%', '%author%'];
@@ -159,7 +151,7 @@ final class RewriteManager
                 continue;
             }
 
-            $tagIndex = \array_search($part, $wp_rewrite->rewritecode, true);
+            $tagIndex = array_search($part, $wp_rewrite->rewritecode, true);
 
             if ($tagIndex === false) {
                 continue;
@@ -167,7 +159,7 @@ final class RewriteManager
 
             if (
                 !isset($wp_rewrite->rewritereplace[$tagIndex])
-                || \str_contains($wp_rewrite->rewritereplace[$tagIndex], $excludePageRegex)
+                || str_contains($wp_rewrite->rewritereplace[$tagIndex], $excludePageRegex)
             ) {
                 continue;
             }
@@ -180,8 +172,16 @@ final class RewriteManager
         }
 
         foreach ($replacements as $replacement) {
-            \remove_rewrite_tag($replacement['tag']);
-            \add_rewrite_tag($replacement['tag'], $replacement['regex'], $replacement['query']);
+            remove_rewrite_tag($replacement['tag']);
+            add_rewrite_tag($replacement['tag'], $replacement['regex'], $replacement['query']);
         }
+    }
+
+    /**
+     * Get cache key for page slug.
+     */
+    public function getPageSlugCacheKey(string $postType): string
+    {
+        return Api::OPTION_PREFIX . $postType . self::SLUG_CACHE_SUFFIX;
     }
 }

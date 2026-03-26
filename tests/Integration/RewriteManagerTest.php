@@ -52,7 +52,7 @@ class RewriteManagerTest extends TestCase
 
         // Verify transient was set
         $cacheKey = $this->rewriteManager->getPageSlugCacheKey(self::BOOK_POST_TYPE);
-        $cached = \get_transient($cacheKey);
+        $cached = get_transient($cacheKey);
 
         $this->assertNotFalse($cached);
         $this->assertEquals($slug, $cached);
@@ -61,7 +61,7 @@ class RewriteManagerTest extends TestCase
     public function testGetCachedPageSlugReturnsCachedValue(): void
     {
         $cacheKey = $this->rewriteManager->getPageSlugCacheKey(self::BOOK_POST_TYPE);
-        \set_transient($cacheKey, 'cached-slug', 0);
+        set_transient($cacheKey, 'cached-slug', 0);
 
         $slug = $this->rewriteManager->getCachedPageSlug(self::BOOK_POST_TYPE);
 
@@ -71,7 +71,7 @@ class RewriteManagerTest extends TestCase
     public function testGetCachedPageSlugReturnsNullForEmptyCache(): void
     {
         $cacheKey = $this->rewriteManager->getPageSlugCacheKey(self::BOOK_POST_TYPE);
-        \set_transient($cacheKey, '', 0);
+        set_transient($cacheKey, '', 0);
 
         $slug = $this->rewriteManager->getCachedPageSlug(self::BOOK_POST_TYPE);
 
@@ -95,12 +95,12 @@ class RewriteManagerTest extends TestCase
         ]);
 
         // Register a new post type with the draft page
-        \register_post_type('drafttest', [
+        register_post_type('drafttest', [
             'public' => true,
             'publicly_queryable' => true,
         ]);
-        \update_option('page_for_drafttest', $draftPageId);
-        \update_option(Api::OPTION_PAGE_IDS, [
+        update_option('page_for_drafttest', $draftPageId);
+        update_option(Api::OPTION_PAGE_IDS, [
             self::BOOK_POST_TYPE => $this->homeForBookId,
             self::BIKE_POST_TYPE => $this->homeForBikeId,
             'drafttest' => $draftPageId,
@@ -110,35 +110,33 @@ class RewriteManagerTest extends TestCase
 
         $this->assertNull($slug);
 
-        \unregister_post_type('drafttest');
+        unregister_post_type('drafttest');
     }
 
     public function testClearPageSlugCacheDeletesTransient(): void
     {
         $cacheKey = $this->rewriteManager->getPageSlugCacheKey(self::BOOK_POST_TYPE);
-        \set_transient($cacheKey, 'some-slug', 0);
+        set_transient($cacheKey, 'some-slug', 0);
 
         $this->rewriteManager->clearPageSlugCache(self::BOOK_POST_TYPE);
 
-        $this->assertFalse(\get_transient($cacheKey));
+        $this->assertFalse(get_transient($cacheKey));
     }
 
     public function testFlushRewriteRulesDeletesRewriteOption(): void
     {
         // Set some rewrite rules
-        \update_option('rewrite_rules', [
-            'some' => 'rules',
-        ]);
+        update_option('rewrite_rules', ['some' => 'rules']);
 
         $this->rewriteManager->flushRewriteRules(self::BOOK_POST_TYPE);
 
-        $this->assertFalse(\get_option('rewrite_rules'));
+        $this->assertFalse(get_option('rewrite_rules'));
     }
 
     public function testFlushRewriteRulesFiresAction(): void
     {
         $firedPostType = null;
-        \add_action('pfcpt/flush_rewrite_rules', static function (string $pt) use (&$firedPostType) {
+        add_action('pfcpt/flush_rewrite_rules', static function (string $pt) use (&$firedPostType) {
             $firedPostType = $pt;
         });
 
@@ -149,7 +147,7 @@ class RewriteManagerTest extends TestCase
 
     public function testAddRewriteTagsForNonHierarchicalPostType(): void
     {
-        $postTypeObject = \get_post_type_object(self::BOOK_POST_TYPE);
+        $postTypeObject = get_post_type_object(self::BOOK_POST_TYPE);
         $this->assertNotNull($postTypeObject);
 
         $this->rewriteManager->addRewriteTags($postTypeObject);
@@ -157,7 +155,7 @@ class RewriteManagerTest extends TestCase
         global $wp_rewrite;
 
         $bookTag = '%' . self::BOOK_POST_TYPE . '%';
-        $tagIndex = \array_search($bookTag, $wp_rewrite->rewritecode, true);
+        $tagIndex = array_search($bookTag, $wp_rewrite->rewritecode, true);
 
         $this->assertNotFalse($tagIndex);
         $this->assertStringContainsString('(?!page)', $wp_rewrite->rewritereplace[$tagIndex]);
@@ -166,14 +164,14 @@ class RewriteManagerTest extends TestCase
 
     public function testAddRewriteTagsForHierarchicalPostType(): void
     {
-        \register_post_type('hierarchical_cpt', [
+        register_post_type('hierarchical_cpt', [
             'public' => true,
             'publicly_queryable' => true,
             'hierarchical' => true,
             'query_var' => 'hierarchical_cpt',
         ]);
 
-        $postTypeObject = \get_post_type_object('hierarchical_cpt');
+        $postTypeObject = get_post_type_object('hierarchical_cpt');
         $this->assertNotNull($postTypeObject);
 
         $this->rewriteManager->addRewriteTags($postTypeObject);
@@ -181,18 +179,18 @@ class RewriteManagerTest extends TestCase
         global $wp_rewrite;
 
         $tag = '%hierarchical_cpt%';
-        $tagIndex = \array_search($tag, $wp_rewrite->rewritecode, true);
+        $tagIndex = array_search($tag, $wp_rewrite->rewritecode, true);
 
         $this->assertNotFalse($tagIndex);
         $this->assertStringContainsString('(?!page)', $wp_rewrite->rewritereplace[$tagIndex]);
         $this->assertStringContainsString('.+?', $wp_rewrite->rewritereplace[$tagIndex]);
 
-        \unregister_post_type('hierarchical_cpt');
+        unregister_post_type('hierarchical_cpt');
     }
 
     public function testAddRewriteTagsWithCustomPermastruct(): void
     {
-        \register_post_type('perma_cpt', [
+        register_post_type('perma_cpt', [
             'public' => true,
             'publicly_queryable' => true,
             'rewrite' => [
@@ -201,7 +199,7 @@ class RewriteManagerTest extends TestCase
             ],
         ]);
 
-        $postTypeObject = \get_post_type_object('perma_cpt');
+        $postTypeObject = get_post_type_object('perma_cpt');
         $this->assertNotNull($postTypeObject);
 
         $this->rewriteManager->addRewriteTags($postTypeObject);
@@ -210,17 +208,17 @@ class RewriteManagerTest extends TestCase
 
         // The %category% tag should now have the (?!page) exclusion
         $categoryTag = '%category%';
-        $tagIndex = \array_search($categoryTag, $wp_rewrite->rewritecode, true);
+        $tagIndex = array_search($categoryTag, $wp_rewrite->rewritecode, true);
 
         $this->assertNotFalse($tagIndex);
         $this->assertStringContainsString('(?!page)', $wp_rewrite->rewritereplace[$tagIndex]);
 
-        \unregister_post_type('perma_cpt');
+        unregister_post_type('perma_cpt');
     }
 
     public function testAddRewriteTagsWithPermastructSkipsNonMatchingTags(): void
     {
-        \register_post_type('perma_cpt2', [
+        register_post_type('perma_cpt2', [
             'public' => true,
             'publicly_queryable' => true,
             'rewrite' => [
@@ -230,7 +228,7 @@ class RewriteManagerTest extends TestCase
             ],
         ]);
 
-        $postTypeObject = \get_post_type_object('perma_cpt2');
+        $postTypeObject = get_post_type_object('perma_cpt2');
         $this->assertNotNull($postTypeObject);
 
         // Store original rewrite state
@@ -242,7 +240,7 @@ class RewriteManagerTest extends TestCase
         // No tags should have been modified
         $this->assertEquals($originalRewriteReplace, $wp_rewrite->rewritereplace);
 
-        \unregister_post_type('perma_cpt2');
+        unregister_post_type('perma_cpt2');
     }
 
     public function testGetPageSlugCacheKeyFormat(): void

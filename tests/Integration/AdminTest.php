@@ -29,7 +29,7 @@ class AdminTest extends TestCase
 
     public function testPostStateIsDisplayedForPfcptPage(): void
     {
-        $page = get_post($this->homeForBookId);
+        $page = \get_post($this->homeForBookId);
 
         $postStates = $this->admin->displayPostStates([], $page);
 
@@ -38,7 +38,7 @@ class AdminTest extends TestCase
 
     public function testPostStateIncludesPostTypeName(): void
     {
-        $page = get_post($this->homeForBookId);
+        $page = \get_post($this->homeForBookId);
 
         $postStates = $this->admin->displayPostStates([], $page);
 
@@ -47,7 +47,7 @@ class AdminTest extends TestCase
 
     public function testPostStateNotAddedForRegularPage(): void
     {
-        $page = get_post($this->staticFrontPageId);
+        $page = \get_post($this->staticFrontPageId);
 
         $postStates = $this->admin->displayPostStates([], $page);
 
@@ -56,7 +56,7 @@ class AdminTest extends TestCase
 
     public function testPostStateNotAddedForNonPagePostType(): void
     {
-        $book = get_post($this->bookIds[0]);
+        $book = \get_post($this->bookIds[0]);
 
         $postStates = $this->admin->displayPostStates([], $book);
 
@@ -65,9 +65,11 @@ class AdminTest extends TestCase
 
     public function testExistingPostStatesArePreserved(): void
     {
-        $page = get_post($this->homeForBookId);
+        $page = \get_post($this->homeForBookId);
 
-        $existingStates = ['existing_state' => 'Existing State'];
+        $existingStates = [
+            'existing_state' => 'Existing State',
+        ];
         $postStates = $this->admin->displayPostStates($existingStates, $page);
 
         $this->assertArrayHasKey('existing_state', $postStates);
@@ -76,7 +78,7 @@ class AdminTest extends TestCase
 
     public function testDifferentPostTypeHasDifferentPostState(): void
     {
-        $bikePage = get_post($this->homeForBikeId);
+        $bikePage = \get_post($this->homeForBikeId);
 
         $postStates = $this->admin->displayPostStates([], $bikePage);
 
@@ -94,7 +96,7 @@ class AdminTest extends TestCase
 
     public function testPageIdsOptionContainsCorrectMapping(): void
     {
-        $pageIds = get_option(Api::OPTION_PAGE_IDS);
+        $pageIds = \get_option(Api::OPTION_PAGE_IDS);
 
         $this->assertIsArray($pageIds);
         $this->assertEquals($this->homeForBookId, $pageIds[self::BOOK_POST_TYPE]);

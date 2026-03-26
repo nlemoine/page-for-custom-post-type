@@ -18,8 +18,8 @@ final class Translation
 
     public function registerHooks(): void
     {
-        add_filter('pfcpt/page_ids', [$this, 'filterTranslatedPageIds']);
-        add_filter('pfcpt/post_type_from_id/page_id', [$this, 'resolveDefaultLanguagePageId']);
+        \add_filter('pfcpt/page_ids', [$this, 'filterTranslatedPageIds']);
+        \add_filter('pfcpt/post_type_from_id/page_id', [$this, 'resolveDefaultLanguagePageId']);
     }
 
     /**
@@ -44,7 +44,7 @@ final class Translation
 
         // Check cache
         $cacheKey = $this->getCacheKey($currentLanguage);
-        $cached = get_transient($cacheKey);
+        $cached = \get_transient($cacheKey);
 
         if (\is_array($cached) && !empty($cached)) {
             return $this->validatePageIds($cached);
@@ -55,7 +55,7 @@ final class Translation
 
         // Cache result
         if (!empty($translatedPageIds)) {
-            set_transient($cacheKey, $translatedPageIds, self::CACHE_TTL);
+            \set_transient($cacheKey, $translatedPageIds, self::CACHE_TTL);
         }
 
         return $translatedPageIds;
@@ -79,7 +79,7 @@ final class Translation
         }
 
         /** @var int|null $defaultPageId */
-        $defaultPageId = apply_filters('wpml_object_id', $pageId, 'page', true, $defaultLanguage);
+        $defaultPageId = \apply_filters('wpml_object_id', $pageId, 'page', true, $defaultLanguage);
 
         return (\is_int($defaultPageId) && $defaultPageId > 0) ? $defaultPageId : $pageId;
     }
@@ -98,7 +98,7 @@ final class Translation
     private function getCurrentLanguage(): ?string
     {
         /** @var string|null $lang */
-        $lang = apply_filters('wpml_current_language', null);
+        $lang = \apply_filters('wpml_current_language', null);
 
         return \is_string($lang) && $lang !== '' ? $lang : null;
     }
@@ -109,7 +109,7 @@ final class Translation
     private function getDefaultLanguage(): ?string
     {
         /** @var string|null $lang */
-        $lang = apply_filters('wpml_default_language', null);
+        $lang = \apply_filters('wpml_default_language', null);
 
         return \is_string($lang) && $lang !== '' ? $lang : null;
     }
@@ -126,7 +126,7 @@ final class Translation
 
         foreach ($pageIds as $postType => $id) {
             /** @var int|null $translatedId */
-            $translatedId = apply_filters('wpml_object_id', $id, 'page', false, $targetLanguage);
+            $translatedId = \apply_filters('wpml_object_id', $id, 'page', false, $targetLanguage);
 
             // Use translated ID if found, otherwise fall back to original
             $translated[$postType] = (\is_int($translatedId) && $translatedId > 0) ? $translatedId : $id;

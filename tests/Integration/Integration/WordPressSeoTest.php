@@ -38,13 +38,6 @@ class WordPressSeoTest extends TestCase
         $memoizer->clear();
     }
 
-    private function ensureIndexable(int $postId): void
-    {
-        /** @var Indexable_Repository $repository */
-        $repository = \YoastSEO()->classes->get(Indexable_Repository::class);
-        $repository->find_by_id_and_type($postId, 'post');
-    }
-
     public function testCanonicalUrlOnPfcptPage(): void
     {
         $this->get($this->getBookHomeUrl());
@@ -71,13 +64,13 @@ class WordPressSeoTest extends TestCase
 
         $expected = [
             [
-                'url' => home_url('/'),
+                'url'  => \home_url('/'),
                 'text' => 'Home',
             ],
             [
-                'url' => $this->getBookHomeUrl(),
+                'url'  => $this->getBookHomeUrl(),
                 'text' => 'Home for Books',
-                'id' => $this->homeForBookId,
+                'id'   => $this->homeForBookId,
             ],
         ];
 
@@ -87,13 +80,13 @@ class WordPressSeoTest extends TestCase
     public function testBreadcrumbsOnSinglePostIncludesPfcptPage(): void
     {
         // Get a random book for testing
-        $books = get_posts([
-            'post_type' => self::BOOK_POST_TYPE,
+        $books = \get_posts([
+            'post_type'      => self::BOOK_POST_TYPE,
             'posts_per_page' => 1,
-            'orderby' => 'rand',
+            'orderby'        => 'rand',
         ]);
         $book = $books[0];
-        $this->get(get_permalink($book));
+        $this->get(\get_permalink($book));
 
         $meta = \YoastSEO()->meta->for_current_page();
         $breadcrumbs = $meta->breadcrumbs;
@@ -112,7 +105,7 @@ class WordPressSeoTest extends TestCase
         $this->assertEquals('Home for Books', $pfcptBreadcrumb['text']);
 
         // Check that the current post is in breadcrumbs (last item)
-        $lastCrumb = end($breadcrumbs);
+        $lastCrumb = \end($breadcrumbs);
         $this->assertIsArray($lastCrumb);
         $this->assertArrayHasKey('text', $lastCrumb);
         $this->assertEquals($book->post_title, $lastCrumb['text']);
@@ -123,15 +116,15 @@ class WordPressSeoTest extends TestCase
         // Ensure books are assigned to the genre term
         $genreId = $this->getOrCreateTerm(self::GENRE_TAXONOMY, 'Fantasy');
         foreach ($this->bookIds as $bookId) {
-            wp_set_object_terms($bookId, $genreId, self::GENRE_TAXONOMY);
+            \wp_set_object_terms($bookId, $genreId, self::GENRE_TAXONOMY);
         }
 
         // Clear Yoast cache to avoid stale state from previous tests
         $memoizer = \YoastSEO()->classes->get(Meta_Tags_Context_Memoizer::class);
         $memoizer->clear();
 
-        $genre = get_term($genreId, self::GENRE_TAXONOMY);
-        $this->get(get_term_link($genre));
+        $genre = \get_term($genreId, self::GENRE_TAXONOMY);
+        $this->get(\get_term_link($genre));
 
         $meta = \YoastSEO()->meta->for_current_page();
 
@@ -139,7 +132,7 @@ class WordPressSeoTest extends TestCase
         $this->assertCount(3, $meta->breadcrumbs);
 
         // First crumb is home
-        $this->assertEquals(home_url('/'), $meta->breadcrumbs[0]['url']);
+        $this->assertEquals(\home_url('/'), $meta->breadcrumbs[0]['url']);
 
         // Second crumb is PFCPT page
         $this->assertEquals($this->getBookHomeUrl(), $meta->breadcrumbs[1]['url']);
@@ -155,7 +148,7 @@ class WordPressSeoTest extends TestCase
         $this->get($this->getBookHomeUrl());
 
         // The schema filter should add CollectionPage
-        $type = apply_filters('wpseo_schema_webpage_type', 'WebPage');
+        $type = \apply_filters('wpseo_schema_webpage_type', 'WebPage');
 
         $this->assertIsArray($type);
         $this->assertContains('CollectionPage', $type);
@@ -163,10 +156,17 @@ class WordPressSeoTest extends TestCase
 
     public function testSchemaWebpageTypeUnchangedOnRegularPage(): void
     {
-        $this->get(get_permalink($this->staticFrontPageId));
+        $this->get(\get_permalink($this->staticFrontPageId));
 
-        $type = apply_filters('wpseo_schema_webpage_type', 'WebPage');
+        $type = \apply_filters('wpseo_schema_webpage_type', 'WebPage');
 
         $this->assertEquals('WebPage', $type);
+    }
+
+    private function ensureIndexable(int $postId): void
+    {
+        /** @var Indexable_Repository $repository */
+        $repository = \YoastSEO()->classes->get(Indexable_Repository::class);
+        $repository->find_by_id_and_type($postId, 'post');
     }
 }

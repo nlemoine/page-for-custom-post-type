@@ -26,9 +26,9 @@ final class Breadcrumbs
 
     public function registerHooks(): void
     {
-        add_filter('wpseo_breadcrumb_indexables', [$this, 'fixHomeBreadcrumbs'], 10, 2);
-        add_filter('wpseo_breadcrumb_indexables', [$this, 'fixTaxonomyBreadcrumbs'], 10, 2);
-        add_filter('wpseo_breadcrumb_indexables', [$this, 'fixPostBreadcrumbs'], 10, 2);
+        \add_filter('wpseo_breadcrumb_indexables', [$this, 'fixHomeBreadcrumbs'], 10, 2);
+        \add_filter('wpseo_breadcrumb_indexables', [$this, 'fixTaxonomyBreadcrumbs'], 10, 2);
+        \add_filter('wpseo_breadcrumb_indexables', [$this, 'fixPostBreadcrumbs'], 10, 2);
     }
 
     /**
@@ -41,7 +41,7 @@ final class Breadcrumbs
     {
         $currentPostType = $context->indexable->object_sub_type ?? null;
 
-        if (!$currentPostType || !is_singular($currentPostType)) {
+        if (!$currentPostType || !\is_singular($currentPostType)) {
             return $indexables;
         }
 
@@ -59,7 +59,7 @@ final class Breadcrumbs
 
         $yoast = $this->getYoast();
 
-        array_splice(
+        \array_splice(
             $indexables,
             $yoast->helpers->options->get('breadcrumbs-home') ? 1 : 0,
             0,
@@ -79,11 +79,11 @@ final class Breadcrumbs
     {
         $currentTaxonomy = $context->indexable->object_sub_type ?? '';
 
-        if ($currentTaxonomy === '' || !is_tax($currentTaxonomy)) {
+        if ($currentTaxonomy === '' || !\is_tax($currentTaxonomy)) {
             return $indexables;
         }
 
-        $currentPostType = get_post_type();
+        $currentPostType = \get_post_type();
 
         if (!\is_string($currentPostType)) {
             return $indexables;
@@ -97,7 +97,7 @@ final class Breadcrumbs
             return $indexables;
         }
 
-        $taxonomies = get_object_taxonomies($currentPostType);
+        $taxonomies = \get_object_taxonomies($currentPostType);
 
         if (!\in_array($currentTaxonomy, $taxonomies, true)) {
             return $indexables;
@@ -115,7 +115,7 @@ final class Breadcrumbs
             return $indexables;
         }
 
-        array_splice(
+        \array_splice(
             $indexables,
             $yoast->helpers->options->get('breadcrumbs-home') ? 1 : 0,
             0,
@@ -165,7 +165,7 @@ final class Breadcrumbs
         }
 
         if (!empty($staticAncestors)) {
-            array_unshift($indexables, ...$staticAncestors);
+            \array_unshift($indexables, ...$staticAncestors);
         }
 
         return $indexables;
@@ -174,7 +174,7 @@ final class Breadcrumbs
     private function getYoast(): Main
     {
         /** @var Main */
-        return YoastSEO();
+        return \YoastSEO();
     }
 
     private function getMetaForPost(int $postId): ?Meta

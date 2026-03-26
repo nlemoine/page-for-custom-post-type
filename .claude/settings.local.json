@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(PLUGINS=polylang vendor/bin/phpunit:*)",
+      "Bash(composer test:wpml:*)",
+      "Bash(PLUGINS=wpml vendor/bin/phpunit:*)",
+      "Bash(PLUGINS=wpml php:*)",
+      "Bash(vendor/bin/phpunit:*)"
+    ]
+  }
+}

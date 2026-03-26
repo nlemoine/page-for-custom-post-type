@@ -46,7 +46,7 @@ class AutodescriptionTest extends TestCase
 
     public function testRegularPageIsNotSingularArchive(): void
     {
-        $this->get(get_permalink($this->staticFrontPageId));
+        $this->get(\get_permalink($this->staticFrontPageId));
 
         $this->assertFalse(Query::is_singular_archive());
     }
@@ -54,7 +54,9 @@ class AutodescriptionTest extends TestCase
     public function testCanonicalUrlOnPfcptPage(): void
     {
         // Use explicit args to avoid TSF's query-level memoization
-        $canonical = tsf()->get_canonical_url(['id' => $this->homeForBookId]);
+        $canonical = \tsf()->get_canonical_url([
+            'id' => $this->homeForBookId,
+        ]);
 
         $this->assertEquals($this->getBookHomeUrl(), $canonical);
     }
@@ -62,7 +64,9 @@ class AutodescriptionTest extends TestCase
     public function testPageTitleOnPfcptPage(): void
     {
         // Use explicit args to avoid TSF's query-level memoization
-        $title = tsf()->get_title(['id' => $this->homeForBookId]);
+        $title = \tsf()->get_title([
+            'id' => $this->homeForBookId,
+        ]);
 
         $this->assertStringContainsString('Home for Books', $title);
     }
@@ -72,13 +76,15 @@ class AutodescriptionTest extends TestCase
         $this->get($this->getBookHomeUrl());
 
         // Use explicit args to avoid TSF's function-level memoization
-        $breadcrumbs = TsfBreadcrumbs::get_breadcrumb_list(['id' => $this->homeForBookId]);
+        $breadcrumbs = TsfBreadcrumbs::get_breadcrumb_list([
+            'id' => $this->homeForBookId,
+        ]);
 
         // Should have Home + PFCPT page
         $this->assertCount(2, $breadcrumbs);
 
         // First is home
-        $this->assertEquals(home_url('/'), $breadcrumbs[0]['url']);
+        $this->assertEquals(\home_url('/'), $breadcrumbs[0]['url']);
 
         // Second is the PFCPT page itself
         $this->assertEquals($this->getBookHomeUrl(), $breadcrumbs[1]['url']);
@@ -88,29 +94,31 @@ class AutodescriptionTest extends TestCase
     #[WithoutErrorHandler]
     public function testBreadcrumbsOnSinglePostIncludesPfcptPage(): void
     {
-        $books = get_posts([
-            'post_type' => self::BOOK_POST_TYPE,
+        $books = \get_posts([
+            'post_type'      => self::BOOK_POST_TYPE,
             'posts_per_page' => 1,
-            'orderby' => 'rand',
+            'orderby'        => 'rand',
         ]);
         $book = $books[0];
-        $this->get(get_permalink($book));
+        $this->get(\get_permalink($book));
 
         // Use explicit args to avoid TSF's function-level memoization
-        $breadcrumbs = TsfBreadcrumbs::get_breadcrumb_list(['id' => $book->ID]);
+        $breadcrumbs = TsfBreadcrumbs::get_breadcrumb_list([
+            'id' => $book->ID,
+        ]);
 
         // Should have at least: Home, PFCPT page, current post
         $this->assertGreaterThanOrEqual(3, \count($breadcrumbs));
 
         // First is home
-        $this->assertEquals(home_url('/'), $breadcrumbs[0]['url']);
+        $this->assertEquals(\home_url('/'), $breadcrumbs[0]['url']);
 
         // Second is the PFCPT page
         $this->assertEquals($this->getBookHomeUrl(), $breadcrumbs[1]['url']);
         $this->assertStringContainsString('Home for Books', $breadcrumbs[1]['name']);
 
         // Last is the current post
-        $lastCrumb = end($breadcrumbs);
+        $lastCrumb = \end($breadcrumbs);
         $this->assertEquals($book->post_title, $lastCrumb['name']);
     }
 
@@ -118,37 +126,37 @@ class AutodescriptionTest extends TestCase
     {
         $genreId = $this->getOrCreateTerm(self::GENRE_TAXONOMY, 'Fantasy');
         foreach ($this->bookIds as $bookId) {
-            wp_set_object_terms($bookId, $genreId, self::GENRE_TAXONOMY);
+            \wp_set_object_terms($bookId, $genreId, self::GENRE_TAXONOMY);
         }
 
-        $genre = get_term($genreId, self::GENRE_TAXONOMY);
+        $genre = \get_term($genreId, self::GENRE_TAXONOMY);
         $this->clearTsfCache();
 
-        $this->get(get_term_link($genre));
+        $this->get(\get_term_link($genre));
 
         // Use explicit args to avoid TSF's function-level memoization
         $breadcrumbs = TsfBreadcrumbs::get_breadcrumb_list([
-            'id' => $genreId,
+            'id'  => $genreId,
             'tax' => self::GENRE_TAXONOMY,
         ]);
 
         // Should have: Home, PFCPT page, taxonomy term
         $this->assertNotFalse(
-            has_filter('the_seo_framework_breadcrumb_list'),
+            \has_filter('the_seo_framework_breadcrumb_list'),
             'Breadcrumb filter should be registered'
         );
 
         $this->assertCount(3, $breadcrumbs);
 
         // First is home
-        $this->assertEquals(home_url('/'), $breadcrumbs[0]['url']);
+        $this->assertEquals(\home_url('/'), $breadcrumbs[0]['url']);
 
         // Second is the PFCPT page
         $this->assertEquals($this->getBookHomeUrl(), $breadcrumbs[1]['url']);
         $this->assertStringContainsString('Home for Books', $breadcrumbs[1]['name']);
 
         // Third is the taxonomy term
-        $this->assertEquals(get_term_link($genre), $breadcrumbs[2]['url']);
+        $this->assertEquals(\get_term_link($genre), $breadcrumbs[2]['url']);
         $this->assertStringContainsString($genre->name, $breadcrumbs[2]['name']);
     }
 
@@ -165,7 +173,9 @@ class AutodescriptionTest extends TestCase
         $this->get($this->getBookHomeUrl());
 
         // Use explicit args to avoid TSF's function-level memoization
-        $breadcrumbs = TsfBreadcrumbs::get_breadcrumb_list(['id' => $this->homeForBookId]);
+        $breadcrumbs = TsfBreadcrumbs::get_breadcrumb_list([
+            'id' => $this->homeForBookId,
+        ]);
 
         // The PFCPT page should NOT appear twice
         $pfcptCount = 0;
@@ -181,13 +191,15 @@ class AutodescriptionTest extends TestCase
     public function testPostTypeWithoutPfcptPageHasNoBreadcrumbChange(): void
     {
         $postId = self::factory()->post->create([
-            'post_type' => 'post',
+            'post_type'  => 'post',
             'post_title' => 'Regular Post',
         ]);
-        $this->get(get_permalink($postId));
+        $this->get(\get_permalink($postId));
 
         // Use explicit args to avoid TSF's function-level memoization
-        $breadcrumbs = TsfBreadcrumbs::get_breadcrumb_list(['id' => $postId]);
+        $breadcrumbs = TsfBreadcrumbs::get_breadcrumb_list([
+            'id' => $postId,
+        ]);
 
         // No PFCPT page crumb should be injected
         foreach ($breadcrumbs as $crumb) {

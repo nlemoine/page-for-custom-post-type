@@ -36,65 +36,6 @@ class PolylangTest extends TestCase
         $this->createTranslatedPages();
     }
 
-    /**
-     * Set up Polylang languages.
-     */
-    private function setUpLanguages(): void
-    {
-        // Only add languages if they don't exist yet
-        $existingLanguages = pll_languages_list();
-
-        if (!\in_array('en', $existingLanguages, true)) {
-            PLL()->model->add_language([
-                'name' => 'English',
-                'slug' => 'en',
-                'locale' => 'en_US',
-                'rtl' => false,
-                'term_group' => 0,
-            ]);
-        }
-
-        if (!\in_array('fr', $existingLanguages, true)) {
-            PLL()->model->add_language([
-                'name' => 'Français',
-                'slug' => 'fr',
-                'locale' => 'fr_FR',
-                'rtl' => false,
-                'term_group' => 1,
-            ]);
-        }
-
-        PLL()->model->update_default_lang('en');
-    }
-
-    /**
-     * Create translated PFCPT pages and link them.
-     */
-    private function createTranslatedPages(): void
-    {
-        // Set language for English home pages
-        pll_set_post_language($this->homeForBookId, 'en');
-        pll_set_post_language($this->homeForBikeId, 'en');
-
-        // Create French translations
-        $this->homeForBookFrId = $this->getOrCreatePage('accueil-livres', 'Accueil Livres');
-        pll_set_post_language($this->homeForBookFrId, 'fr');
-
-        $this->homeForBikeFrId = $this->getOrCreatePage('accueil-velos', 'Accueil Vélos');
-        pll_set_post_language($this->homeForBikeFrId, 'fr');
-
-        // Link translations
-        pll_save_post_translations([
-            'en' => $this->homeForBookId,
-            'fr' => $this->homeForBookFrId,
-        ]);
-
-        pll_save_post_translations([
-            'en' => $this->homeForBikeId,
-            'fr' => $this->homeForBikeFrId,
-        ]);
-    }
-
     // -------------------------------------------------------------------------
     // Polylang composite
     // -------------------------------------------------------------------------
@@ -121,7 +62,9 @@ class PolylangTest extends TestCase
         $admin = new Admin();
         $admin->registerHooks();
 
-        $args = apply_filters('pfcpt/dropdown_page_args', ['post_type' => 'page']);
+        $args = \apply_filters('pfcpt/dropdown_page_args', [
+            'post_type' => 'page',
+        ]);
 
         $this->assertArrayHasKey('lang', $args);
         $this->assertEquals('en', $args['lang']);
@@ -137,9 +80,9 @@ class PolylangTest extends TestCase
         $translation->registerHooks();
 
         // Simulate French as current language
-        PLL()->curlang = PLL()->model->get_language('fr');
+        \PLL()->curlang = \PLL()->model->get_language('fr');
 
-        $pageIds = apply_filters('pfcpt/page_ids', [
+        $pageIds = \apply_filters('pfcpt/page_ids', [
             self::BOOK_POST_TYPE => $this->homeForBookId,
             self::BIKE_POST_TYPE => $this->homeForBikeId,
         ]);
@@ -154,14 +97,14 @@ class PolylangTest extends TestCase
         $translation->registerHooks();
 
         // No current language set
-        PLL()->curlang = null;
+        \PLL()->curlang = null;
 
         $originalIds = [
             self::BOOK_POST_TYPE => $this->homeForBookId,
             self::BIKE_POST_TYPE => $this->homeForBikeId,
         ];
 
-        $pageIds = apply_filters('pfcpt/page_ids', $originalIds);
+        $pageIds = \apply_filters('pfcpt/page_ids', $originalIds);
 
         $this->assertEquals($originalIds, $pageIds);
     }
@@ -171,15 +114,15 @@ class PolylangTest extends TestCase
         $translation = new Translation();
         $translation->registerHooks();
 
-        PLL()->curlang = PLL()->model->get_language('fr');
+        \PLL()->curlang = \PLL()->model->get_language('fr');
 
         // First call should set transient
-        apply_filters('pfcpt/page_ids', [
+        \apply_filters('pfcpt/page_ids', [
             self::BOOK_POST_TYPE => $this->homeForBookId,
         ]);
 
         $cacheKey = $translation->getCacheKey('fr');
-        $cached = get_transient($cacheKey);
+        $cached = \get_transient($cacheKey);
 
         $this->assertIsArray($cached);
         $this->assertEquals($this->homeForBookFrId, $cached[self::BOOK_POST_TYPE]);
@@ -191,9 +134,9 @@ class PolylangTest extends TestCase
         $translation->registerHooks();
 
         // No current language — should resolve to default language page
-        PLL()->curlang = null;
+        \PLL()->curlang = null;
 
-        $resolved = apply_filters('pfcpt/post_type_from_id/page_id', $this->homeForBookFrId);
+        $resolved = \apply_filters('pfcpt/post_type_from_id/page_id', $this->homeForBookFrId);
 
         $this->assertEquals($this->homeForBookId, $resolved);
     }
@@ -203,9 +146,9 @@ class PolylangTest extends TestCase
         $translation = new Translation();
         $translation->registerHooks();
 
-        PLL()->curlang = PLL()->model->get_language('fr');
+        \PLL()->curlang = \PLL()->model->get_language('fr');
 
-        $resolved = apply_filters('pfcpt/post_type_from_id/page_id', $this->homeForBookFrId);
+        $resolved = \apply_filters('pfcpt/post_type_from_id/page_id', $this->homeForBookFrId);
 
         $this->assertEquals($this->homeForBookFrId, $resolved);
     }
@@ -222,15 +165,19 @@ class PolylangTest extends TestCase
         $lifecycle->registerHooks();
 
         // Set transients for each language
-        set_transient(Api::OPTION_PAGE_IDS . '_en', ['book' => 1]);
-        set_transient(Api::OPTION_PAGE_IDS . '_fr', ['book' => 2]);
-        set_transient('pll_translated_slugs', ['data']);
+        \set_transient(Api::OPTION_PAGE_IDS . '_en', [
+            'book' => 1,
+        ]);
+        \set_transient(Api::OPTION_PAGE_IDS . '_fr', [
+            'book' => 2,
+        ]);
+        \set_transient('pll_translated_slugs', ['data']);
 
         $lifecycle->flushCache();
 
-        $this->assertFalse(get_transient(Api::OPTION_PAGE_IDS . '_en'));
-        $this->assertFalse(get_transient(Api::OPTION_PAGE_IDS . '_fr'));
-        $this->assertFalse(get_transient('pll_translated_slugs'));
+        $this->assertFalse(\get_transient(Api::OPTION_PAGE_IDS . '_en'));
+        $this->assertFalse(\get_transient(Api::OPTION_PAGE_IDS . '_fr'));
+        $this->assertFalse(\get_transient('pll_translated_slugs'));
     }
 
     public function testOnPostSaveFlushesRewriteRulesForPfcptPage(): void
@@ -242,18 +189,20 @@ class PolylangTest extends TestCase
 
         // Set a transient that should be cleared after flush
         $cacheKey = Api::OPTION_PAGE_IDS . '_en';
-        set_transient($cacheKey, ['book' => $this->homeForBookId]);
+        \set_transient($cacheKey, [
+            'book' => $this->homeForBookId,
+        ]);
 
-        $post = get_post($this->homeForBookFrId);
+        $post = \get_post($this->homeForBookFrId);
 
         // Simulate pll_save_post with translation array
-        do_action('pll_save_post', $this->homeForBookFrId, $post, [
+        \do_action('pll_save_post', $this->homeForBookFrId, $post, [
             'en' => $this->homeForBookId,
             'fr' => $this->homeForBookFrId,
         ]);
 
         // The transient should be cleared because the default language post is a PFCPT page
-        $this->assertFalse(get_transient($cacheKey));
+        $this->assertFalse(\get_transient($cacheKey));
     }
 
     public function testOnPostSaveIgnoresNonPfcptPages(): void
@@ -264,19 +213,23 @@ class PolylangTest extends TestCase
         $lifecycle->registerHooks();
 
         $cacheKey = Api::OPTION_PAGE_IDS . '_en';
-        set_transient($cacheKey, ['book' => $this->homeForBookId]);
+        \set_transient($cacheKey, [
+            'book' => $this->homeForBookId,
+        ]);
 
         // Create a regular page (not a PFCPT page)
-        $regularPageId = self::factory()->post->create(['post_type' => 'page']);
-        pll_set_post_language($regularPageId, 'en');
-        $regularPost = get_post($regularPageId);
+        $regularPageId = self::factory()->post->create([
+            'post_type' => 'page',
+        ]);
+        \pll_set_post_language($regularPageId, 'en');
+        $regularPost = \get_post($regularPageId);
 
-        do_action('pll_save_post', $regularPageId, $regularPost, [
+        \do_action('pll_save_post', $regularPageId, $regularPost, [
             'en' => $regularPageId,
         ]);
 
         // Transient should still exist
-        $this->assertNotFalse(get_transient($cacheKey));
+        $this->assertNotFalse(\get_transient($cacheKey));
     }
 
     // -------------------------------------------------------------------------
@@ -290,7 +243,7 @@ class PolylangTest extends TestCase
         $slugTranslation = new SlugTranslation($api, $rewriteManager);
         $slugTranslation->registerHooks();
 
-        $frLanguage = PLL()->model->get_language('fr');
+        $frLanguage = \PLL()->model->get_language('fr');
 
         $slugs = [
             self::BOOK_POST_TYPE => [
@@ -301,7 +254,7 @@ class PolylangTest extends TestCase
             ],
         ];
 
-        $result = apply_filters('pll_translated_slugs', $slugs, $frLanguage);
+        $result = \apply_filters('pll_translated_slugs', $slugs, $frLanguage);
 
         // The French slug should be derived from the French page's permalink
         $pageSlug = $rewriteManager->getPageSlug($this->homeForBookFrId);
@@ -309,7 +262,7 @@ class PolylangTest extends TestCase
         if ($pageSlug !== null) {
             $translatedSlug = $result[self::BOOK_POST_TYPE]['translations']['fr'];
             // The slug is computed by stripping the language prefix (e.g. "fr/") from the page slug
-            $expectedSlug = substr($pageSlug, \strlen('fr/'));
+            $expectedSlug = \substr($pageSlug, \strlen('fr/'));
             $this->assertEquals($expectedSlug, $translatedSlug);
             $this->assertNotEquals('home-for-books', $translatedSlug);
         }
@@ -322,7 +275,7 @@ class PolylangTest extends TestCase
         $slugTranslation = new SlugTranslation($api, $rewriteManager);
         $slugTranslation->registerHooks();
 
-        $enLanguage = PLL()->model->get_language('en');
+        $enLanguage = \PLL()->model->get_language('en');
 
         $slugs = [
             self::BOOK_POST_TYPE => [
@@ -333,7 +286,7 @@ class PolylangTest extends TestCase
             ],
         ];
 
-        $result = apply_filters('pll_translated_slugs', $slugs, $enLanguage);
+        $result = \apply_filters('pll_translated_slugs', $slugs, $enLanguage);
 
         // Should be unchanged for default language
         $this->assertEquals($slugs, $result);
@@ -346,7 +299,7 @@ class PolylangTest extends TestCase
         $slugTranslation = new SlugTranslation($api, $rewriteManager);
         $slugTranslation->registerHooks();
 
-        $frLanguage = PLL()->model->get_language('fr');
+        $frLanguage = \PLL()->model->get_language('fr');
 
         $slugs = [
             'product' => [
@@ -357,7 +310,7 @@ class PolylangTest extends TestCase
             ],
         ];
 
-        $result = apply_filters('pll_translated_slugs', $slugs, $frLanguage);
+        $result = \apply_filters('pll_translated_slugs', $slugs, $frLanguage);
 
         // Non-PFCPT post types should be unchanged
         $this->assertEquals($slugs, $result);
@@ -371,7 +324,7 @@ class PolylangTest extends TestCase
     {
         $urlTranslation = new UrlTranslation();
 
-        $frLanguage = PLL()->model->get_language('fr');
+        $frLanguage = \PLL()->model->get_language('fr');
 
         // Simulate being on a home (PFCPT) page
         $GLOBALS['wp_query']->is_home = true;
@@ -387,7 +340,7 @@ class PolylangTest extends TestCase
     {
         $urlTranslation = new UrlTranslation();
 
-        $frLanguage = PLL()->model->get_language('fr');
+        $frLanguage = \PLL()->model->get_language('fr');
 
         // Simulate state after beforeTranslationUrl
         $GLOBALS['wp_query']->is_home = true;
@@ -404,7 +357,7 @@ class PolylangTest extends TestCase
     {
         $urlTranslation = new UrlTranslation();
 
-        $frLanguage = PLL()->model->get_language('fr');
+        $frLanguage = \PLL()->model->get_language('fr');
 
         // Clean up any global state from prior tests
         unset($GLOBALS['pfcpt_is_posts_page']);
@@ -418,5 +371,64 @@ class PolylangTest extends TestCase
         // Should remain unchanged
         $this->assertFalse($GLOBALS['wp_query']->is_posts_page);
         $this->assertArrayNotHasKey('pfcpt_is_posts_page', $GLOBALS);
+    }
+
+    /**
+     * Set up Polylang languages.
+     */
+    private function setUpLanguages(): void
+    {
+        // Only add languages if they don't exist yet
+        $existingLanguages = \pll_languages_list();
+
+        if (!\in_array('en', $existingLanguages, true)) {
+            \PLL()->model->add_language([
+                'name'       => 'English',
+                'slug'       => 'en',
+                'locale'     => 'en_US',
+                'rtl'        => false,
+                'term_group' => 0,
+            ]);
+        }
+
+        if (!\in_array('fr', $existingLanguages, true)) {
+            \PLL()->model->add_language([
+                'name'       => 'Français',
+                'slug'       => 'fr',
+                'locale'     => 'fr_FR',
+                'rtl'        => false,
+                'term_group' => 1,
+            ]);
+        }
+
+        \PLL()->model->update_default_lang('en');
+    }
+
+    /**
+     * Create translated PFCPT pages and link them.
+     */
+    private function createTranslatedPages(): void
+    {
+        // Set language for English home pages
+        \pll_set_post_language($this->homeForBookId, 'en');
+        \pll_set_post_language($this->homeForBikeId, 'en');
+
+        // Create French translations
+        $this->homeForBookFrId = $this->getOrCreatePage('accueil-livres', 'Accueil Livres');
+        \pll_set_post_language($this->homeForBookFrId, 'fr');
+
+        $this->homeForBikeFrId = $this->getOrCreatePage('accueil-velos', 'Accueil Vélos');
+        \pll_set_post_language($this->homeForBikeFrId, 'fr');
+
+        // Link translations
+        \pll_save_post_translations([
+            'en' => $this->homeForBookId,
+            'fr' => $this->homeForBookFrId,
+        ]);
+
+        \pll_save_post_translations([
+            'en' => $this->homeForBikeId,
+            'fr' => $this->homeForBikeFrId,
+        ]);
     }
 }

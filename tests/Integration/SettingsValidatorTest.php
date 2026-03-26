@@ -44,7 +44,7 @@ class SettingsValidatorTest extends TestCase
     {
         $this->validator->validate($value, 'page_for_' . self::BOOK_POST_TYPE, '');
 
-        $errors = get_settings_errors('page_for_' . self::BOOK_POST_TYPE);
+        $errors = \get_settings_errors('page_for_' . self::BOOK_POST_TYPE);
         $this->assertNotEmpty($errors);
     }
 
@@ -52,10 +52,10 @@ class SettingsValidatorTest extends TestCase
     public function testValidateWithNonNumericValueReturnsFallback(mixed $value): void
     {
         $pageId = static::factory()->post->create([
-            'post_type' => 'page',
+            'post_type'   => 'page',
             'post_status' => 'publish',
         ]);
-        update_option('page_for_' . self::BOOK_POST_TYPE, $pageId);
+        \update_option('page_for_' . self::BOOK_POST_TYPE, $pageId);
 
         $result = $this->validator->validate($value, 'page_for_' . self::BOOK_POST_TYPE, '');
 
@@ -65,7 +65,7 @@ class SettingsValidatorTest extends TestCase
     #[DataProvider('invalidNonNumericValues')]
     public function testValidateWithNonNumericValueReturnsNullWhenNoFallback(mixed $value): void
     {
-        delete_option('page_for_' . self::BOOK_POST_TYPE);
+        \delete_option('page_for_' . self::BOOK_POST_TYPE);
 
         $result = $this->validator->validate($value, 'page_for_' . self::BOOK_POST_TYPE, '');
 
@@ -82,26 +82,26 @@ class SettingsValidatorTest extends TestCase
     public function testValidateWithUnpublishedPageAddsError(): void
     {
         $draftPageId = static::factory()->post->create([
-            'post_type' => 'page',
+            'post_type'   => 'page',
             'post_status' => 'draft',
         ]);
 
         $this->validator->validate($draftPageId, 'page_for_' . self::BOOK_POST_TYPE, '');
 
-        $errors = get_settings_errors('page_for_' . self::BOOK_POST_TYPE);
+        $errors = \get_settings_errors('page_for_' . self::BOOK_POST_TYPE);
         $this->assertNotEmpty($errors);
     }
 
     public function testValidateWithUnpublishedPageReturnsFallback(): void
     {
         $publishedPageId = static::factory()->post->create([
-            'post_type' => 'page',
+            'post_type'   => 'page',
             'post_status' => 'publish',
         ]);
-        update_option('page_for_' . self::BOOK_POST_TYPE, $publishedPageId);
+        \update_option('page_for_' . self::BOOK_POST_TYPE, $publishedPageId);
 
         $draftPageId = static::factory()->post->create([
-            'post_type' => 'page',
+            'post_type'   => 'page',
             'post_status' => 'draft',
         ]);
 
@@ -113,7 +113,7 @@ class SettingsValidatorTest extends TestCase
     public function testValidateWithDuplicatePageIdAddsError(): void
     {
         $pageId = static::factory()->post->create([
-            'post_type' => 'page',
+            'post_type'   => 'page',
             'post_status' => 'publish',
         ]);
 
@@ -122,7 +122,7 @@ class SettingsValidatorTest extends TestCase
         try {
             $this->validator->validate($pageId, 'page_for_' . self::BOOK_POST_TYPE, '');
 
-            $errors = get_settings_errors('page_for_' . self::BOOK_POST_TYPE);
+            $errors = \get_settings_errors('page_for_' . self::BOOK_POST_TYPE);
             $this->assertNotEmpty($errors);
         } finally {
             unset($_POST['page_for_' . self::BIKE_POST_TYPE]);
@@ -132,13 +132,13 @@ class SettingsValidatorTest extends TestCase
     public function testValidateWithDuplicatePageIdReturnsFallback(): void
     {
         $existingPageId = static::factory()->post->create([
-            'post_type' => 'page',
+            'post_type'   => 'page',
             'post_status' => 'publish',
         ]);
-        update_option('page_for_' . self::BOOK_POST_TYPE, $existingPageId);
+        \update_option('page_for_' . self::BOOK_POST_TYPE, $existingPageId);
 
         $duplicatePageId = static::factory()->post->create([
-            'post_type' => 'page',
+            'post_type'   => 'page',
             'post_status' => 'publish',
         ]);
 
@@ -156,19 +156,19 @@ class SettingsValidatorTest extends TestCase
     public function testValidateWithValidPageIdReturnsAbsint(): void
     {
         $pageId = static::factory()->post->create([
-            'post_type' => 'page',
+            'post_type'   => 'page',
             'post_status' => 'publish',
         ]);
 
         $result = $this->validator->validate($pageId, 'page_for_' . self::BOOK_POST_TYPE, '');
 
-        $this->assertSame(absint($pageId), $result);
+        $this->assertSame(\absint($pageId), $result);
     }
 
     public function testValidateWithUnknownPostTypeReturnsValue(): void
     {
         $pageId = static::factory()->post->create([
-            'post_type' => 'page',
+            'post_type'   => 'page',
             'post_status' => 'publish',
         ]);
 

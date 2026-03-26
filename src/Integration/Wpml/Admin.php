@@ -14,7 +14,7 @@ final class Admin
 {
     public function registerHooks(): void
     {
-        add_filter('pfcpt/dropdown_page_args', [$this, 'filterDropdownArgs']);
+        \add_filter('pfcpt/dropdown_page_args', [$this, 'filterDropdownArgs']);
     }
 
     /**
@@ -29,22 +29,22 @@ final class Admin
     public function filterDropdownArgs(array $args): array
     {
         /** @var string|null $defaultLanguage */
-        $defaultLanguage = apply_filters('wpml_default_language', null);
+        $defaultLanguage = \apply_filters('wpml_default_language', null);
 
         if (empty($defaultLanguage)) {
             return $args;
         }
 
-        do_action('wpml_switch_language', $defaultLanguage);
+        \do_action('wpml_switch_language', $defaultLanguage);
 
         // Restore language after wp_dropdown_pages() queries pages.
         $restoreLanguage = static function (array $pages) use (&$restoreLanguage): array {
-            remove_filter('get_pages', $restoreLanguage, \PHP_INT_MAX);
-            do_action('wpml_switch_language', null);
+            \remove_filter('get_pages', $restoreLanguage, \PHP_INT_MAX);
+            \do_action('wpml_switch_language', null);
             return $pages;
         };
 
-        add_filter('get_pages', $restoreLanguage, \PHP_INT_MAX);
+        \add_filter('get_pages', $restoreLanguage, \PHP_INT_MAX);
 
         return $args;
     }

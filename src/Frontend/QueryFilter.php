@@ -41,7 +41,7 @@ final class QueryFilter
             return $where;
         }
 
-        return str_replace(
+        return \str_replace(
             "AND ({$this->wpdb->posts}.ID = '{$currentPageId}')",
             '',
             $where
@@ -54,7 +54,6 @@ final class QueryFilter
      * When viewing a single CPT post, mark the PFCPT page menu item as ancestor.
      *
      * @param \WP_Post[] $menuItems
-     * @param object $args
      * @return \WP_Post[]
      */
     public function withCurrentAncestor(array $menuItems, object $args): array
@@ -95,7 +94,7 @@ final class QueryFilter
         }
 
         $rawObjectId = $menuItem->object_id ?? 0;
-        if (!is_numeric($rawObjectId)) {
+        if (!\is_numeric($rawObjectId)) {
             return false;
         }
         $menuObjectId = (int) $rawObjectId;

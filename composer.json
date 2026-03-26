@@ -85,12 +85,14 @@
 			"@test:core",
 			"@test:wordpress-seo",
 			"@test:polylang",
+			"@test:wpml",
 			"@test:autodescription"
 		],
 		"test:unit": "phpunit --testsuite=unit",
 		"test:core": "phpunit --testsuite=unit,integration",
 		"test:wordpress-seo": "PLUGINS=wordpress-seo phpunit --testsuite=unit,integration,plugin-integration",
 		"test:polylang": "PLUGINS=polylang phpunit --testsuite=unit,integration,plugin-integration",
+		"test:wpml": "PLUGINS=wpml phpunit --testsuite=unit,integration,plugin-integration",
 		"test:autodescription": "PLUGINS=autodescription phpunit --testsuite=unit,integration,plugin-integration",
 		"test:coverage": "php -d pcov.enabled=1 phpunit --testsuite=unit,integration --coverage-text"
 	}

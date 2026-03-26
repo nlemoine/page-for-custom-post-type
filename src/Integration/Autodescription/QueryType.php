@@ -25,7 +25,7 @@ final class QueryType
 
     public function registerHooks(): void
     {
-        add_filter('the_seo_framework_is_singular_archive', [$this, 'markPfcptAsSingularArchive'], 10, 2);
+        \add_filter('the_seo_framework_is_singular_archive', [$this, 'markPfcptAsSingularArchive'], 10, 2);
     }
 
     /**

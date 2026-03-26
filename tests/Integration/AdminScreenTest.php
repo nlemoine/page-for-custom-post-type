@@ -56,7 +56,7 @@ class AdminScreenTest extends TestCase
     {
         $this->admin->addReadingSettings();
 
-        $registeredSettings = get_registered_settings();
+        $registeredSettings = \get_registered_settings();
 
         $this->assertArrayHasKey('page_for_' . self::BOOK_POST_TYPE, $registeredSettings);
         $this->assertArrayHasKey('page_for_' . self::BIKE_POST_TYPE, $registeredSettings);
@@ -67,9 +67,9 @@ class AdminScreenTest extends TestCase
         $this->acting_as('administrator');
         $this->admin->addReadingSettings();
 
-        ob_start();
-        do_settings_fields('reading', 'page_for_custom_post_type');
-        $output = ob_get_clean();
+        \ob_start();
+        \do_settings_fields('reading', 'page_for_custom_post_type');
+        $output = \ob_get_clean();
 
         $this->assertStringContainsString('<select', $output);
         $this->assertStringContainsString('page_for_' . self::BOOK_POST_TYPE, $output);
@@ -89,11 +89,17 @@ class AdminScreenTest extends TestCase
 
     public function testGetExcludedPageIdsExcludesFrontPageAndPostsPage(): void
     {
-        $frontPageId = static::factory()->post->create(['post_type' => 'page', 'post_status' => 'publish']);
-        $postsPageId = static::factory()->post->create(['post_type' => 'page', 'post_status' => 'publish']);
+        $frontPageId = static::factory()->post->create([
+            'post_type'   => 'page',
+            'post_status' => 'publish',
+        ]);
+        $postsPageId = static::factory()->post->create([
+            'post_type'   => 'page',
+            'post_status' => 'publish',
+        ]);
 
-        update_option('page_on_front', $frontPageId);
-        update_option('page_for_posts', $postsPageId);
+        \update_option('page_on_front', $frontPageId);
+        \update_option('page_for_posts', $postsPageId);
 
         $method = new \ReflectionMethod(Admin::class, 'getExcludedPageIds');
         $result = $method->invoke($this->admin);
@@ -104,8 +110,8 @@ class AdminScreenTest extends TestCase
 
     public function testGetExcludedPageIdsReturnsEmptyWhenNoPagesSet(): void
     {
-        delete_option('page_on_front');
-        delete_option('page_for_posts');
+        \delete_option('page_on_front');
+        \delete_option('page_for_posts');
 
         $method = new \ReflectionMethod(Admin::class, 'getExcludedPageIds');
         $result = $method->invoke($this->admin);
@@ -128,11 +134,11 @@ class AdminScreenTest extends TestCase
 
     public function testGetDefaultLabelWithoutArchive(): void
     {
-        register_post_type('noarchive_cpt', [
-            'public' => true,
+        \register_post_type('noarchive_cpt', [
+            'public'             => true,
             'publicly_queryable' => true,
-            'has_archive' => false,
-            'label' => 'No Archive CPT',
+            'has_archive'        => false,
+            'label'              => 'No Archive CPT',
         ]);
 
         $method = new \ReflectionMethod(Admin::class, 'getDefaultLabel');
@@ -141,7 +147,7 @@ class AdminScreenTest extends TestCase
         $this->assertIsString($result);
         $this->assertStringContainsString('No archive', $result);
 
-        unregister_post_type('noarchive_cpt');
+        \unregister_post_type('noarchive_cpt');
     }
 
     public function testGetDefaultLabelReturnsNullWhenNoOriginalArgs(): void
@@ -183,7 +189,7 @@ class AdminScreenTest extends TestCase
             require_once \ABSPATH . 'wp-admin/includes/screen.php';
         }
 
-        set_current_screen('edit-' . self::BOOK_POST_TYPE);
+        \set_current_screen('edit-' . self::BOOK_POST_TYPE);
 
         $adminBar = new \WP_Admin_Bar();
         $adminBar->initialize();
@@ -207,7 +213,7 @@ class AdminScreenTest extends TestCase
         }
 
         // Set to a non-edit screen (dashboard)
-        set_current_screen('dashboard');
+        \set_current_screen('dashboard');
 
         $adminBar = new \WP_Admin_Bar();
         $this->admin->addAdminBarArchiveLink($adminBar);
@@ -226,20 +232,20 @@ class AdminScreenTest extends TestCase
         $plugin->init();
 
         // In admin context, admin hooks should be registered
-        $this->assertNotFalse(has_action('admin_menu'));
-        $this->assertNotFalse(has_action('admin_init'));
-        $this->assertNotFalse(has_action('admin_bar_menu'));
-        $this->assertNotFalse(has_filter('display_post_states'));
+        $this->assertNotFalse(\has_action('admin_menu'));
+        $this->assertNotFalse(\has_action('admin_init'));
+        $this->assertNotFalse(\has_action('admin_bar_menu'));
+        $this->assertNotFalse(\has_filter('display_post_states'));
     }
 
     private function reRegisterPostType(string $postType): void
     {
-        $postTypeObject = get_post_type_object($postType);
+        $postTypeObject = \get_post_type_object($postType);
         if (!$postTypeObject instanceof \WP_Post_Type) {
             return;
         }
-        $args = get_object_vars($postTypeObject);
-        unregister_post_type($postType);
-        register_post_type($postType, $args);
+        $args = \get_object_vars($postTypeObject);
+        \unregister_post_type($postType);
+        \register_post_type($postType, $args);
     }
 }

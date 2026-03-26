@@ -14,15 +14,13 @@ declare(strict_types=1);
 
 namespace n5s\PageForCustomPostType;
 
-use n5s\PageForCustomPostType\Integration\IntegrationInterface;
-
 // Prevent direct access
-if (!defined('ABSPATH')) {
+if (!\defined('ABSPATH')) {
     exit;
 }
 
 // Initialize plugin (hook before Polylang)
-add_action('plugins_loaded', static function (): void {
+\add_action('plugins_loaded', static function (): void {
     $plugin = Plugin::getInstance();
     $plugin->init();
 

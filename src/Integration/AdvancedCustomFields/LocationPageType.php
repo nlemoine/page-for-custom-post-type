@@ -48,7 +48,7 @@ class LocationPageType extends ACF_Location_Page_Type
             return false;
         }
 
-        $post = get_post($postId);
+        $post = \get_post($postId);
 
         if (!$post instanceof \WP_Post) {
             return false;
@@ -100,14 +100,14 @@ class LocationPageType extends ACF_Location_Page_Type
             }
         }
 
-        $postTypes = array_keys($this->api->getPageIds());
+        $postTypes = \array_keys($this->api->getPageIds());
 
         if (empty($postTypes)) {
             return $values;
         }
 
         foreach ($postTypes as $postType) {
-            $postTypeObject = get_post_type_object($postType);
+            $postTypeObject = \get_post_type_object($postType);
 
             if ($postTypeObject && \is_string($postTypeObject->labels->archives)) {
                 $values[$postType . '_page'] = $postTypeObject->labels->archives;

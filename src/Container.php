@@ -12,8 +12,8 @@ use n5s\PageForCustomPostType\Frontend\Handler;
 use n5s\PageForCustomPostType\Frontend\QueryFilter;
 use n5s\PageForCustomPostType\Integration\Autodescription;
 use n5s\PageForCustomPostType\Integration\Polylang;
-use n5s\PageForCustomPostType\Integration\Wpml;
 use n5s\PageForCustomPostType\Integration\WordPressSeo;
+use n5s\PageForCustomPostType\Integration\Wpml;
 use n5s\PageForCustomPostType\Lifecycle\LifecycleManager;
 use n5s\PageForCustomPostType\PostType\PostType;
 use WP_Query;
@@ -24,10 +24,14 @@ use wpdb;
  */
 final class Container
 {
-    /** @var array<class-string, object> */
+    /**
+     * @var array<class-string, object>
+     */
     private array $services = [];
 
-    /** @var array<class-string, callable(): object> */
+    /**
+     * @var array<class-string, callable(): object>
+     */
     private array $factories;
 
     public function __construct()

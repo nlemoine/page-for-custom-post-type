@@ -66,7 +66,7 @@ class PluginTest extends TestCase
         foreach ($integrations as $integration) {
             $this->assertIsString($integration);
             $this->assertTrue(
-                is_subclass_of($integration, IntegrationInterface::class),
+                \is_subclass_of($integration, IntegrationInterface::class),
                 \sprintf('Expected %s to implement %s', $integration, IntegrationInterface::class),
             );
         }
@@ -75,7 +75,7 @@ class PluginTest extends TestCase
     public function testOnTemplateRedirectFiresActionWhenOnPfcptPage(): void
     {
         $actionFired = false;
-        add_action('pfcpt/template_redirect', static function () use (&$actionFired) {
+        \add_action('pfcpt/template_redirect', static function () use (&$actionFired) {
             $actionFired = true;
         });
 
@@ -87,7 +87,7 @@ class PluginTest extends TestCase
     public function testOnTemplateRedirectDoesNotFireActionWhenNotOnPfcptPage(): void
     {
         $actionFired = false;
-        add_action('pfcpt/template_redirect', static function () use (&$actionFired) {
+        \add_action('pfcpt/template_redirect', static function () use (&$actionFired) {
             $actionFired = true;
         });
 
@@ -171,16 +171,16 @@ class PluginTest extends TestCase
 
     public function testFrontendHooksAreRegistered(): void
     {
-        $this->assertNotFalse(has_filter('parse_query'));
-        $this->assertNotFalse(has_filter('posts_where'));
-        $this->assertNotFalse(has_filter('wp_nav_menu_objects'));
+        $this->assertNotFalse(\has_filter('parse_query'));
+        $this->assertNotFalse(\has_filter('posts_where'));
+        $this->assertNotFalse(\has_filter('wp_nav_menu_objects'));
     }
 
     public function testCommonHooksAreRegistered(): void
     {
-        $this->assertNotFalse(has_filter('register_post_type_args'));
-        $this->assertNotFalse(has_action('registered_post_type'));
-        $this->assertNotFalse(has_action('template_redirect'));
+        $this->assertNotFalse(\has_filter('register_post_type_args'));
+        $this->assertNotFalse(\has_action('registered_post_type'));
+        $this->assertNotFalse(\has_action('template_redirect'));
     }
 
     /**
@@ -200,12 +200,12 @@ class PluginTest extends TestCase
         $plugin->init();
 
         // Verify frontend and common hooks are registered
-        $this->assertNotFalse(has_filter('register_post_type_args'));
-        $this->assertNotFalse(has_action('registered_post_type'));
-        $this->assertNotFalse(has_action('template_redirect'));
-        $this->assertNotFalse(has_filter('parse_query'));
-        $this->assertNotFalse(has_filter('posts_where'));
-        $this->assertNotFalse(has_filter('wp_nav_menu_objects'));
+        $this->assertNotFalse(\has_filter('register_post_type_args'));
+        $this->assertNotFalse(\has_action('registered_post_type'));
+        $this->assertNotFalse(\has_action('template_redirect'));
+        $this->assertNotFalse(\has_filter('parse_query'));
+        $this->assertNotFalse(\has_filter('posts_where'));
+        $this->assertNotFalse(\has_filter('wp_nav_menu_objects'));
     }
 
     /**
@@ -227,18 +227,18 @@ class PluginTest extends TestCase
         $commonMethod = new \ReflectionMethod(Plugin::class, 'registerCommonHooks');
         $commonMethod->invoke($plugin);
 
-        $this->assertNotFalse(has_action('template_redirect'));
+        $this->assertNotFalse(\has_action('template_redirect'));
     }
 
     private function countRegisteredHooks(): array
     {
         return [
-            'register_post_type_args' => has_filter('register_post_type_args'),
-            'registered_post_type' => has_action('registered_post_type'),
-            'template_redirect' => has_action('template_redirect'),
-            'parse_query' => has_filter('parse_query'),
-            'posts_where' => has_filter('posts_where'),
-            'wp_nav_menu_objects' => has_filter('wp_nav_menu_objects'),
+            'register_post_type_args' => \has_filter('register_post_type_args'),
+            'registered_post_type'    => \has_action('registered_post_type'),
+            'template_redirect'       => \has_action('template_redirect'),
+            'parse_query'             => \has_filter('parse_query'),
+            'posts_where'             => \has_filter('posts_where'),
+            'wp_nav_menu_objects'     => \has_filter('wp_nav_menu_objects'),
         ];
     }
 }

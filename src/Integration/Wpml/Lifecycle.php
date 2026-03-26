@@ -24,9 +24,9 @@ final class Lifecycle
 
     public function registerHooks(): void
     {
-        add_action('pfcpt/flush_rewrite_rules', [$this, 'flushCache']);
-        add_action('wpml_pro_translation_completed', [$this, 'onTranslationCompleted']);
-        add_action('icl_make_duplicate', [$this, 'onMakeDuplicate'], 10, 4);
+        \add_action('pfcpt/flush_rewrite_rules', [$this, 'flushCache']);
+        \add_action('wpml_pro_translation_completed', [$this, 'onTranslationCompleted']);
+        \add_action('icl_make_duplicate', [$this, 'onMakeDuplicate'], 10, 4);
     }
 
     /**
@@ -35,15 +35,15 @@ final class Lifecycle
     public function flushCache(): void
     {
         /** @var array<string, array<string, mixed>>|null $activeLanguages */
-        $activeLanguages = apply_filters('wpml_active_languages', null);
+        $activeLanguages = \apply_filters('wpml_active_languages', null);
 
         if (!\is_array($activeLanguages)) {
             return;
         }
 
-        foreach (array_keys($activeLanguages) as $languageCode) {
+        foreach (\array_keys($activeLanguages) as $languageCode) {
             if (\is_string($languageCode)) {
-                delete_transient($this->translation->getCacheKey($languageCode));
+                \delete_transient($this->translation->getCacheKey($languageCode));
             }
         }
     }
@@ -70,14 +70,14 @@ final class Lifecycle
     private function flushIfPfcptPage(int $postId): void
     {
         /** @var string|null $defaultLanguage */
-        $defaultLanguage = apply_filters('wpml_default_language', null);
+        $defaultLanguage = \apply_filters('wpml_default_language', null);
 
         if (!\is_string($defaultLanguage) || $defaultLanguage === '') {
             return;
         }
 
         /** @var int|null $defaultPageId */
-        $defaultPageId = apply_filters('wpml_object_id', $postId, 'page', true, $defaultLanguage);
+        $defaultPageId = \apply_filters('wpml_object_id', $postId, 'page', true, $defaultLanguage);
 
         if (!\is_int($defaultPageId) || $defaultPageId <= 0) {
             return;
@@ -89,7 +89,7 @@ final class Lifecycle
             return;
         }
 
-        $postType = array_search($defaultPageId, $pageIds, true);
+        $postType = \array_search($defaultPageId, $pageIds, true);
 
         if (!\is_string($postType)) {
             return;

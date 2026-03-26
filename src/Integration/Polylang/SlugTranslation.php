@@ -23,7 +23,7 @@ final class SlugTranslation
 
     public function registerHooks(): void
     {
-        add_filter('pll_translated_slugs', [$this, 'translateSlugs'], 10, 2);
+        \add_filter('pll_translated_slugs', [$this, 'translateSlugs'], 10, 2);
     }
 
     /**
@@ -35,14 +35,14 @@ final class SlugTranslation
     //phpcs:ignore SlevomatCodingStandard.Complexity.Cognitive.ComplexityTooHigh
     public function translateSlugs(array $slugs, PLL_Language $language): array
     {
-        $defaultLanguage = pll_default_language();
+        $defaultLanguage = \pll_default_language();
 
         if ($language->slug === $defaultLanguage) {
             return $slugs;
         }
 
         $pageIds = $this->api->getPageIds(false);
-        $postTypes = array_keys($pageIds);
+        $postTypes = \array_keys($pageIds);
 
         foreach ($slugs as $postType => $postTypeSlugs) {
             if (!\in_array($postType, $postTypes, true)) {
@@ -59,7 +59,7 @@ final class SlugTranslation
                 continue;
             }
 
-            foreach (array_keys($translations) as $lang) {
+            foreach (\array_keys($translations) as $lang) {
                 if (!\is_string($lang)) {
                     continue;
                 }
@@ -68,7 +68,7 @@ final class SlugTranslation
                     continue;
                 }
 
-                $pageId = pll_get_post($pageIds[$postType], $lang);
+                $pageId = \pll_get_post($pageIds[$postType], $lang);
 
                 if (empty($pageId)) {
                     continue;
@@ -81,7 +81,7 @@ final class SlugTranslation
                 }
 
                 if (\is_array($slugs[$postType]['translations'] ?? null)) {
-                    $slugs[$postType]['translations'][$lang] = substr($pageSlug, \strlen($lang . '/'));
+                    $slugs[$postType]['translations'][$lang] = \substr($pageSlug, \strlen($lang . '/'));
                 }
             }
         }

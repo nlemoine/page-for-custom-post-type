@@ -68,7 +68,7 @@ class ApiTest extends TestCase
     public function testShouldConsiderPostType(bool $expected, bool $builtin, bool $publiclyQueryable): void
     {
         $postType = new WP_Post_Type('test', [
-            '_builtin' => $builtin,
+            '_builtin'           => $builtin,
             'publicly_queryable' => $publiclyQueryable,
         ]);
 

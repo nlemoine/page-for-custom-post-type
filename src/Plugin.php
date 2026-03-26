@@ -12,8 +12,8 @@ use n5s\PageForCustomPostType\Frontend\QueryFilter;
 use n5s\PageForCustomPostType\Integration\Autodescription;
 use n5s\PageForCustomPostType\Integration\IntegrationInterface;
 use n5s\PageForCustomPostType\Integration\Polylang;
-use n5s\PageForCustomPostType\Integration\Wpml;
 use n5s\PageForCustomPostType\Integration\WordPressSeo;
+use n5s\PageForCustomPostType\Integration\Wpml;
 use n5s\PageForCustomPostType\Lifecycle\LifecycleManager;
 use n5s\PageForCustomPostType\PostType\PostType;
 
@@ -23,13 +23,19 @@ use n5s\PageForCustomPostType\PostType\PostType;
 final class Plugin
 {
     // Legacy constants for backward compatibility
-    /** @deprecated Use Api::QUERY_VAR_IS_PFCPT instead */
+    /**
+     * @deprecated Use Api::QUERY_VAR_IS_PFCPT instead
+     */
     public const QUERY_VAR_IS_PFCPT = Api::QUERY_VAR_IS_PFCPT;
 
-    /** @deprecated Use Api::OPTION_PREFIX instead */
+    /**
+     * @deprecated Use Api::OPTION_PREFIX instead
+     */
     public const OPTION_PREFIX = Api::OPTION_PREFIX;
 
-    /** @deprecated Use Api::OPTION_PAGE_IDS instead */
+    /**
+     * @deprecated Use Api::OPTION_PAGE_IDS instead
+     */
     public const OPTION_PAGE_IDS = Api::OPTION_PAGE_IDS;
 
     private static ?self $instance = null;
@@ -90,75 +96,6 @@ final class Plugin
     }
 
     /**
-     * Register all WordPress hooks.
-     */
-    private function registerHooks(): void
-    {
-        $this->registerAdminHooks();
-        $this->registerFrontendHooks();
-        $this->registerCommonHooks();
-    }
-
-    /**
-     * Register admin-only hooks.
-     */
-    private function registerAdminHooks(): void
-    {
-        if (!is_admin()) {
-            return;
-        }
-
-        $admin = $this->container->get(Admin::class);
-
-        add_action('admin_menu', [$admin, 'addPostTypeSubmenus']);
-        add_action('admin_init', [$admin, 'addReadingSettings']);
-        add_action('admin_bar_menu', [$admin, 'addAdminBarArchiveLink'], 80);
-        add_filter('display_post_states', [$admin, 'displayPostStates'], 100, 2);
-    }
-
-    /**
-     * Register frontend-only hooks.
-     */
-    private function registerFrontendHooks(): void
-    {
-        if (is_admin()) {
-            return;
-        }
-
-        $handler = $this->container->get(Handler::class);
-        $queryFilter = $this->container->get(QueryFilter::class);
-
-        add_action('parse_query', [$handler, 'withQueryProperties'], 1);
-        add_filter('posts_where', [$queryFilter, 'filterPostsWhere'], 10, 2);
-        add_filter('wp_nav_menu_objects', [$queryFilter, 'withCurrentAncestor'], 10, 2);
-    }
-
-    /**
-     * Register hooks that apply to both admin and frontend.
-     */
-    private function registerCommonHooks(): void
-    {
-        $lifecycle = $this->container->get(LifecycleManager::class);
-        $postType = $this->container->get(PostType::class);
-
-        // Post type registration hooks
-        add_filter('register_post_type_args', [$postType, 'updatePostTypeArgs'], 10, 2);
-        add_action('registered_post_type', [$postType, 'addPaginationRewriteTags'], 10, 2);
-
-        // Option lifecycle hooks (watch for each post type)
-        add_action('registered_post_type', [$lifecycle, 'watchOptions'], 10, 2);
-
-        // Post lifecycle hooks
-        add_action('transition_post_status', [$lifecycle, 'onTransitionPostStatus'], 10, 3);
-        add_action('delete_post', [$lifecycle, 'onDeletedPost']);
-        add_action('wp_trash_post', [$lifecycle, 'onDeletedPost']);
-        add_action('post_updated', [$lifecycle, 'onSlugChange'], 10, 3);
-
-        // Template redirect
-        add_action('template_redirect', [$this, 'onTemplateRedirect']);
-    }
-
-    /**
      * Handle template redirect.
      */
     public function onTemplateRedirect(): void
@@ -169,7 +106,7 @@ final class Plugin
             return;
         }
 
-        do_action('pfcpt/template_redirect');
+        \do_action('pfcpt/template_redirect');
     }
 
     /**
@@ -272,5 +209,74 @@ final class Plugin
     public static function get_instance(): self
     {
         return self::getInstance();
+    }
+
+    /**
+     * Register all WordPress hooks.
+     */
+    private function registerHooks(): void
+    {
+        $this->registerAdminHooks();
+        $this->registerFrontendHooks();
+        $this->registerCommonHooks();
+    }
+
+    /**
+     * Register admin-only hooks.
+     */
+    private function registerAdminHooks(): void
+    {
+        if (!\is_admin()) {
+            return;
+        }
+
+        $admin = $this->container->get(Admin::class);
+
+        \add_action('admin_menu', [$admin, 'addPostTypeSubmenus']);
+        \add_action('admin_init', [$admin, 'addReadingSettings']);
+        \add_action('admin_bar_menu', [$admin, 'addAdminBarArchiveLink'], 80);
+        \add_filter('display_post_states', [$admin, 'displayPostStates'], 100, 2);
+    }
+
+    /**
+     * Register frontend-only hooks.
+     */
+    private function registerFrontendHooks(): void
+    {
+        if (\is_admin()) {
+            return;
+        }
+
+        $handler = $this->container->get(Handler::class);
+        $queryFilter = $this->container->get(QueryFilter::class);
+
+        \add_action('parse_query', [$handler, 'withQueryProperties'], 1);
+        \add_filter('posts_where', [$queryFilter, 'filterPostsWhere'], 10, 2);
+        \add_filter('wp_nav_menu_objects', [$queryFilter, 'withCurrentAncestor'], 10, 2);
+    }
+
+    /**
+     * Register hooks that apply to both admin and frontend.
+     */
+    private function registerCommonHooks(): void
+    {
+        $lifecycle = $this->container->get(LifecycleManager::class);
+        $postType = $this->container->get(PostType::class);
+
+        // Post type registration hooks
+        \add_filter('register_post_type_args', [$postType, 'updatePostTypeArgs'], 10, 2);
+        \add_action('registered_post_type', [$postType, 'addPaginationRewriteTags'], 10, 2);
+
+        // Option lifecycle hooks (watch for each post type)
+        \add_action('registered_post_type', [$lifecycle, 'watchOptions'], 10, 2);
+
+        // Post lifecycle hooks
+        \add_action('transition_post_status', [$lifecycle, 'onTransitionPostStatus'], 10, 3);
+        \add_action('delete_post', [$lifecycle, 'onDeletedPost']);
+        \add_action('wp_trash_post', [$lifecycle, 'onDeletedPost']);
+        \add_action('post_updated', [$lifecycle, 'onSlugChange'], 10, 3);
+
+        // Template redirect
+        \add_action('template_redirect', [$this, 'onTemplateRedirect']);
     }
 }

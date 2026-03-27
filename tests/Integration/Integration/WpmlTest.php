@@ -327,7 +327,7 @@ class WpmlTest extends TestCase
         $translation->registerHooks();
 
         // Use a page ID that has no French translation
-        $untranslatedPageId = self::factory()->post->create([
+        $untranslatedPageId = static::factory()->post->create([
             'post_type' => 'page',
         ]);
 
@@ -491,10 +491,8 @@ class WpmlTest extends TestCase
         $urlTranslation = new UrlTranslation($api);
         $urlTranslation->registerHooks();
 
-        // Set up the main query to simulate being on a PFCPT page
-        global $wp_the_query;
-        $wp_the_query = $GLOBALS['wp_query'];
-        $wp_the_query->{Api::QUERY_VAR_IS_PFCPT} = self::BOOK_POST_TYPE;
+        // Navigate to the PFCPT page so the query is set up naturally
+        $this->get('/home-for-books/');
 
         $languages = [
             'en' => [
@@ -519,10 +517,12 @@ class WpmlTest extends TestCase
         $urlTranslation = new UrlTranslation($api);
         $urlTranslation->registerHooks();
 
-        // Main query without PFCPT flag
-        global $wp_the_query;
-        $wp_the_query = $GLOBALS['wp_query'];
-        unset($wp_the_query->{Api::QUERY_VAR_IS_PFCPT});
+        // Navigate to a regular page (no PFCPT flag on the query)
+        $regularPage = static::factory()->post->create([
+            'post_type' => 'page',
+            'post_name' => 'some-page',
+        ]);
+        $this->get(get_permalink($regularPage));
 
         $languages = [
             'en' => [
@@ -547,9 +547,8 @@ class WpmlTest extends TestCase
         $urlTranslation = new UrlTranslation($api);
         $urlTranslation->registerHooks();
 
-        global $wp_the_query;
-        $wp_the_query = $GLOBALS['wp_query'];
-        $wp_the_query->{Api::QUERY_VAR_IS_PFCPT} = self::BOOK_POST_TYPE;
+        // Navigate to the PFCPT page so the query is set up naturally
+        $this->get('/home-for-books/');
 
         $languages = [
             'en' => [
@@ -576,9 +575,8 @@ class WpmlTest extends TestCase
         $urlTranslation = new UrlTranslation($api);
         $urlTranslation->registerHooks();
 
-        global $wp_the_query;
-        $wp_the_query = $GLOBALS['wp_query'];
-        $wp_the_query->{Api::QUERY_VAR_IS_PFCPT} = self::BOOK_POST_TYPE;
+        // Navigate to the PFCPT page so the query is set up naturally
+        $this->get('/home-for-books/');
 
         $languages = [
             'en' => [
@@ -591,15 +589,10 @@ class WpmlTest extends TestCase
             ],
         ];
 
-        // Use a new instance to avoid cache from previous tests
-        $urlTranslation2 = new UrlTranslation($api);
-        $urlTranslation2->registerHooks();
-
         $result = apply_filters('icl_ls_languages', $languages);
 
-        $this->assertIsArray($result);
-        $this->assertArrayHasKey('en', $result);
-        $this->assertArrayHasKey('fr', $result);
+        // French URL should be updated to point to the translated page
+        $this->assertStringContainsString('accueil-livres', $result['fr']['url']);
     }
 
     public function testFilterLanguageSwitcherUrlsRestoresLanguage(): void
@@ -610,9 +603,8 @@ class WpmlTest extends TestCase
         $urlTranslation = new UrlTranslation($api);
         $urlTranslation->registerHooks();
 
-        global $wp_the_query;
-        $wp_the_query = $GLOBALS['wp_query'];
-        $wp_the_query->{Api::QUERY_VAR_IS_PFCPT} = self::BOOK_POST_TYPE;
+        // Navigate to the PFCPT page so the query is set up naturally
+        $this->get('/home-for-books/');
 
         $languages = [
             'en' => [

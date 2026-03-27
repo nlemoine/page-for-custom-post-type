@@ -30,10 +30,9 @@ final class UrlTranslation
 
     public function registerHooks(): void
     {
-        // Different WPML language switcher filters depending on how it's rendered
+        // Language switcher output filters (new and legacy APIs)
         add_filter('wpml_ls_languages', [$this, 'filterLanguageSwitcherUrls'], 20);
         add_filter('icl_ls_languages', [$this, 'filterLanguageSwitcherUrls'], 20);
-        add_filter('wpml_active_languages', [$this, 'filterLanguageSwitcherUrls'], 20);
     }
 
     /**

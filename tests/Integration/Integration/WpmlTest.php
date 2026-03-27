@@ -78,8 +78,8 @@ class WpmlTest extends TestCase
 
     public function testIsSupportedWhenWpmlConstantDefined(): void
     {
-        if (!defined('ICL_SITEPRESS_VERSION')) {
-            define('ICL_SITEPRESS_VERSION', '4.6.0');
+        if (!\defined('ICL_SITEPRESS_VERSION')) {
+            \define('ICL_SITEPRESS_VERSION', '4.6.0');
         }
 
         $api = new Api();

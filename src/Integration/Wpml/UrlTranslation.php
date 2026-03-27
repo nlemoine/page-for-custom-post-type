@@ -59,7 +59,7 @@ final class UrlTranslation
 
         // Check if the main query has PFCPT flag
         $postType = $mainQuery->{Api::QUERY_VAR_IS_PFCPT} ?? null;
-        if (!is_string($postType) || $postType === '') {
+        if (!\is_string($postType) || $postType === '') {
             return $languages;
         }
 
@@ -99,7 +99,7 @@ final class UrlTranslation
         /** @var int|null $translatedId */
         $translatedId = apply_filters('wpml_object_id', $pageId, 'page', true, $langCode);
 
-        if (!is_int($translatedId) || $translatedId <= 0) {
+        if (!\is_int($translatedId) || $translatedId <= 0) {
             return null;
         }
 
@@ -119,7 +119,7 @@ final class UrlTranslation
             $pageSlug = get_page_uri($translatedPage);
         }
 
-        if (!is_string($pageSlug) || $pageSlug === '') {
+        if (!\is_string($pageSlug) || $pageSlug === '') {
             return null;
         }
 

@@ -39,12 +39,12 @@ final class Admin
 
         // Restore language after wp_dropdown_pages() queries pages.
         $restoreLanguage = static function (array $pages) use (&$restoreLanguage): array {
-            remove_filter('get_pages', $restoreLanguage, PHP_INT_MAX);
+            remove_filter('get_pages', $restoreLanguage, \PHP_INT_MAX);
             do_action('wpml_switch_language', null);
             return $pages;
         };
 
-        add_filter('get_pages', $restoreLanguage, PHP_INT_MAX);
+        add_filter('get_pages', $restoreLanguage, \PHP_INT_MAX);
 
         return $args;
     }

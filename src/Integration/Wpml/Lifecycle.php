@@ -37,12 +37,12 @@ final class Lifecycle
         /** @var array<string, array<string, mixed>>|null $activeLanguages */
         $activeLanguages = apply_filters('wpml_active_languages', null);
 
-        if (!is_array($activeLanguages)) {
+        if (!\is_array($activeLanguages)) {
             return;
         }
 
         foreach (array_keys($activeLanguages) as $languageCode) {
-            if (is_string($languageCode)) {
+            if (\is_string($languageCode)) {
                 delete_transient($this->translation->getCacheKey($languageCode));
             }
         }
@@ -72,26 +72,26 @@ final class Lifecycle
         /** @var string|null $defaultLanguage */
         $defaultLanguage = apply_filters('wpml_default_language', null);
 
-        if (!is_string($defaultLanguage) || $defaultLanguage === '') {
+        if (!\is_string($defaultLanguage) || $defaultLanguage === '') {
             return;
         }
 
         /** @var int|null $defaultPageId */
         $defaultPageId = apply_filters('wpml_object_id', $postId, 'page', true, $defaultLanguage);
 
-        if (!is_int($defaultPageId) || $defaultPageId <= 0) {
+        if (!\is_int($defaultPageId) || $defaultPageId <= 0) {
             return;
         }
 
         $pageIds = $this->api->getPageIds(false);
 
-        if (!in_array($defaultPageId, $pageIds, true)) {
+        if (!\in_array($defaultPageId, $pageIds, true)) {
             return;
         }
 
         $postType = array_search($defaultPageId, $pageIds, true);
 
-        if (!is_string($postType)) {
+        if (!\is_string($postType)) {
             return;
         }
 

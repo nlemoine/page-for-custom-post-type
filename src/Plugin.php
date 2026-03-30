@@ -13,6 +13,7 @@ use n5s\PageForCustomPostType\Integration\Autodescription;
 use n5s\PageForCustomPostType\Integration\IntegrationInterface;
 use n5s\PageForCustomPostType\Integration\Polylang;
 use n5s\PageForCustomPostType\Integration\WordPressSeo;
+use n5s\PageForCustomPostType\Integration\Wpml;
 use n5s\PageForCustomPostType\Lifecycle\LifecycleManager;
 use n5s\PageForCustomPostType\PostType\PostType;
 
@@ -181,6 +182,7 @@ final class Plugin
         return [
             Polylang\Polylang::class,
             WordPressSeo\WordPressSeo::class,
+            Wpml\Wpml::class,
             Autodescription\Autodescription::class,
         ];
     }

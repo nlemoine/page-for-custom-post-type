@@ -13,6 +13,7 @@ use n5s\PageForCustomPostType\Frontend\QueryFilter;
 use n5s\PageForCustomPostType\Integration\Autodescription;
 use n5s\PageForCustomPostType\Integration\Polylang;
 use n5s\PageForCustomPostType\Integration\WordPressSeo;
+use n5s\PageForCustomPostType\Integration\Wpml;
 use n5s\PageForCustomPostType\Lifecycle\LifecycleManager;
 use n5s\PageForCustomPostType\PostType\PostType;
 use WP_Query;
@@ -99,6 +100,28 @@ final class Container
             Polylang\Lifecycle::class => fn (): Polylang\Lifecycle => new Polylang\Lifecycle(
                 $this->get(Api::class),
                 $this->get(RewriteManager::class)
+            ),
+
+            // WPML integrations
+            Wpml\Translation::class => static fn (): Wpml\Translation => new Wpml\Translation(),
+
+            Wpml\UrlTranslation::class => fn (): Wpml\UrlTranslation => new Wpml\UrlTranslation(
+                $this->get(Api::class)
+            ),
+
+            Wpml\Admin::class => static fn (): Wpml\Admin => new Wpml\Admin(),
+
+            Wpml\Lifecycle::class => fn (): Wpml\Lifecycle => new Wpml\Lifecycle(
+                $this->get(Api::class),
+                $this->get(RewriteManager::class),
+                $this->get(Wpml\Translation::class)
+            ),
+
+            Wpml\Wpml::class => fn (): Wpml\Wpml => new Wpml\Wpml(
+                $this->get(Wpml\Translation::class),
+                $this->get(Wpml\UrlTranslation::class),
+                $this->get(Wpml\Admin::class),
+                $this->get(Wpml\Lifecycle::class)
             ),
 
             // WordPressSeo integrations

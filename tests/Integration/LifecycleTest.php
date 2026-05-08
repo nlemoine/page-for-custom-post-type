@@ -404,4 +404,25 @@ class LifecycleTest extends TestCase
 
         $this->assertEquals($this->homeForBookId, $optionValue);
     }
+
+    public function testUninstallRemovesAllPluginData(): void
+    {
+        update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', '1');
+        set_transient('page_for_' . self::BOOK_POST_TYPE . '_slug', 'home-for-books', 0);
+
+        $this->assertNotEmpty(get_option(Api::OPTION_PAGE_IDS));
+        $this->assertNotEmpty(get_option('page_for_' . self::BOOK_POST_TYPE));
+        $this->assertNotEmpty(get_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug'));
+        $this->assertNotFalse(get_transient('page_for_' . self::BOOK_POST_TYPE . '_slug'));
+
+        if (!\defined('WP_UNINSTALL_PLUGIN')) {
+            \define('WP_UNINSTALL_PLUGIN', true);
+        }
+        require \dirname(__DIR__, 2) . '/uninstall.php';
+
+        $this->assertEmpty(get_option(Api::OPTION_PAGE_IDS));
+        $this->assertEmpty(get_option('page_for_' . self::BOOK_POST_TYPE));
+        $this->assertEmpty(get_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug'));
+        $this->assertFalse(get_transient('page_for_' . self::BOOK_POST_TYPE . '_slug'));
+    }
 }

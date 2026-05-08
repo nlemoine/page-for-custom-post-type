@@ -143,4 +143,47 @@ class EdgeCaseTest extends TestCase
         $this->assertSame('page', $queriedObject->post_type);
         $this->assertEquals($this->homeForBookId, $queriedObject->ID);
     }
+
+    public function testUnregisteredCptDoesNotHijackQuery(): void
+    {
+        $bookHomeUrl = $this->getBookHomeUrl();
+
+        unregister_post_type(self::BOOK_POST_TYPE);
+
+        flush_rewrite_rules();
+
+        $this->get($bookHomeUrl);
+
+        global $wp_query;
+
+        $this->assertTrue($wp_query->is_page);
+        $this->assertFalse($wp_query->is_home);
+        $this->assertFalse(\n5s\PageForCustomPostType\is_page_for_custom_post_type());
+    }
+
+    public function testNonEligibleCptDeletesMappingOnRegistration(): void
+    {
+        $bookHomeUrl = $this->getBookHomeUrl();
+
+        $this->assertNotFalse(get_option('page_for_' . self::BOOK_POST_TYPE));
+
+        unregister_post_type(self::BOOK_POST_TYPE);
+        register_post_type(self::BOOK_POST_TYPE, [
+            'public' => false,
+            'publicly_queryable' => false,
+            'label' => 'Books',
+        ]);
+
+        $this->assertFalse(get_option('page_for_' . self::BOOK_POST_TYPE));
+
+        flush_rewrite_rules();
+
+        $this->get($bookHomeUrl);
+
+        global $wp_query;
+
+        $this->assertTrue($wp_query->is_page);
+        $this->assertFalse($wp_query->is_home);
+        $this->assertFalse(\n5s\PageForCustomPostType\is_page_for_custom_post_type());
+    }
 }

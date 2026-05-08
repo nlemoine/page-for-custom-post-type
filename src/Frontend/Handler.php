@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace n5s\PageForCustomPostType\Frontend;
 
 use n5s\PageForCustomPostType\Core\Api;
+use WP_Post_Type;
 use WP_Query;
 
 /**
@@ -51,6 +52,15 @@ final class Handler
         $postType = array_search($currentPageId, $pageIds, true);
 
         if (empty($postType)) {
+            return;
+        }
+
+        // Defensive fallback: if the CPT is not registered at all this request
+        // (e.g. the plugin that registers it is deactivated), no
+        // registered_post_type hook fires, so the cleanup in LifecycleManager
+        // can't delete the stale option. Bail here to avoid hijacking the page.
+        $postTypeObject = get_post_type_object($postType);
+        if (!$postTypeObject instanceof WP_Post_Type || !$this->api->shouldConsiderPostType($postTypeObject)) {
             return;
         }
 

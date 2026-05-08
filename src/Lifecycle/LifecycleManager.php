@@ -30,6 +30,12 @@ final class LifecycleManager
     public function watchOptions(string $postType, WP_Post_Type $postTypeObject): void
     {
         if (!$this->api->shouldConsiderPostType($postTypeObject)) {
+            // The mapping outlives CPT arg changes; drop it when the type is no
+            // longer eligible so frontend/admin don't operate on stale state.
+            if ($this->api->getPageIdFromPostType($postType, false) !== null) {
+                $this->deleteOption($postType);
+            }
+
             return;
         }
 
@@ -213,7 +219,7 @@ final class LifecycleManager
         $pageIds = (array) get_option(Api::OPTION_PAGE_IDS, []);
         $pageIds[$postType] = $value;
 
-        update_option(Api::OPTION_PAGE_IDS, array_filter($pageIds));
+        update_option(Api::OPTION_PAGE_IDS, array_filter($pageIds), true);
 
         $this->rewriteManager->flushRewriteRules($postType);
     }

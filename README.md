@@ -42,6 +42,15 @@ An optional checkbox lets you use the assigned page's slug as the post type's re
 
 > **Warning**: Enabling this option changes all single post URLs for the post type. Consider the SEO implications before toggling it on an existing site.
 
+### Slug-change protection
+
+Once "Use page slug as rewrite slug" is on, changing the page slug breaks every published URL for that custom post type. The plugin guards both editing surfaces:
+
+- **Block editor**: a warning notice and confirmation checkbox appear in the document sidebar; the Update button stays disabled until the checkbox is ticked.
+- **Quick Edit** on the Pages list: a confirmation dialog blocks the save until acknowledged.
+
+Both only fire when the slug actually differs from the saved value, on pages assigned to a CPT with "use page slug" enabled.
+
 ## Key differences with native CPT archives
 
 |                    | CPT archive                                                | Page for CPT                                                                                      |
@@ -119,6 +128,16 @@ Requires Polylang 3.4+.
 
 Requires Yoast SEO 26+.
 
+### WPML
+
+Multilingual support via WPML's String Translation:
+
+- Each language can have its own assigned page
+- Archive URLs follow WPML's URL structure
+- Page slugs are translatable when using the "use page slug" option
+
+Requires WPML 4.5+.
+
 ### The SEO Framework
 
 - SEO metadata support
@@ -136,16 +155,26 @@ Requires ACF 6+.
 
 ## Requirements
 
+- WordPress 6.0+
 - PHP 8.2+
-- WordPress with publicly queryable custom post types
 
 ## Installation
 
-Install via Composer:
+### Composer (recommended)
 
 ```bash
 composer require n5s/page-for-custom-post-type
 ```
+
+### Manual
+
+Download the latest `page-for-custom-post-type-X.Y.Z.zip` from the [releases page](https://github.com/nlemoine/page-for-custom-post-type/releases) and upload it via **Plugins > Add New > Upload Plugin**. The zip ships with vendor dependencies bundled, so no build step is required.
+
+## Upgrading from 0.x
+
+1.0 makes the "use page slug" behavior opt-in (it was previously always on). On upgrade, the plugin automatically enables it for every CPT that already has a page assigned, so existing URLs stay intact. If you'd rather use the default CPT rewrite slugs going forward, uncheck the option per CPT under **Settings > Reading**.
+
+The legacy procedural API (`is_page_for_custom_post_type()`, `get_page_id_for_custom_post_type()`, etc.) is preserved as deprecated shims that forward to the namespaced equivalents. They'll emit a `_doing_it_wrong` notice when `WP_DEBUG` is on.
 
 ## License
 

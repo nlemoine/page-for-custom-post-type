@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - id: versions
-        uses: WyriHaximus/github-action-composer-php-versions-in-range@v1
+        uses: WyriHaximus/github-action-composer-php-versions-in-range@7c91c459140becf43d93d3975070f308ab791949  # v1.16.2
         with:
           upcomingReleases: true
 
@@ -31,11 +31,11 @@ jobs:
         php: ${{ fromJson(needs.php-versions.outputs.versions) }}
     steps:
       - uses: actions/checkout@v6
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f  # 2.37.0
         with:
           php-version: ${{ matrix.php }}
           coverage: none
-      - uses: ramsey/composer-install@v3
+      - uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda  # 4.0.0
       - run: composer test:unit
 
   integration-tests:
@@ -59,11 +59,11 @@ jobs:
     name: PHP ${{ matrix.php }} | WP ${{ matrix.wp }} | ${{ matrix.suite }}
     steps:
       - uses: actions/checkout@v6
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f  # 2.37.0
         with:
           php-version: ${{ matrix.php }}
           coverage: none
-      - uses: ramsey/composer-install@v3
+      - uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda  # 4.0.0
       - run: composer ${{ matrix.suite }}
         env:
           WP_VERSION: ${{ matrix.wp }}
@@ -72,11 +72,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f  # 2.37.0
         with:
           php-version: '8.2'
           coverage: pcov
-      - uses: ramsey/composer-install@v3
+      - uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda  # 4.0.0
       - name: Coverage (core)
         run: php -d pcov.enabled=1 vendor/bin/phpunit --testsuite=unit,integration --coverage-php=build/coverage-core.cov
       - name: Coverage (polylang)
@@ -91,14 +91,14 @@ jobs:
         run: |
           composer require --dev phpunit/phpcov --quiet
           vendor/bin/phpcov merge build --clover build/coverage.xml
-      - uses: codecov/codecov-action@v5
+      - uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe  # v5.5.4
         with:
           files: build/coverage.xml
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   static-analysis:
-    uses: inpsyde/reusable-workflows/.github/workflows/static-analysis-php.yml@main
+    uses: inpsyde/reusable-workflows/.github/workflows/static-analysis-php.yml@6bbc8c9422de0f685b71cfb8f9cddd2b591e2c50  # main as of 2026-05-08
 
   coding-standards:
-    uses: inpsyde/reusable-workflows/.github/workflows/coding-standards-php.yml@main
+    uses: inpsyde/reusable-workflows/.github/workflows/coding-standards-php.yml@6bbc8c9422de0f685b71cfb8f9cddd2b591e2c50  # main as of 2026-05-08

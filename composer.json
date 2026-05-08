@@ -1,99 +1,100 @@
 {
-	"name": "n5s/page-for-custom-post-type",
-	"description": "Page for custom post types, just like page for posts",
-	"license": "GPL-3.0-or-later",
-	"type": "wordpress-plugin",
-	"keywords": [
-		"wordpress",
-		"custom post type",
-		"custom post type archive",
-		"page for custom post type"
-	],
-	"authors": [
-		{
-			"name": "Nicolas Lemoine",
-			"email": "nico@n5s.dev",
-			"homepage": "https://n5s.dev/"
-		}
-	],
-	"homepage": "https://github.com/nlemoine/page-for-custom-post-type",
-	"support": {
-		"issues": "https://github.com/nlemoine/page-for-custom-post-type/issues",
-		"source": "https://github.com/nlemoine/page-for-custom-post-type"
-	},
-	"require": {
-		"composer/installers": "^1.0 || ^2.0",
-		"php": "^8.2"
-	},
-	"require-dev": {
-		"ergebnis/composer-normalize": "^2.48",
-		"mantle-framework/testkit": "^1.17",
-		"wp-plugin/advanced-custom-fields": "^6",
-		"wp-plugin/polylang": "^3.4",
-		"wp-plugin/wordpress-seo": "^26 || ^27",
-		"wp-plugin/autodescription": "^5.1",
-		"szepeviktor/phpstan-wordpress": "^2.0",
-		"phpstan/extension-installer": "^1.4",
-		"phpstan/phpstan": "^2.1",
-		"syde/phpcs": "^1.0",
-		"slevomat/coding-standard": "^8.22"
-	},
-	"repositories": [
-		{
-			"name": "wp-packages",
-			"type": "composer",
-			"url": "https://repo.wp-packages.org",
-			"only": [
-				"wp-plugin/*",
-				"wp-theme/*"
-			]
-		}
-	],
-	"minimum-stability": "dev",
-	"prefer-stable": true,
-	"autoload": {
-		"psr-4": {
-			"n5s\\PageForCustomPostType\\": "src/"
-		},
-		"files": [
-			"src/functions.php"
-		]
-	},
-	"autoload-dev": {
-		"psr-4": {
-			"n5s\\PageForCustomPostType\\Tests\\": "tests/"
-		}
-	},
-	"config": {
-		"allow-plugins": {
-			"alleyinteractive/composer-wordpress-autoloader": true,
-			"composer/installers": true,
-			"dealerdirect/phpcodesniffer-composer-installer": true,
-			"ergebnis/composer-normalize": true,
-			"pestphp/pest-plugin": true,
-			"phpstan/extension-installer": true,
-			"roots/wordpress-core-installer": true
-		}
-	},
-	"scripts": {
-		"analyse": [
-			"phpstan analyse"
-		],
-		"cs": "ecs check",
-		"cs:fix": "ecs check --fix",
-		"test": [
-			"@test:core",
-			"@test:wordpress-seo",
-			"@test:polylang",
-			"@test:wpml",
-			"@test:autodescription"
-		],
-		"test:unit": "phpunit --testsuite=unit",
-		"test:core": "phpunit --testsuite=unit,integration",
-		"test:wordpress-seo": "PLUGINS=wordpress-seo phpunit --testsuite=unit,integration,plugin-integration",
-		"test:polylang": "PLUGINS=polylang phpunit --testsuite=unit,integration,plugin-integration",
-		"test:wpml": "PLUGINS=wpml phpunit --testsuite=unit,integration,plugin-integration",
-		"test:autodescription": "PLUGINS=autodescription phpunit --testsuite=unit,integration,plugin-integration",
-		"test:coverage": "php -d pcov.enabled=1 phpunit --testsuite=unit,integration --coverage-text"
-	}
+    "name": "n5s/page-for-custom-post-type",
+    "description": "Page for custom post types, just like page for posts",
+    "license": "GPL-3.0-or-later",
+    "type": "wordpress-plugin",
+    "keywords": [
+        "wordpress",
+        "custom post type",
+        "custom post type archive",
+        "page for custom post type"
+    ],
+    "authors": [
+        {
+            "name": "Nicolas Lemoine",
+            "email": "nico@n5s.dev",
+            "homepage": "https://n5s.dev/"
+        }
+    ],
+    "homepage": "https://github.com/nlemoine/page-for-custom-post-type",
+    "support": {
+        "issues": "https://github.com/nlemoine/page-for-custom-post-type/issues",
+        "source": "https://github.com/nlemoine/page-for-custom-post-type",
+        "changelog": "https://github.com/nlemoine/page-for-custom-post-type/releases"
+    },
+    "require": {
+        "php": "^8.2",
+        "composer/installers": "^1.0 || ^2.0"
+    },
+    "require-dev": {
+        "ergebnis/composer-normalize": "^2.48",
+        "mantle-framework/testkit": "^1.17",
+        "phpstan/extension-installer": "^1.4",
+        "phpstan/phpstan": "^2.1",
+        "slevomat/coding-standard": "^8.22",
+        "syde/phpcs": "^1.0",
+        "szepeviktor/phpstan-wordpress": "^2.0",
+        "wp-plugin/advanced-custom-fields": "^6",
+        "wp-plugin/autodescription": "^5.1",
+        "wp-plugin/polylang": "^3.4",
+        "wp-plugin/wordpress-seo": "^26 || ^27"
+    },
+    "repositories": [
+        {
+            "name": "wp-packages",
+            "type": "composer",
+            "url": "https://repo.wp-packages.org",
+            "only": [
+                "wp-plugin/*",
+                "wp-theme/*"
+            ]
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "n5s\\PageForCustomPostType\\": "src/"
+        },
+        "files": [
+            "src/functions.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "n5s\\PageForCustomPostType\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "alleyinteractive/composer-wordpress-autoloader": true,
+            "composer/installers": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "ergebnis/composer-normalize": true,
+            "pestphp/pest-plugin": true,
+            "phpstan/extension-installer": true,
+            "roots/wordpress-core-installer": true
+        }
+    },
+    "scripts": {
+        "analyse": [
+            "phpstan analyse"
+        ],
+        "cs": "ecs check",
+        "cs:fix": "ecs check --fix",
+        "test": [
+            "@test:core",
+            "@test:wordpress-seo",
+            "@test:polylang",
+            "@test:wpml",
+            "@test:autodescription"
+        ],
+        "test:autodescription": "PLUGINS=autodescription phpunit --testsuite=unit,integration,plugin-integration",
+        "test:core": "phpunit --testsuite=unit,integration",
+        "test:coverage": "php -d pcov.enabled=1 phpunit --testsuite=unit,integration --coverage-text",
+        "test:polylang": "PLUGINS=polylang phpunit --testsuite=unit,integration,plugin-integration",
+        "test:unit": "phpunit --testsuite=unit",
+        "test:wordpress-seo": "PLUGINS=wordpress-seo phpunit --testsuite=unit,integration,plugin-integration",
+        "test:wpml": "PLUGINS=wpml phpunit --testsuite=unit,integration,plugin-integration"
+    }
 }

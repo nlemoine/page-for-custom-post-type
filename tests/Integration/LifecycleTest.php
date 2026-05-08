@@ -102,6 +102,158 @@ class LifecycleTest extends TestCase
         $this->assertTrue($flushCalled);
     }
 
+    public function testParentSlugChangeFlushesRewriteRules(): void
+    {
+        $parentId = self::factory()->post->create([
+            'post_type' => 'page',
+            'post_name' => 'parent-page',
+            'post_status' => 'publish',
+        ]);
+
+        wp_update_post([
+            'ID' => $this->homeForBookId,
+            'post_parent' => $parentId,
+        ]);
+
+        $flushedFor = [];
+        add_action(
+            'pfcpt/flush_rewrite_rules',
+            static function (string $postType) use (&$flushedFor): void {
+                $flushedFor[] = $postType;
+            }
+        );
+
+        wp_update_post([
+            'ID' => $parentId,
+            'post_name' => 'renamed-parent-page',
+        ]);
+
+        $this->assertContains(self::BOOK_POST_TYPE, $flushedFor);
+    }
+
+    public function testDeeplyNestedAncestorSlugChangeFlushesRewriteRules(): void
+    {
+        $grandparentId = self::factory()->post->create([
+            'post_type' => 'page',
+            'post_name' => 'grandparent-page',
+            'post_status' => 'publish',
+        ]);
+
+        $parentId = self::factory()->post->create([
+            'post_type' => 'page',
+            'post_name' => 'parent-page',
+            'post_status' => 'publish',
+            'post_parent' => $grandparentId,
+        ]);
+
+        wp_update_post([
+            'ID' => $this->homeForBookId,
+            'post_parent' => $parentId,
+        ]);
+
+        $flushedFor = [];
+        add_action(
+            'pfcpt/flush_rewrite_rules',
+            static function (string $postType) use (&$flushedFor): void {
+                $flushedFor[] = $postType;
+            }
+        );
+
+        wp_update_post([
+            'ID' => $grandparentId,
+            'post_name' => 'renamed-grandparent-page',
+        ]);
+
+        $this->assertContains(self::BOOK_POST_TYPE, $flushedFor);
+    }
+
+    public function testAssignedPageReparentingFlushesRewriteRules(): void
+    {
+        $newParentId = self::factory()->post->create([
+            'post_type' => 'page',
+            'post_name' => 'new-parent-page',
+            'post_status' => 'publish',
+        ]);
+
+        $flushedFor = [];
+        add_action(
+            'pfcpt/flush_rewrite_rules',
+            static function (string $postType) use (&$flushedFor): void {
+                $flushedFor[] = $postType;
+            }
+        );
+
+        wp_update_post([
+            'ID' => $this->homeForBookId,
+            'post_parent' => $newParentId,
+        ]);
+
+        $this->assertContains(self::BOOK_POST_TYPE, $flushedFor);
+    }
+
+    public function testAncestorReparentingFlushesRewriteRules(): void
+    {
+        $oldGrandparentId = self::factory()->post->create([
+            'post_type' => 'page',
+            'post_name' => 'old-grandparent',
+            'post_status' => 'publish',
+        ]);
+
+        $newGrandparentId = self::factory()->post->create([
+            'post_type' => 'page',
+            'post_name' => 'new-grandparent',
+            'post_status' => 'publish',
+        ]);
+
+        $parentId = self::factory()->post->create([
+            'post_type' => 'page',
+            'post_name' => 'middle-parent',
+            'post_status' => 'publish',
+            'post_parent' => $oldGrandparentId,
+        ]);
+
+        wp_update_post([
+            'ID' => $this->homeForBookId,
+            'post_parent' => $parentId,
+        ]);
+
+        $flushedFor = [];
+        add_action(
+            'pfcpt/flush_rewrite_rules',
+            static function (string $postType) use (&$flushedFor): void {
+                $flushedFor[] = $postType;
+            }
+        );
+
+        wp_update_post([
+            'ID' => $parentId,
+            'post_parent' => $newGrandparentId,
+        ]);
+
+        $this->assertContains(self::BOOK_POST_TYPE, $flushedFor);
+    }
+
+    public function testUnrelatedPageSlugChangeDoesNotFlush(): void
+    {
+        $unrelatedId = self::factory()->post->create([
+            'post_type' => 'page',
+            'post_name' => 'unrelated-page',
+            'post_status' => 'publish',
+        ]);
+
+        $flushCount = 0;
+        add_action('pfcpt/flush_rewrite_rules', static function () use (&$flushCount): void {
+            $flushCount++;
+        });
+
+        wp_update_post([
+            'ID' => $unrelatedId,
+            'post_name' => 'still-unrelated',
+        ]);
+
+        $this->assertSame(0, $flushCount);
+    }
+
     public function testPageSlugUnchangedDoesNotFlushRewriteRules(): void
     {
         $flushCount = 0;

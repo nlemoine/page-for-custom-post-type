@@ -152,7 +152,7 @@ final class Plugin
         add_action('transition_post_status', [$lifecycle, 'onTransitionPostStatus'], 10, 3);
         add_action('delete_post', [$lifecycle, 'onDeletedPost']);
         add_action('wp_trash_post', [$lifecycle, 'onDeletedPost']);
-        add_action('post_updated', [$lifecycle, 'onSlugChange'], 10, 3);
+        add_action('post_updated', [$lifecycle, 'onPageUpdated'], 10, 3);
 
         // Template redirect
         add_action('template_redirect', [$this, 'onTemplateRedirect']);

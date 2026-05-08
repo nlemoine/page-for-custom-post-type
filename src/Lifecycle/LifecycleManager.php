@@ -172,25 +172,34 @@ final class LifecycleManager
     }
 
     /**
-     * Handle page slug changes.
+     * Handle page updates that affect the page permalink.
+     *
+     * Flushes rewrite rules when the slug or parent of an assigned page (or
+     * any of its ancestors) changes, since either alters the page's URL.
      */
-    public function onSlugChange(int $postId, WP_Post $postAfter, WP_Post $postBefore): void
+    public function onPageUpdated(int $postId, WP_Post $postAfter, WP_Post $postBefore): void
     {
         if ($postAfter->post_type !== 'page') {
             return;
         }
 
-        if ($postAfter->post_name === $postBefore->post_name) {
+        if (
+            $postAfter->post_name === $postBefore->post_name
+            && $postAfter->post_parent === $postBefore->post_parent
+        ) {
             return;
         }
 
-        $postType = $this->api->getPostTypeFromPageId($postId);
+        foreach ($this->api->getPageIds() as $postType => $assignedPageId) {
+            if (
+                $postId !== $assignedPageId
+                && !\in_array($postId, get_post_ancestors($assignedPageId), true)
+            ) {
+                continue;
+            }
 
-        if (!$postType) {
-            return;
+            $this->rewriteManager->flushRewriteRules($postType);
         }
-
-        $this->rewriteManager->flushRewriteRules($postType);
     }
 
     /**

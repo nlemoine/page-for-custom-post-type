@@ -113,6 +113,8 @@ final class Plugin
         add_action('admin_menu', [$admin, 'addPostTypeSubmenus']);
         add_action('admin_init', [$admin, 'addReadingSettings']);
         add_action('admin_bar_menu', [$admin, 'addAdminBarArchiveLink'], 80);
+        add_action('enqueue_block_editor_assets', [$admin, 'enqueueBlockEditorAssets']);
+        add_action('admin_enqueue_scripts', [$admin, 'enqueueQuickEditAssets']);
         add_filter('display_post_states', [$admin, 'displayPostStates'], 100, 2);
     }
 

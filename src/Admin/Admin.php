@@ -9,6 +9,7 @@ use n5s\PageForCustomPostType\PostType\PostType;
 use WP_Admin_Bar;
 use WP_Post;
 use WP_Post_Type;
+use WP_Screen;
 
 /**
  * Handles admin UI: settings, menus, and post states.
@@ -19,6 +20,142 @@ final class Admin
         private readonly Api $api,
         private readonly PostType $postType
     ) {
+    }
+
+    /**
+     * Enqueue the Quick Edit warning on the pages list screen when at least
+     * one page is assigned to a CPT with `use_slug` enabled.
+     *
+     * The script wraps `inlineEditPost.save` to surface a `confirm()` dialog
+     * if the user changes the slug of a protected page via Quick Edit.
+     */
+    public function enqueueQuickEditAssets(string $hook): void
+    {
+        if ($hook !== 'edit.php') {
+            return;
+        }
+
+        $screen = get_current_screen();
+        if (!$screen instanceof WP_Screen || $screen->post_type !== 'page') {
+            return;
+        }
+
+        $protected = $this->getProtectedPages();
+        if (empty($protected)) {
+            return;
+        }
+
+        $pluginRoot = \dirname(__DIR__, 2);
+        $assetFile = $pluginRoot . '/build/admin/quick-edit-warning/index.asset.php';
+        $asset = file_exists($assetFile)
+            ? require $assetFile
+            : ['dependencies' => [], 'version' => false];
+
+        $deps = \is_array($asset['dependencies'] ?? null) ? $asset['dependencies'] : [];
+        if (!\in_array('inline-edit-post', $deps, true)) {
+            $deps[] = 'inline-edit-post';
+        }
+
+        wp_enqueue_script(
+            'pfcpt-quick-edit-warning',
+            plugins_url('build/admin/quick-edit-warning/index.js', $pluginRoot . '/plugin.php'),
+            $deps,
+            \is_string($asset['version'] ?? null) ? $asset['version'] : false,
+            true
+        );
+
+        wp_add_inline_script(
+            'pfcpt-quick-edit-warning',
+            'const pfcptQuickEdit = ' . wp_json_encode(['protectedPages' => $protected]) . ';',
+            'before'
+        );
+    }
+
+    /**
+     * Build the map of pages that should trigger the slug-change warning.
+     *
+     * @return array<int, string> page ID => plural CPT label
+     */
+    private function getProtectedPages(): array
+    {
+        $protected = [];
+
+        foreach ($this->api->getPageIds() as $cpt => $pageId) {
+            if (!$this->api->shouldUsePageSlug($cpt)) {
+                continue;
+            }
+
+            $obj = get_post_type_object($cpt);
+            if (!$obj instanceof WP_Post_Type) {
+                continue;
+            }
+
+            $label = \is_string($obj->labels->name) ? $obj->labels->name : $cpt;
+            $protected[(int) $pageId] = $label;
+        }
+
+        return $protected;
+    }
+
+    /**
+     * Enqueue the block editor warning when editing a page that's used as
+     * the URL base for a custom post type.
+     *
+     * Only enqueues when all conditions match:
+     * - editing a published or draft page (post_type === 'page')
+     * - the page is assigned to a CPT in the page-for-CPT mapping
+     * - the matching `_use_slug` option is enabled
+     * - the page has a non-empty slug (skip new drafts)
+     */
+    public function enqueueBlockEditorAssets(): void
+    {
+        $post = get_post();
+
+        if (!$post instanceof WP_Post || $post->post_type !== 'page') {
+            return;
+        }
+
+        if ($post->post_name === '') {
+            return;
+        }
+
+        $cpt = $this->api->getPostTypeFromPageId($post->ID);
+
+        if ($cpt === null) {
+            return;
+        }
+
+        if (!$this->api->shouldUsePageSlug($cpt)) {
+            return;
+        }
+
+        $pluginRoot = \dirname(__DIR__, 2);
+        $assetFile = $pluginRoot . '/build/editor/slug-warning/index.asset.php';
+        $asset = file_exists($assetFile)
+            ? require $assetFile
+            : ['dependencies' => [], 'version' => false];
+
+        wp_enqueue_script(
+            'pfcpt-slug-warning',
+            plugins_url('build/editor/slug-warning/index.js', $pluginRoot . '/plugin.php'),
+            \is_array($asset['dependencies'] ?? null) ? $asset['dependencies'] : [],
+            \is_string($asset['version'] ?? null) ? $asset['version'] : false,
+            true
+        );
+
+        $postTypeObject = get_post_type_object($cpt);
+        $label = $postTypeObject instanceof WP_Post_Type && \is_string($postTypeObject->labels->name)
+            ? $postTypeObject->labels->name
+            : $cpt;
+
+        wp_add_inline_script(
+            'pfcpt-slug-warning',
+            'const pfcptSlugWarning = ' . wp_json_encode([
+                'postTypeLabel' => $label,
+                'postTypeName' => $cpt,
+            ]) . ';',
+            'before'
+        );
     }
 
     /**

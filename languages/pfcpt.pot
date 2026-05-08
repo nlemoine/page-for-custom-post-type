@@ -1,0 +1,113 @@
+# Copyright (C) 2026 Nicolas Lemoine
+# This file is distributed under the GPL-3.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Page for custom post type 0.5.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/pfcpt\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-05-08T10:27:30+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: pfcpt\n"
+
+#. Plugin Name of the plugin
+#: plugin.php:4
+msgid "Page for custom post type"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: plugin.php:5
+msgid "https://github.com/nlemoine/page-for-custom-post-type"
+msgstr ""
+
+#. Description of the plugin
+#: plugin.php:6
+msgid "Allows you to set pages for any custom post type archive"
+msgstr ""
+
+#. Author of the plugin
+#: plugin.php:10
+msgid "Nicolas Lemoine"
+msgstr ""
+
+#. Author URI of the plugin
+#: plugin.php:11
+msgid "https://n5s.dev/"
+msgstr ""
+
+#. translators: %s: post type name
+#: src/Admin/Admin.php:192
+#, php-format
+msgid "%s page"
+msgstr ""
+
+#: src/Admin/Admin.php:271
+msgid "Pages for post type"
+msgstr ""
+
+#: src/Admin/Admin.php:328
+msgid "— Select —"
+msgstr ""
+
+#. translators: %s: plural post type name
+#: src/Admin/Admin.php:368
+#, php-format
+msgid "Selected page slug replaces default \"%s\" post type slug"
+msgstr ""
+
+#. translators: %s: plural post type name
+#: src/Admin/Admin.php:378
+#, php-format
+msgid "Changing this option will alter all single \"%s\" URLs. This may affect SEO and existing links."
+msgstr ""
+
+#: src/Admin/Admin.php:437
+msgid "— No archive —"
+msgstr ""
+
+#. translators: %s: archive slug
+#: src/Admin/Admin.php:457
+#, php-format
+msgid "— Default (/%s/) —"
+msgstr ""
+
+#: src/Admin/SettingsValidator.php:30
+msgid "Invalid page ID"
+msgstr ""
+
+#. translators: 1: post type name, 2: page title
+#: src/Admin/SettingsValidator.php:49
+#, php-format
+msgid "Page for %1$s post type (%2$s) is not published"
+msgstr ""
+
+#. translators: 1: post type name, 2: page title
+#: src/Admin/SettingsValidator.php:63
+#, php-format
+msgid "Page for %1$s post type (%2$s) is already used"
+msgstr ""
+
+#. translators: %s: plural post type name
+#: assets/admin/quick-edit-warning/index.js:47
+#, js-format
+msgid ""
+"Changing this slug will break URLs for all published %s that use this page as their archive base. Old URLs will not auto-redirect.\n"
+"\n"
+"Continue?"
+msgstr ""
+
+#. translators: %s: plural post type name
+#: assets/editor/slug-warning/inline-notice.js:55
+#, js-format
+msgid "Changing this slug will break URLs for all published %s that use this page as their archive base. Old URLs will not auto-redirect."
+msgstr ""
+
+#. translators: %s: plural post type name
+#: assets/editor/slug-warning/inline-notice.js:66
+#, js-format
+msgid "I understand and want to proceed with this slug change for %s."
+msgstr ""

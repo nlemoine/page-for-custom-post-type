@@ -7,7 +7,13 @@
  * Version: 0.5.0
  * Author: Nicolas Lemoine
  * Author URI: https://n5s.dev/
+ * Requires at least: 6.0
+ * Tested up to: 6.7
  * Requires PHP: 8.2
+ * License: GPL-3.0-or-later
+ * License URI: https://www.gnu.org/licenses/gpl-3.0.html
+ * Text Domain: pfcpt
+ * Domain Path: /languages
  */
 
 declare(strict_types=1);
@@ -20,6 +26,12 @@ use n5s\PageForCustomPostType\Integration\IntegrationInterface;
 if (!defined('ABSPATH')) {
     exit;
 }
+
+// Load translations on init (plugin is not on wordpress.org, so the
+// auto-loading introduced in WP 4.6 doesn't apply).
+add_action('init', static function (): void {
+    load_plugin_textdomain('pfcpt', false, basename(__DIR__) . '/languages');
+});
 
 // Initialize plugin (hook before Polylang)
 add_action('plugins_loaded', static function (): void {

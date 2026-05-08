@@ -37,7 +37,9 @@
         "wp-plugin/advanced-custom-fields": "^6",
         "wp-plugin/autodescription": "^5.1",
         "wp-plugin/polylang": "^3.4",
-        "wp-plugin/wordpress-seo": "^26 || ^27"
+        "wp-plugin/wordpress-seo": "^26 || ^27",
+        "wp-cli/wp-cli": "^2.12",
+        "wp-cli/i18n-command": "^2.7"
     },
     "repositories": [
         {
@@ -82,6 +84,8 @@
         ],
         "cs": "ecs check",
         "cs:fix": "ecs check --fix",
+        "i18n:json": "wp i18n make-json languages --no-purge --pretty-print",
+        "i18n:pot": "wp i18n make-pot . languages/pfcpt.pot --domain=pfcpt --slug=pfcpt --exclude=tests,vendor,node_modules,build,tmp,wp-content,docs",
         "test": [
             "@test:core",
             "@test:wordpress-seo",

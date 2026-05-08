@@ -69,6 +69,8 @@ final class Admin
             'const pfcptQuickEdit = ' . wp_json_encode(['protectedPages' => $protected]) . ';',
             'before'
         );
+
+        wp_set_script_translations('pfcpt-quick-edit-warning', 'pfcpt', $pluginRoot . '/languages');
     }
 
     /**
@@ -156,6 +158,8 @@ final class Admin
             ]) . ';',
             'before'
         );
+
+        wp_set_script_translations('pfcpt-slug-warning', 'pfcpt', $pluginRoot . '/languages');
     }
 
     /**

@@ -1,6 +1,6 @@
 {
 	"name": "page-for-custom-post-type",
-	"version": "0.5.0",
+	"version": "1.0.0",
 	"private": true,
 	"description": "Editor scripts for the Page for custom post type WordPress plugin",
 	"packageManager": "pnpm@10.33.0",

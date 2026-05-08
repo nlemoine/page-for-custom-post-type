@@ -5,7 +5,7 @@
  * Plugin URI: https://github.com/nlemoine/page-for-custom-post-type
  * Description: Allows you to set pages for any custom post type archive
  * x-release-please-start-version
- * Version: 0.5.0
+ * Version: 1.0.0
  * x-release-please-end
  * Author: Nicolas Lemoine
  * Author URI: https://n5s.dev/

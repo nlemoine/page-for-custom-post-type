@@ -16,7 +16,7 @@ final class Migrator
 {
     private const DB_VERSION_OPTION = 'pfcpt_db_version';
     // x-release-please-start-version
-    private const CURRENT_VERSION = '0.5.0';
+    private const CURRENT_VERSION = '1.0.0';
     // x-release-please-end
 
     public function migrate(): void

@@ -15,7 +15,9 @@ use n5s\PageForCustomPostType\Core\Api;
 final class Migrator
 {
     private const DB_VERSION_OPTION = 'pfcpt_db_version';
-    private const CURRENT_VERSION = '1.0.0'; // x-release-please-version
+    // x-release-please-start-version
+    private const CURRENT_VERSION = '1.0.0';
+    // x-release-please-end
 
     public function migrate(): void
     {

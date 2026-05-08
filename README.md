@@ -1,5 +1,10 @@
 # Page for Custom Post Type
 
+[![QA](https://img.shields.io/github/actions/workflow/status/nlemoine/page-for-custom-post-type/qa.yml?branch=main&label=qa)](https://github.com/nlemoine/page-for-custom-post-type/actions/workflows/qa.yml)
+[![Coverage](https://img.shields.io/codecov/c/github/nlemoine/page-for-custom-post-type)](https://codecov.io/gh/nlemoine/page-for-custom-post-type)
+[![PHPStan](https://img.shields.io/badge/PHPStan-level%208-brightgreen)](https://phpstan.org/)
+[![Packagist Downloads](https://img.shields.io/packagist/dt/n5s/page-for-custom-post-type)](https://packagist.org/packages/n5s/page-for-custom-post-type)
+
 Assign any WordPress page as the archive page for a custom post type — just like the native "page for posts" setting.
 
 ## The problem

@@ -1,0 +1,15 @@
+# Files and directories to omit from `git archive` output (release zips).
+# Anything tracked but not needed at runtime in a distributed plugin.
+
+/.claude              export-ignore
+/.github              export-ignore
+/.gitattributes       export-ignore
+/.gitignore           export-ignore
+/.release-please-manifest.json  export-ignore
+/assets               export-ignore
+/docs                 export-ignore
+/package.json         export-ignore
+/pnpm-lock.yaml       export-ignore
+/release-please-config.json     export-ignore
+/tests                export-ignore
+/*.dist               export-ignore

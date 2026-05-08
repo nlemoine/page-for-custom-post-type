@@ -4,7 +4,9 @@
  * Plugin Name: Page for custom post type
  * Plugin URI: https://github.com/nlemoine/page-for-custom-post-type
  * Description: Allows you to set pages for any custom post type archive
+ * x-release-please-start-version
  * Version: 0.5.0
+ * x-release-please-end
  * Author: Nicolas Lemoine
  * Author URI: https://n5s.dev/
  * Requires at least: 6.0
@@ -20,12 +22,12 @@ declare(strict_types=1);
 
 namespace n5s\PageForCustomPostType;
 
-use n5s\PageForCustomPostType\Integration\IntegrationInterface;
-
 // Prevent direct access
-if (!defined('ABSPATH')) {
+if (!\defined('ABSPATH')) {
     exit;
 }
+
+// @bundle-autoload
 
 // Load translations on init (plugin is not on wordpress.org, so the
 // auto-loading introduced in WP 4.6 doesn't apply).

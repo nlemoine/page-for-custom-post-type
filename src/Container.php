@@ -15,6 +15,7 @@ use n5s\PageForCustomPostType\Integration\Polylang;
 use n5s\PageForCustomPostType\Integration\WordPressSeo;
 use n5s\PageForCustomPostType\Integration\Wpml;
 use n5s\PageForCustomPostType\Lifecycle\LifecycleManager;
+use n5s\PageForCustomPostType\Lifecycle\Migrator;
 use n5s\PageForCustomPostType\PostType\PostType;
 use WP_Query;
 use wpdb;
@@ -58,6 +59,8 @@ final class Container
             ),
 
             SettingsValidator::class => static fn (): SettingsValidator => new SettingsValidator(),
+
+            Migrator::class => static fn (): Migrator => new Migrator(),
 
             Handler::class => fn (): Handler => new Handler(
                 $this->get(Api::class)

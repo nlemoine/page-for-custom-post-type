@@ -28,6 +28,7 @@ if (is_array($pfcptMapping)) {
 unset($pfcptMapping, $pfcptPostType);
 
 delete_option('pages_for_custom_post_type');
+delete_option('pfcpt_db_version');
 
 // Catch any orphaned rows in wp_options for CPTs no longer present in the
 // aggregated mapping (e.g. a CPT was unregistered without cleanup).

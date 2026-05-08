@@ -81,6 +81,8 @@ jobs:
         run: php -d pcov.enabled=1 vendor/bin/phpunit --testsuite=unit,integration --coverage-php=build/coverage-core.cov
       - name: Coverage (polylang)
         run: PLUGINS=polylang php -d pcov.enabled=1 vendor/bin/phpunit --testsuite=plugin-integration --coverage-php=build/coverage-polylang.cov
+      - name: Coverage (WPML)
+        run: PLUGINS=wpml php -d pcov.enabled=1 vendor/bin/phpunit --testsuite=plugin-integration --coverage-php=build/coverage-wpml.cov
       - name: Coverage (wordpress-seo)
         run: PLUGINS=wordpress-seo php -d pcov.enabled=1 vendor/bin/phpunit --testsuite=plugin-integration --coverage-php=build/coverage-wordpress-seo.cov
       - name: Coverage (autodescription)

@@ -6,3 +6,9 @@
 /wp-content
 /.phpunit.result.cache
 /tmp
+
+# Agent-generated docs (specs, plans, brainstorming notes)
+/docs/superpowers
+
+# Node
+/node_modules

@@ -4,6 +4,7 @@
 
     <config name="testVersion" value="8.2-" />
 
+    <file>./plugin.php</file>
     <file>./src</file>
     <file>./tests</file>
 

@@ -15,6 +15,7 @@ use n5s\PageForCustomPostType\Integration\Polylang;
 use n5s\PageForCustomPostType\Integration\WordPressSeo;
 use n5s\PageForCustomPostType\Integration\Wpml;
 use n5s\PageForCustomPostType\Lifecycle\LifecycleManager;
+use n5s\PageForCustomPostType\Lifecycle\Migrator;
 use n5s\PageForCustomPostType\PostType\PostType;
 
 /**
@@ -67,6 +68,7 @@ final class Plugin
             return $this;
         }
 
+        $this->container->get(Migrator::class)->migrate();
         $this->registerHooks();
         $this->initialized = true;
 

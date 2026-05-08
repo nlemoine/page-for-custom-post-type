@@ -10,6 +10,10 @@
 				{
 					"type": "generic",
 					"path": "plugin.php"
+				},
+				{
+					"type": "generic",
+					"path": "src/Lifecycle/Migrator.php"
 				}
 			]
 		}

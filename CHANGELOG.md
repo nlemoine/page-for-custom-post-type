@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/nlemoine/page-for-custom-post-type/compare/1.0.0...1.0.1) (2026-05-08)
+
+
+### Bug Fixes
+
+* drop stale page mapping when CPT becomes ineligible ([021857b](https://github.com/nlemoine/page-for-custom-post-type/commit/021857ba309ca305a3c1ffac0ee420d50a9d5c56)), closes [#12](https://github.com/nlemoine/page-for-custom-post-type/issues/12)
+
 ## [1.0.0](https://github.com/nlemoine/page-for-custom-post-type/compare/0.5.0...1.0.0) (2026-05-08)
 
 

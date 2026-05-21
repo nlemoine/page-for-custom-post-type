@@ -58,6 +58,13 @@ abstract class TestCase extends Test_Case
      */
     protected function createFixtures(): void
     {
+        // Mantle's Preserves_Globals trait backs up $wp_post_types between tests
+        // but not $_wp_post_type_features. When a test calls unregister_post_type()
+        // without re-registering (e.g. EdgeCaseTest::testUnregisteredCptDoesNotHijackQuery),
+        // post_type_supports() returns false for subsequent tests and downstream
+        // code (TSF's get_post_title, etc.) falls back to defaults like "Untitled".
+        self::registerFixturePostTypes();
+
         $this->createBooks();
         $this->createBikes();
         $this->createHomePages();
@@ -77,6 +84,39 @@ abstract class TestCase extends Test_Case
             'rewrite' => ['slug' => 'genres'],
         ]);
         flush_rewrite_rules();
+    }
+
+    /**
+     * Register the fixture post types (book, bike).
+     *
+     * Called from bootstrap.php on suite startup and from createFixtures()
+     * to guard against tests that leave post types unregistered.
+     */
+    public static function registerFixturePostTypes(): void
+    {
+        $postTypes = [
+            self::BIKE_POST_TYPE => [
+                'public' => true,
+                'publicly_queryable' => true,
+                'label' => 'Bikes',
+                'has_archive' => true,
+                'rewrite' => ['slug' => 'bikes'],
+            ],
+            self::BOOK_POST_TYPE => [
+                'public' => true,
+                'publicly_queryable' => true,
+                'label' => 'Books',
+                'has_archive' => true,
+                'rewrite' => ['slug' => 'books'],
+            ],
+        ];
+
+        foreach ($postTypes as $postType => $args) {
+            if (post_type_exists($postType)) {
+                unregister_post_type($postType);
+            }
+            register_post_type($postType, $args);
+        }
     }
 
     /**

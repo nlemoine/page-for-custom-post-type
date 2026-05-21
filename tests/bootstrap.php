@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use n5s\PageForCustomPostType\Tests\Fixtures\TestCase;
+
 use function Mantle\Testing\manager;
 
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -35,24 +37,7 @@ $manager = manager()
         }
     })
     ->init(static function (): void {
-        register_post_type('bike', [
-            'public' => true,
-            'publicly_queryable' => true,
-            'label' => 'Bikes',
-            'has_archive' => true,
-            'rewrite' => [
-                'slug' => 'bikes',
-            ],
-        ]);
-        register_post_type('book', [
-            'public' => true,
-            'publicly_queryable' => true,
-            'label' => 'Books',
-            'has_archive' => true,
-            'rewrite' => [
-                'slug' => 'books',
-            ],
-        ]);
+        TestCase::registerFixturePostTypes();
         register_taxonomy('genre', 'book', [
             'public' => true,
             'label' => 'Genres',

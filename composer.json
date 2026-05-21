@@ -82,8 +82,8 @@
         "analyse": [
             "phpstan analyse"
         ],
-        "cs": "ecs check",
-        "cs:fix": "ecs check --fix",
+        "cs": "phpcs",
+        "cs:fix": "phpcbf",
         "i18n:json": "wp i18n make-json languages --no-purge --pretty-print",
         "i18n:pot": "wp i18n make-pot . languages/pfcpt.pot --domain=pfcpt --slug=pfcpt --exclude=tests,vendor,node_modules,build,tmp,wp-content,docs",
         "test": [

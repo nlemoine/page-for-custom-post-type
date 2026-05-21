@@ -10,6 +10,7 @@ use n5s\PageForCustomPostType\Core\Api;
 use n5s\PageForCustomPostType\Core\RewriteManager;
 use n5s\PageForCustomPostType\Frontend\Handler;
 use n5s\PageForCustomPostType\Frontend\QueryFilter;
+use n5s\PageForCustomPostType\Integration\AdvancedCustomFields;
 use n5s\PageForCustomPostType\Integration\Autodescription;
 use n5s\PageForCustomPostType\Integration\Polylang;
 use n5s\PageForCustomPostType\Integration\WordPressSeo;
@@ -141,6 +142,7 @@ final class Container
             ),
 
             // Integration composites
+            AdvancedCustomFields\AdvancedCustomFields::class => static fn (): AdvancedCustomFields\AdvancedCustomFields => new AdvancedCustomFields\AdvancedCustomFields(),
             Polylang\Polylang::class => fn (): Polylang\Polylang => new Polylang\Polylang(
                 $this->get(Polylang\UrlTranslation::class),
                 $this->get(Polylang\Translation::class),

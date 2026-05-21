@@ -7,6 +7,7 @@ namespace n5s\PageForCustomPostType\Tests\Integration;
 use n5s\PageForCustomPostType\Container;
 use n5s\PageForCustomPostType\Core\Api;
 use n5s\PageForCustomPostType\Core\RewriteManager;
+use n5s\PageForCustomPostType\Integration\AdvancedCustomFields\AdvancedCustomFields;
 use n5s\PageForCustomPostType\Integration\IntegrationInterface;
 use n5s\PageForCustomPostType\Plugin;
 use n5s\PageForCustomPostType\Tests\Fixtures\TestCase;
@@ -62,6 +63,7 @@ class PluginTest extends TestCase
 
         $this->assertIsArray($integrations);
         $this->assertNotEmpty($integrations);
+        $this->assertContains(AdvancedCustomFields::class, $integrations);
 
         foreach ($integrations as $integration) {
             $this->assertIsString($integration);

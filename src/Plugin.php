@@ -9,6 +9,7 @@ use n5s\PageForCustomPostType\Core\Api;
 use n5s\PageForCustomPostType\Core\RewriteManager;
 use n5s\PageForCustomPostType\Frontend\Handler;
 use n5s\PageForCustomPostType\Frontend\QueryFilter;
+use n5s\PageForCustomPostType\Integration\AdvancedCustomFields;
 use n5s\PageForCustomPostType\Integration\Autodescription;
 use n5s\PageForCustomPostType\Integration\IntegrationInterface;
 use n5s\PageForCustomPostType\Integration\Polylang;
@@ -184,6 +185,7 @@ final class Plugin
     public function getIntegrations(): array
     {
         return [
+            AdvancedCustomFields\AdvancedCustomFields::class,
             Polylang\Polylang::class,
             WordPressSeo\WordPressSeo::class,
             Wpml\Wpml::class,

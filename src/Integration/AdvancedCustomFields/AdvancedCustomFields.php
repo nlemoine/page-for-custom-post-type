@@ -16,7 +16,7 @@ final class AdvancedCustomFields implements IntegrationInterface
 {
     public function isSupported(): bool
     {
-        return \class_exists('ACF_Location_Page_Type');
+        return \function_exists('acf_register_location_type');
     }
 
     public function registerHooks(): void

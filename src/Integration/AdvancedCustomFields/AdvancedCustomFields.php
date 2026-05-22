@@ -31,7 +31,7 @@ final class AdvancedCustomFields implements IntegrationInterface
         }
 
         $store = acf_get_store('location-types');
-        $locationType = new LocationPageType();
-        $store->set($locationType->name, $locationType);
+        $store->remove('page_type');
+        acf_register_location_type(LocationPageType::class);
     }
 }

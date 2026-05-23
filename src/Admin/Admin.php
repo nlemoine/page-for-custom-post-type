@@ -241,15 +241,17 @@ final class Admin
         if ($postTypeObject && $pageId) {
             $postType = 'post';
             $editPostLink = get_edit_post_link($pageId);
-            $archivesLabel = \is_string($postTypeObject->labels->archives) ? $postTypeObject->labels->archives : $postType;
+            if ($editPostLink) {
+                $archivesLabel = \is_string($postTypeObject->labels->archives) ? $postTypeObject->labels->archives : $postType;
 
-            add_submenu_page(
-                'edit.php',
-                $archivesLabel,
-                $archivesLabel,
-                'edit_pages',
-                $editPostLink
-            );
+                add_submenu_page(
+                    'edit.php',
+                    $archivesLabel,
+                    $archivesLabel,
+                    'edit_pages',
+                    $editPostLink
+                );
+            }
         }
 
         foreach ($this->api->getPageIds() as $postType => $pageId) {

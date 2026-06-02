@@ -20,6 +20,7 @@ $availablePlugins = [
     'wordpress-seo' => 'wordpress-seo/wp-seo.php',
     'polylang' => 'polylang/polylang.php',
     'autodescription' => 'autodescription/autodescription.php',
+    'advanced-custom-fields' => 'advanced-custom-fields/acf.php',
 ];
 $requestedPlugins = array_filter(explode(',', getenv('PLUGINS') ?: ''));
 $plugins = array_values(array_filter(array_map(static function (string $p) use ($availablePlugins): ?string {

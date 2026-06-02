@@ -91,8 +91,10 @@
             "@test:wordpress-seo",
             "@test:polylang",
             "@test:wpml",
-            "@test:autodescription"
+            "@test:autodescription",
+            "@test:advanced-custom-fields"
         ],
+        "test:advanced-custom-fields": "PLUGINS=advanced-custom-fields phpunit --testsuite=unit,integration,plugin-integration",
         "test:autodescription": "PLUGINS=autodescription phpunit --testsuite=unit,integration,plugin-integration",
         "test:core": "phpunit --testsuite=unit,integration",
         "test:coverage": "php -d pcov.enabled=1 phpunit --testsuite=unit,integration --coverage-text",

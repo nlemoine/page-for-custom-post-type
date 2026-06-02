@@ -142,7 +142,9 @@ final class Container
             ),
 
             // Integration composites
-            AdvancedCustomFields\AdvancedCustomFields::class => static fn (): AdvancedCustomFields\AdvancedCustomFields => new AdvancedCustomFields\AdvancedCustomFields(),
+            AdvancedCustomFields\AdvancedCustomFields::class => fn (): AdvancedCustomFields\AdvancedCustomFields => new AdvancedCustomFields\AdvancedCustomFields(
+                $this->get(Api::class)
+            ),
             Polylang\Polylang::class => fn (): Polylang\Polylang => new Polylang\Polylang(
                 $this->get(Polylang\UrlTranslation::class),
                 $this->get(Polylang\Translation::class),

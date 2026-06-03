@@ -52,6 +52,8 @@ jobs:
           - test:wordpress-seo
           - test:polylang
           - test:autodescription
+          - test:wpml
+          - test:advanced-custom-fields
         include:
           - php: '8.2'
             wp: 'trunk'
@@ -87,6 +89,8 @@ jobs:
         run: PLUGINS=wordpress-seo php -d pcov.enabled=1 vendor/bin/phpunit --testsuite=plugin-integration --coverage-php=build/coverage-wordpress-seo.cov
       - name: Coverage (autodescription)
         run: PLUGINS=autodescription php -d pcov.enabled=1 vendor/bin/phpunit --testsuite=plugin-integration --coverage-php=build/coverage-autodescription.cov
+      - name: Coverage (advanced-custom-fields)
+        run: PLUGINS=advanced-custom-fields php -d pcov.enabled=1 vendor/bin/phpunit --testsuite=plugin-integration --coverage-php=build/coverage-advanced-custom-fields.cov
       - name: Merge coverage
         run: |
           composer require --dev phpunit/phpcov --quiet

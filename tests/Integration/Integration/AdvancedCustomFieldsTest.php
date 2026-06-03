@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace n5s\PageForCustomPostType\Tests\Integration\Integration;
 
+use n5s\PageForCustomPostType\Core\Api;
+use n5s\PageForCustomPostType\Integration\AdvancedCustomFields\AdvancedCustomFields;
 use n5s\PageForCustomPostType\Tests\Fixtures\TestCase;
 use PHPUnit\Framework\Attributes\RequiresFunction;
 
@@ -28,6 +30,22 @@ class AdvancedCustomFieldsTest extends TestCase
         parent::setUp();
         $this->createFixtures();
         $this->configureStaticFrontPage();
+    }
+
+    public function testIsSupported(): void
+    {
+        $acf = new AdvancedCustomFields(new Api());
+
+        $this->assertTrue($acf->isSupported());
+    }
+
+    public function testRegisterHooksAttachesLocationFilters(): void
+    {
+        $acf = new AdvancedCustomFields(new Api());
+        $acf->registerHooks();
+
+        $this->assertNotFalse(has_filter('acf/location/rule_values/type=page_type', [$acf, 'addPageTypeValues']));
+        $this->assertNotFalse(has_filter('acf/location/match_rule/type=page_type', [$acf, 'matchPageType']));
     }
 
     public function testPageTypeValuesIncludeCustomPostTypePages(): void
@@ -86,6 +104,21 @@ class AdvancedCustomFieldsTest extends TestCase
             [],
             []
         );
+
+        $this->assertFalse($matched);
+    }
+
+    public function testMatchRuleReturnsFalseWhenPostDoesNotExist(): void
+    {
+        // get_post() returns null for a non-existent ID.
+        $matched = $this->applyMatchFilter('==', 'book_page', 999999);
+
+        $this->assertFalse($matched);
+    }
+
+    public function testMatchRuleReturnsFalseForUnknownPostTypeValue(): void
+    {
+        $matched = $this->applyMatchFilter('==', 'movie_page', $this->homeForBookId);
 
         $this->assertFalse($matched);
     }

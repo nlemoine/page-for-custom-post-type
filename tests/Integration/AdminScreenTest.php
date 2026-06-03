@@ -24,7 +24,7 @@ class AdminScreenTest extends TestCase
         if (!\function_exists('add_settings_section')) {
             require_once \ABSPATH . 'wp-admin/includes/template.php';
         }
-        if (!\function_exists('register_setting')) {
+        if (!\function_exists('add_submenu_page')) {
             require_once \ABSPATH . 'wp-admin/includes/plugin.php';
         }
 

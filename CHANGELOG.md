@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.0](https://github.com/nlemoine/page-for-custom-post-type/compare/1.0.1...1.1.0) (2026-06-03)
+
+
+### Features
+
+* **acf:** target PFCPT pages via page_type location filters ([b293aff](https://github.com/nlemoine/page-for-custom-post-type/commit/b293aff15fc50b206179bafc291a4d8bc27138e7))
+
+
+### Bug Fixes
+
+* **acf:** bootstrap Advanced Custom Fields integration ([45a7042](https://github.com/nlemoine/page-for-custom-post-type/commit/45a704261c652a3d88ea2fcf4c41a2995ed9f07d))
+
 ## [1.0.1](https://github.com/nlemoine/page-for-custom-post-type/compare/1.0.0...1.0.1) (2026-05-08)
 
 

@@ -8,7 +8,6 @@ use n5s\PageForCustomPostType\Core\Api;
 use Yoast\WP\SEO\Context\Meta_Tags_Context;
 use Yoast\WP\SEO\Main;
 use Yoast\WP\SEO\Models\Indexable;
-use Yoast\WP\SEO\Repositories\Indexable_Repository;
 use Yoast\WP\SEO\Surfaces\Values\Meta;
 
 /**
@@ -26,7 +25,6 @@ final class Breadcrumbs
 
     public function registerHooks(): void
     {
-        add_filter('wpseo_breadcrumb_indexables', [$this, 'fixHomeBreadcrumbs'], 10, 2);
         add_filter('wpseo_breadcrumb_indexables', [$this, 'fixTaxonomyBreadcrumbs'], 10, 2);
         add_filter('wpseo_breadcrumb_indexables', [$this, 'fixPostBreadcrumbs'], 10, 2);
     }
@@ -121,52 +119,6 @@ final class Breadcrumbs
             0,
             [$pageForPostTypeMeta->indexable]
         );
-
-        return $indexables;
-    }
-
-    /**
-     * Fix Yoast breadcrumbs on home.
-     *
-     * @param Indexable[] $indexables
-     * @return Indexable[]
-     */
-    public function fixHomeBreadcrumbs(array $indexables, Meta_Tags_Context $context): array
-    {
-        if (!$this->api->isQueryPageForCustomPostType()) {
-            return $indexables;
-        }
-
-        $yoast = $this->getYoast();
-
-        if ($yoast->helpers->current_page->get_page_type() !== 'Home_Page') {
-            return $indexables;
-        }
-
-        /** @var Indexable_Repository $indexableRepository */
-        $indexableRepository = $yoast->classes->get(Indexable_Repository::class);
-        $staticAncestors = [];
-
-        $breadcrumbsHome = $yoast->helpers->options->get('breadcrumbs-home');
-
-        if ($breadcrumbsHome !== '') {
-            $frontPageId = $yoast->helpers->current_page->get_front_page_id();
-
-            $staticAncestor = $frontPageId === 0
-                ? $indexableRepository->find_for_home_page()
-                : $indexableRepository->find_by_id_and_type($frontPageId, 'post');
-
-            if (
-                $staticAncestor instanceof Indexable
-                && ($frontPageId === 0 || $staticAncestor->post_status !== 'unindexed')
-            ) {
-                $staticAncestors[] = $staticAncestor;
-            }
-        }
-
-        if (!empty($staticAncestors)) {
-            array_unshift($indexables, ...$staticAncestors);
-        }
 
         return $indexables;
     }

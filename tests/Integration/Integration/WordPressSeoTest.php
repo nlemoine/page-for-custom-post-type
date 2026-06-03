@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace n5s\PageForCustomPostType\Tests\Integration\Integration;
 
+use n5s\PageForCustomPostType\Core\Api;
+use n5s\PageForCustomPostType\Integration\WordPressSeo\Breadcrumbs;
+use n5s\PageForCustomPostType\Integration\WordPressSeo\Indexables;
+use n5s\PageForCustomPostType\Integration\WordPressSeo\Schema;
+use n5s\PageForCustomPostType\Integration\WordPressSeo\WordPressSeo;
 use n5s\PageForCustomPostType\Tests\Fixtures\TestCase;
 use PHPUnit\Framework\Attributes\RequiresFunction;
 use Yoast\WP\SEO\Memoizers\Meta_Tags_Context_Memoizer;
@@ -168,5 +173,79 @@ class WordPressSeoTest extends TestCase
         $type = apply_filters('wpseo_schema_webpage_type', 'WebPage');
 
         $this->assertEquals('WebPage', $type);
+    }
+
+    public function testSchemaWebpageTypeDoesNotDuplicateCollectionPage(): void
+    {
+        $this->get($this->getBookHomeUrl());
+
+        // CollectionPage already present: the filter must return it unchanged.
+        $type = apply_filters('wpseo_schema_webpage_type', ['WebPage', 'CollectionPage']);
+
+        $this->assertSame(['WebPage', 'CollectionPage'], $type);
+    }
+
+    public function testIsSupported(): void
+    {
+        $seo = new WordPressSeo(new Schema(new Api()), new Breadcrumbs(new Api()), new Indexables(new Api()));
+
+        $this->assertTrue($seo->isSupported());
+    }
+
+    public function testRegisterHooksRegistersAllSubIntegrations(): void
+    {
+        $schema = new Schema(new Api());
+        $breadcrumbs = new Breadcrumbs(new Api());
+        $indexables = new Indexables(new Api());
+
+        (new WordPressSeo($schema, $breadcrumbs, $indexables))->registerHooks();
+
+        $this->assertNotFalse(has_filter('wpseo_schema_webpage_type', [$schema, 'addCollectionPageType']));
+        $this->assertNotFalse(has_filter('wpseo_breadcrumb_indexables', [$breadcrumbs, 'fixPostBreadcrumbs']));
+        $this->assertNotFalse(has_filter('wpseo_breadcrumb_indexables', [$breadcrumbs, 'fixTaxonomyBreadcrumbs']));
+        $this->assertNotFalse(has_action('wp', [$indexables, 'configurePageDetection']));
+    }
+
+    public function testPageDetectionResolvesPfcptPageWithStaticFrontPage(): void
+    {
+        // With a static front page, Yoast's Current_Page_Helper would resolve the
+        // posts page instead of the PFCPT page. Indexables::configurePageDetection
+        // intercepts show_on_front (only for that helper) so detection falls through
+        // to the PFCPT page id.
+        $this->configureStaticFrontPage();
+
+        $memoizer = \YoastSEO()->classes->get(Meta_Tags_Context_Memoizer::class);
+        $memoizer->clear();
+
+        $this->get($this->getBookHomeUrl());
+
+        $meta = \YoastSEO()->meta->for_current_page();
+
+        $this->assertSame($this->getBookHomeUrl(), $meta->canonical);
+    }
+
+    public function testTaxonomyBreadcrumbsSkippedForNonMainTaxonomy(): void
+    {
+        // The breadcrumb fix only applies when the current taxonomy is the post
+        // type's configured main taxonomy. Point books' main taxonomy elsewhere
+        // and confirm the genre archive is left untouched (no PFCPT crumb).
+        \YoastSEO()->helpers->options->set('post_types-' . self::BOOK_POST_TYPE . '-maintax', 'category');
+
+        $genreId = $this->getOrCreateTerm(self::GENRE_TAXONOMY, 'Fantasy');
+        foreach ($this->bookIds as $bookId) {
+            wp_set_object_terms($bookId, $genreId, self::GENRE_TAXONOMY);
+        }
+
+        $memoizer = \YoastSEO()->classes->get(Meta_Tags_Context_Memoizer::class);
+        $memoizer->clear();
+
+        $genre = get_term($genreId, self::GENRE_TAXONOMY);
+        $this->get(get_term_link($genre));
+
+        $meta = \YoastSEO()->meta->for_current_page();
+
+        foreach ($meta->breadcrumbs as $crumb) {
+            $this->assertNotSame($this->homeForBookId, \is_array($crumb) ? ($crumb['id'] ?? null) : null);
+        }
     }
 }

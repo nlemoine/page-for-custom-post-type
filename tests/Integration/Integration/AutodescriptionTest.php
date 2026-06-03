@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace n5s\PageForCustomPostType\Tests\Integration\Integration;
 
+use n5s\PageForCustomPostType\Core\Api;
+use n5s\PageForCustomPostType\Integration\Autodescription\Autodescription;
+use n5s\PageForCustomPostType\Integration\Autodescription\Breadcrumbs;
+use n5s\PageForCustomPostType\Integration\Autodescription\QueryType;
 use n5s\PageForCustomPostType\Tests\Fixtures\TestCase;
 use PHPUnit\Framework\Attributes\RequiresFunction;
 use PHPUnit\Framework\Attributes\WithoutErrorHandler;
@@ -193,6 +197,60 @@ class AutodescriptionTest extends TestCase
         foreach ($breadcrumbs as $crumb) {
             $this->assertNotEquals($this->getBookHomeUrl(), $crumb['url'] ?? '');
         }
+    }
+
+    public function testIsSupported(): void
+    {
+        $autodescription = new Autodescription(new QueryType(new Api()), new Breadcrumbs(new Api()));
+
+        $this->assertTrue($autodescription->isSupported());
+    }
+
+    public function testRegisterHooksRegistersSubIntegrations(): void
+    {
+        $queryType = new QueryType(new Api());
+        $breadcrumbs = new Breadcrumbs(new Api());
+
+        (new Autodescription($queryType, $breadcrumbs))->registerHooks();
+
+        $this->assertNotFalse(has_filter('the_seo_framework_is_singular_archive', [$queryType, 'markPfcptAsSingularArchive']));
+        $this->assertNotFalse(has_filter('the_seo_framework_breadcrumb_list', [$breadcrumbs, 'addPfcptPageCrumb']));
+    }
+
+    public function testSingularArchiveShortCircuitsWhenAlreadyTrue(): void
+    {
+        $queryType = new QueryType(new Api());
+
+        $this->assertTrue($queryType->markPfcptAsSingularArchive(true, null));
+    }
+
+    public function testSingularArchiveResolvedFromExplicitPageId(): void
+    {
+        $queryType = new QueryType(new Api());
+
+        $this->assertTrue($queryType->markPfcptAsSingularArchive(false, $this->homeForBookId));
+
+        $regularId = self::factory()->post->create(['post_type' => 'post']);
+        $this->assertFalse($queryType->markPfcptAsSingularArchive(false, $regularId));
+    }
+
+    public function testBreadcrumbCrumbSkippedForUnresolvableArgs(): void
+    {
+        $breadcrumbs = new Breadcrumbs(new Api());
+        $list = [['url' => home_url('/'), 'name' => 'Home']];
+
+        // id is neither int nor WP_Post
+        $this->assertSame($list, $breadcrumbs->addPfcptPageCrumb($list, ['id' => 'not-an-id']));
+        // id points to a non-existent post
+        $this->assertSame($list, $breadcrumbs->addPfcptPageCrumb($list, ['id' => 999999]));
+        // taxonomy is not a string
+        $this->assertSame($list, $breadcrumbs->addPfcptPageCrumb($list, ['id' => 1, 'tax' => 123]));
+        // neither a single post nor a taxonomy archive
+        $this->assertSame($list, $breadcrumbs->addPfcptPageCrumb($list, ['uid' => 7]));
+        // unknown taxonomy
+        $this->assertSame($list, $breadcrumbs->addPfcptPageCrumb($list, ['id' => 1, 'tax' => 'does_not_exist']));
+        // real taxonomy with no PFCPT-bound post type
+        $this->assertSame($list, $breadcrumbs->addPfcptPageCrumb($list, ['id' => 1, 'tax' => 'category']));
     }
 
     /**

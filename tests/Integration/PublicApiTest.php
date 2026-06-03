@@ -97,6 +97,14 @@ class PublicApiTest extends TestCase
         );
     }
 
+    public function testGetPageIdForCustomPostTypeReturnsNullOnRegularPage(): void
+    {
+        $this->setExpectedDeprecated('get_page_id_for_custom_post_type');
+        $this->get(get_permalink($this->staticFrontPageId));
+
+        $this->assertNull(get_page_id_for_custom_post_type());
+    }
+
     public function testGetPageUrlForCustomPostTypeReturnsUrl(): void
     {
         $this->setExpectedDeprecated('get_page_url_for_custom_post_type');

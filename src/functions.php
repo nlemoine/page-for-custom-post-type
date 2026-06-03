@@ -73,6 +73,10 @@ namespace n5s\PageForCustomPostType {
 }
 
 namespace {
+    // Deprecated back-compat shims. The function_exists() guards run during
+    // Composer's files autoload, before coverage starts, so they cannot be
+    // covered; the function bodies are exercised by PublicApiTest.
+    // @codeCoverageIgnoreStart
     if (!\function_exists('is_page_for_custom_post_type')) {
         /**
          * @deprecated 1.0.0 Use \n5s\PageForCustomPostType\is_page_for_custom_post_type() instead.
@@ -124,4 +128,5 @@ namespace {
             return \n5s\PageForCustomPostType\get_page_url_for_custom_post_type($postType);
         }
     }
+    // @codeCoverageIgnoreEnd
 }

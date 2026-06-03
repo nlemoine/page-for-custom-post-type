@@ -58,6 +58,16 @@ if ($isPolylang) {
             return;
         }
 
+        // Polylang only loads its API (the pll_* functions and PLL()) when
+        // init() enters a context via init_context(). In PHPUnit there is no
+        // request context and no languages exist yet, so init() detects an
+        // empty context and returns before requiring src/api.php — leaving
+        // PLL() undefined and every PolylangTest skipped. Force a frontend
+        // context so the API loads; languages are (re)created per test by
+        // TestCase::setPolylangDefaultLanguage() after Refresh_Database rolls
+        // them back.
+        add_filter('pll_context', static fn (string $class): string => $class ?: 'PLL_Frontend');
+
         $polylangBootstrap = new \Polylang();
         $polylangBootstrap->init();
     });

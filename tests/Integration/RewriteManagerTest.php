@@ -162,6 +162,52 @@ class RewriteManagerTest extends TestCase
         $this->assertStringContainsString('[^/]+', $wp_rewrite->rewritereplace[$tagIndex]);
     }
 
+    public function testAddRewriteTagsKeepsAttachmentRulesUsable(): void
+    {
+        $postTypeObject = get_post_type_object(self::BOOK_POST_TYPE);
+        $this->assertNotNull($postTypeObject);
+
+        $this->rewriteManager->addRewriteTags($postTypeObject);
+
+        global $wp_rewrite;
+
+        // Generate the rules the way WP_Rewrite::rewrite_rules() does for a
+        // post type permastruct, so accumulated rules from earlier
+        // registrations in this process can't mask the result.
+        $struct = $wp_rewrite->extra_permastructs[self::BOOK_POST_TYPE];
+        $rules = $this->rewriteManager->restorePageExclusion(
+            $wp_rewrite->generate_rewrite_rules(
+                $struct['struct'],
+                $struct['ep_mask'],
+                $struct['paged'],
+                $struct['feed'],
+                $struct['forcomments'],
+                $struct['walk_dirs'],
+                $struct['endpoints']
+            )
+        );
+
+        $attachmentRules = array_keys(array_filter(
+            $rules,
+            static fn (string $query): bool => $query === 'index.php?attachment=$matches[1]'
+        ));
+
+        $this->assertNotEmpty($attachmentRules, 'No attachment rewrite rule was generated');
+
+        $matching = array_filter(
+            $attachmentRules,
+            static fn (string $regex): bool => preg_match("#^{$regex}#", 'books/a-book/an-image') === 1
+        );
+
+        $this->assertNotEmpty(
+            $matching,
+            'No attachment rule matches books/a-book/an-image. Attachment sub-rules are built '
+            . "from the parent match with str_replace(['(', ')'], '', \$match), which turns the "
+            . '(?!page) lookahead into the literal "?!page". Generated rules: '
+            . implode(', ', $attachmentRules)
+        );
+    }
+
     public function testAddRewriteTagsForHierarchicalPostType(): void
     {
         register_post_type('hierarchical_cpt', [

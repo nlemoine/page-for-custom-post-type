@@ -13,6 +13,11 @@ final class RewriteManager
 {
     private const SLUG_CACHE_SUFFIX = '_slug';
 
+    /**
+     * Lookahead preventing a post name from matching the "page" pagination segment.
+     */
+    private const PAGE_EXCLUSION = '(?!page)';
+
     public function __construct(
         private readonly Api $api
     ) {
@@ -94,8 +99,6 @@ final class RewriteManager
      */
     public function addRewriteTags(WP_Post_Type $postType): void
     {
-        $excludePageRegex = '(?!page)';
-
         $rewrite = $postType->rewrite;
         $permastruct = \is_array($rewrite) ? ($rewrite['permastruct'] ?? null) : null;
 
@@ -107,7 +110,7 @@ final class RewriteManager
 
             add_rewrite_tag(
                 "%{$postType->name}%",
-                "{$excludePageRegex}{$regex}",
+                self::PAGE_EXCLUSION . $regex,
                 $postType->query_var ? "{$postType->query_var}=" : "post_type={$postType->name}&{$queryParam}="
             );
 
@@ -116,7 +119,36 @@ final class RewriteManager
 
         // Custom permastruct: find tags before %postname%/%post_id% that need
         // the (?!page) exclusion added to their regex.
-        $this->fixPermastructRewriteTags($permastruct, $excludePageRegex);
+        $this->fixPermastructRewriteTags($permastruct);
+    }
+
+    /**
+     * Restore the (?!page) exclusion in rules where WordPress stripped its parentheses.
+     *
+     * WP_Rewrite::generate_rewrite_rules() builds the attachment sub-rules of a
+     * single from its own match, with str_replace(['(', ')'], '', $match) to get
+     * rid of the capture groups, so that the attachment name is always
+     * $matches[1]. That also strips the parentheses of the exclusion added in
+     * addRewriteTags() and leaves a literal "?!page" behind, which matches
+     * nothing: attachment URLs under a single (/books/a-book/an-image/) end up
+     * matching no rule at all and 404.
+     *
+     * Put the lookahead back, still without a capture group so the indexes
+     * WordPress computed for those rules stay valid.
+     *
+     * @param array<string, string> $rules
+     * @return array<string, string>
+     */
+    public function restorePageExclusion(array $rules): array
+    {
+        $restored = [];
+
+        foreach ($rules as $regex => $query) {
+            $fixed = preg_replace('/(?<!\()\?!page/', self::PAGE_EXCLUSION, $regex);
+            $restored[\is_string($fixed) ? $fixed : $regex] = $query;
+        }
+
+        return $restored;
     }
 
     /**
@@ -125,7 +157,7 @@ final class RewriteManager
      * Parses the permastruct backwards from %postname%/%post_id% and adds
      * (?!page) to preceding tags like %category% or %author%.
      */
-    private function fixPermastructRewriteTags(string $permastruct, string $excludePageRegex): void
+    private function fixPermastructRewriteTags(string $permastruct): void
     {
         /** @var \WP_Rewrite */
         global $wp_rewrite;
@@ -159,14 +191,14 @@ final class RewriteManager
 
             if (
                 !isset($wp_rewrite->rewritereplace[$tagIndex])
-                || str_contains($wp_rewrite->rewritereplace[$tagIndex], $excludePageRegex)
+                || str_contains($wp_rewrite->rewritereplace[$tagIndex], self::PAGE_EXCLUSION)
             ) {
                 continue;
             }
 
             $replacements[] = [
                 'tag' => $part,
-                'regex' => $excludePageRegex . $wp_rewrite->rewritereplace[$tagIndex],
+                'regex' => self::PAGE_EXCLUSION . $wp_rewrite->rewritereplace[$tagIndex],
                 'query' => $wp_rewrite->queryreplace[$tagIndex],
             ];
         }

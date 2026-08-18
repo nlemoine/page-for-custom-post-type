@@ -54,6 +54,30 @@ class CustomPermastructTest extends TestCase
         $this->assertEquals($this->bookIds[0], get_queried_object_id());
     }
 
+    public function testAttachmentAccessibleWithPageSlugPermastruct(): void
+    {
+        update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', true);
+
+        $this->reRegisterPostType(self::BOOK_POST_TYPE);
+        flush_rewrite_rules();
+
+        $attachmentId = static::factory()->post->create([
+            'post_type' => 'attachment',
+            'post_parent' => $this->bookIds[0],
+            'post_name' => 'an-image',
+            'post_status' => 'inherit',
+            'post_mime_type' => 'image/jpeg',
+        ]);
+
+        $permalink = get_attachment_link($attachmentId);
+        $this->assertStringContainsString('/home-for-books/', $permalink);
+
+        $this->get($permalink);
+
+        $this->assertTrue(is_attachment());
+        $this->assertEquals($attachmentId, get_queried_object_id());
+    }
+
     public function testPaginationWorksWhenUseSlugEnabled(): void
     {
         update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', true);

@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0](https://github.com/nlemoine/page-for-custom-post-type/compare/1.1.0...1.2.0) (2026-08-18)
+
+
+### Features
+
+* **admin:** add the posts page archive link to the Posts menu ([a41041f](https://github.com/nlemoine/page-for-custom-post-type/commit/a41041f5cc3db682430eeacbbf0328e7ac772eb3)), closes [#14](https://github.com/nlemoine/page-for-custom-post-type/issues/14)
+
+
+### Bug Fixes
+
+* **admin:** only link the posts page when a static front page is set ([8753723](https://github.com/nlemoine/page-for-custom-post-type/commit/87537231a7d868da27b466be9994bbf8f2b6c0ad))
+
 ## [1.1.0](https://github.com/nlemoine/page-for-custom-post-type/compare/1.0.1...1.1.0) (2026-06-03)
 
 

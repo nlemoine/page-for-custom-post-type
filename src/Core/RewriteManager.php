@@ -141,11 +141,25 @@ final class RewriteManager
      */
     public function restorePageExclusion(array $rules): array
     {
+        // What WordPress leaves of the exclusion once it stripped the parentheses.
+        $mangled = preg_quote(str_replace(['(', ')'], '', self::PAGE_EXCLUSION), '/');
+
+        // Skip an exclusion that is still intact, and one that is escaped.
+        $pattern = '/(?<![(\\\\])' . $mangled . '/';
+
         $restored = [];
 
         foreach ($rules as $regex => $query) {
-            $fixed = preg_replace('/(?<!\()\?!page/', self::PAGE_EXCLUSION, $regex);
-            $restored[\is_string($fixed) ? $fixed : $regex] = $query;
+            $fixed = preg_replace($pattern, self::PAGE_EXCLUSION, $regex);
+
+            // Never restore onto a regex that already exists, that would drop a rule.
+            if (!\is_string($fixed) || isset($rules[$fixed]) || isset($restored[$fixed])) {
+                $restored[$regex] = $query;
+
+                continue;
+            }
+
+            $restored[$fixed] = $query;
         }
 
         return $restored;

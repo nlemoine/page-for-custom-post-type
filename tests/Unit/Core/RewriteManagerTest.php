@@ -53,6 +53,44 @@ class RewriteManagerTest extends TestCase
             '(.?.+?)/page/?([0-9]{1,})/?$',
             '(.?.+?)/page/?([0-9]{1,})/?$',
         ];
+
+        yield 'escaped question mark is left alone' => [
+            'wiki/(.+?)\?!page/([0-9]+)$',
+            'wiki/(.+?)\?!page/([0-9]+)$',
+        ];
+    }
+
+    /**
+     * @param array<string, string> $rules
+     */
+    #[DataProvider('collidingRulesProvider')]
+    public function testRestorePageExclusionNeverDropsACollidingRule(array $rules): void
+    {
+        $restored = $this->rewriteManager->restorePageExclusion($rules);
+
+        $this->assertSame($rules, $restored);
+    }
+
+    public static function collidingRulesProvider(): iterable
+    {
+        // A site that worked around the stripped parentheses on its own ends up
+        // with both forms. Restoring one onto the other would drop a rule.
+        $mangled = 'books/?!page[^/]+/([^/]+)/?$';
+        $intact = 'books/(?!page)[^/]+/([^/]+)/?$';
+
+        yield 'mangled first' => [
+            [
+                $mangled => 'index.php?attachment=$matches[1]',
+                $intact => 'index.php?attachment=$matches[1]&custom=1',
+            ],
+        ];
+
+        yield 'intact first' => [
+            [
+                $intact => 'index.php?attachment=$matches[1]&custom=1',
+                $mangled => 'index.php?attachment=$matches[1]',
+            ],
+        ];
     }
 
     public function testRestorePageExclusionKeepsRuleOrder(): void

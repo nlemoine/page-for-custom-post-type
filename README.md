@@ -153,8 +153,21 @@ Requires The SEO Framework 5.1+.
 
 ### Advanced Custom Fields
 
-- Adds a `is_page_for_custom_post_type` location rule
-- Allows field groups to be conditionally displayed on PFCPT pages
+Extends the built-in **Page Type** location rule with one value per bound post type, so field groups can target PFCPT pages. Each value is named `{post_type}_page` and is labelled with the post type `archives` label:
+
+```php
+'location' => [
+    [
+        [
+            'param' => 'page_type',
+            'operator' => '==',
+            'value' => 'book_page', // <post_type>_page
+        ],
+    ],
+],
+```
+
+The same values are available from the Page Type dropdown in the field group UI.
 
 Requires ACF 6+.
 

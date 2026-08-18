@@ -76,13 +76,27 @@ class AdminScreenTest extends TestCase
         $this->assertStringContainsString('_use_slug', $output);
     }
 
-    public function testAddPostTypeSubmenusAddsSubmenus(): void
+    public function testAddPostSubmenusAddsSubmenus(): void
+    {
+        $postsPageId = static::factory()->post->create(['post_type' => 'page', 'post_status' => 'publish']);
+        update_option('page_for_posts', $postsPageId);
+
+        $this->acting_as('administrator');
+
+        $this->admin->addPostTypeSubmenus();
+
+        // Check submenus was added for posts
+        $postMenuKey = 'edit.php';
+        $this->assertArrayHasKey($postMenuKey, $GLOBALS['submenu'] ?? []);
+    }
+
+    public function testAddCustomPostTypeSubmenusAddsSubmenus(): void
     {
         $this->acting_as('administrator');
 
         $this->admin->addPostTypeSubmenus();
 
-        // Check submenus were added for at least one post type
+        // Check submenus were added for at least one custom post type
         $bookMenuKey = 'edit.php?post_type=' . self::BOOK_POST_TYPE;
         $this->assertArrayHasKey($bookMenuKey, $GLOBALS['submenu'] ?? []);
     }

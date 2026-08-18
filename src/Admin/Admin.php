@@ -236,6 +236,24 @@ final class Admin
      */
     public function addPostTypeSubmenus(): void
     {
+        $pageId = get_option('page_for_posts');
+        $postTypeObject = get_post_type_object('post');
+        if ($postTypeObject && $pageId) {
+            $postType = 'post';
+            $editPostLink = get_edit_post_link($pageId);
+            if ($editPostLink) {
+                $archivesLabel = \is_string($postTypeObject->labels->archives) ? $postTypeObject->labels->archives : $postType;
+
+                add_submenu_page(
+                    'edit.php',
+                    $archivesLabel,
+                    $archivesLabel,
+                    'edit_pages',
+                    $editPostLink
+                );
+            }
+        }
+
         foreach ($this->api->getPageIds() as $postType => $pageId) {
             $postTypeObject = get_post_type_object($postType);
             if (!$postTypeObject) {

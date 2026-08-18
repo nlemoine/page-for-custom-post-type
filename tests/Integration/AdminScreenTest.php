@@ -28,6 +28,10 @@ class AdminScreenTest extends TestCase
             require_once \ABSPATH . 'wp-admin/includes/plugin.php';
         }
 
+        // Admin menu globals are not reset by WordPress between tests.
+        $GLOBALS['menu'] = [];
+        $GLOBALS['submenu'] = [];
+
         $container = Plugin::getInstance()->getContainer();
         $this->admin = $container->get(Admin::class);
     }
@@ -76,29 +80,69 @@ class AdminScreenTest extends TestCase
         $this->assertStringContainsString('_use_slug', $output);
     }
 
-    public function testAddPostSubmenusAddsSubmenus(): void
+    public function testAddPostTypeSubmenusLinksToPostsPage(): void
     {
-        $postsPageId = static::factory()->post->create(['post_type' => 'page', 'post_status' => 'publish']);
-        update_option('page_for_posts', $postsPageId);
-
+        $this->configureStaticFrontPage();
         $this->acting_as('administrator');
 
         $this->admin->addPostTypeSubmenus();
 
-        // Check submenus was added for posts
-        $postMenuKey = 'edit.php';
-        $this->assertArrayHasKey($postMenuKey, $GLOBALS['submenu'] ?? []);
+        $postTypeObject = get_post_type_object('post');
+        $this->assertInstanceOf(\WP_Post_Type::class, $postTypeObject);
+
+        $expected = [
+            $postTypeObject->labels->archives,
+            'edit_pages',
+            get_edit_post_link($this->staticPageForPostsId),
+            $postTypeObject->labels->archives,
+        ];
+
+        $this->assertSame([$expected], $GLOBALS['submenu']['edit.php'] ?? []);
     }
 
-    public function testAddCustomPostTypeSubmenusAddsSubmenus(): void
+    public function testAddPostTypeSubmenusSkipsPostsPageWhenFrontPageShowsLatestPosts(): void
+    {
+        // `page_for_posts` keeps its value when the front page is switched back
+        // to the latest posts, but it no longer points at the posts archive.
+        $this->configureStaticFrontPage(false);
+        update_option('page_for_posts', $this->staticPageForPostsId);
+
+        $this->acting_as('administrator');
+
+        $this->admin->addPostTypeSubmenus();
+
+        $this->assertArrayNotHasKey('edit.php', $GLOBALS['submenu']);
+    }
+
+    public function testAddPostTypeSubmenusSkipsPostsPageWhenUnset(): void
+    {
+        update_option('show_on_front', 'page');
+        delete_option('page_for_posts');
+
+        $this->acting_as('administrator');
+
+        $this->admin->addPostTypeSubmenus();
+
+        $this->assertArrayNotHasKey('edit.php', $GLOBALS['submenu']);
+    }
+
+    public function testAddPostTypeSubmenusLinksToCustomPostTypePages(): void
     {
         $this->acting_as('administrator');
 
         $this->admin->addPostTypeSubmenus();
 
-        // Check submenus were added for at least one custom post type
-        $bookMenuKey = 'edit.php?post_type=' . self::BOOK_POST_TYPE;
-        $this->assertArrayHasKey($bookMenuKey, $GLOBALS['submenu'] ?? []);
+        $postTypeObject = get_post_type_object(self::BOOK_POST_TYPE);
+        $this->assertInstanceOf(\WP_Post_Type::class, $postTypeObject);
+
+        $expected = [
+            $postTypeObject->labels->archives,
+            'edit_pages',
+            get_edit_post_link($this->homeForBookId),
+            $postTypeObject->labels->archives,
+        ];
+
+        $this->assertSame([$expected], $GLOBALS['submenu']['edit.php?post_type=' . self::BOOK_POST_TYPE] ?? []);
     }
 
     public function testGetExcludedPageIdsExcludesFrontPageAndPostsPage(): void

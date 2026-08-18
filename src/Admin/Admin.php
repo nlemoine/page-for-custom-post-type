@@ -236,25 +236,14 @@ final class Admin
      */
     public function addPostTypeSubmenus(): void
     {
-        $pageId = get_option('page_for_posts');
-        $postTypeObject = get_post_type_object('post');
-        if ($postTypeObject && $pageId) {
-            $postType = 'post';
-            $editPostLink = get_edit_post_link($pageId);
-            if ($editPostLink) {
-                $archivesLabel = \is_string($postTypeObject->labels->archives) ? $postTypeObject->labels->archives : $postType;
+        $pageIds = $this->api->getPageIds();
 
-                add_submenu_page(
-                    'edit.php',
-                    $archivesLabel,
-                    $archivesLabel,
-                    'edit_pages',
-                    $editPostLink
-                );
-            }
+        $postsPageId = $this->getPostsPageId();
+        if ($postsPageId > 0 && !isset($pageIds['post'])) {
+            $pageIds = ['post' => $postsPageId] + $pageIds;
         }
 
-        foreach ($this->api->getPageIds() as $postType => $pageId) {
+        foreach ($pageIds as $postType => $pageId) {
             $postTypeObject = get_post_type_object($postType);
             if (!$postTypeObject) {
                 continue;
@@ -268,13 +257,31 @@ final class Admin
             $archivesLabel = \is_string($postTypeObject->labels->archives) ? $postTypeObject->labels->archives : $postType;
 
             add_submenu_page(
-                'edit.php?post_type=' . $postType,
+                $postType === 'post' ? 'edit.php' : 'edit.php?post_type=' . $postType,
                 $archivesLabel,
                 $archivesLabel,
                 'edit_pages',
                 $editPostLink
             );
         }
+    }
+
+    /**
+     * Get the page assigned to the built-in `post` archive.
+     *
+     * `page_for_posts` keeps its value when the front page is switched back to
+     * the latest posts, so it only points at the posts archive when a static
+     * front page is in use. Mirrors `get_post_type_archive_link()`.
+     */
+    private function getPostsPageId(): int
+    {
+        if (get_option('show_on_front') !== 'page') {
+            return 0;
+        }
+
+        $postsPageOption = get_option('page_for_posts');
+
+        return is_numeric($postsPageOption) ? (int) $postsPageOption : 0;
     }
 
     /**

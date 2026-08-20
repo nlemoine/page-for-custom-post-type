@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace n5s\PageForCustomPostType\Core;
 
-use WP_Post_Type;
-
 /**
  * Manages rewrite rules, page slugs, and related caching.
  */
@@ -33,9 +31,18 @@ final class RewriteManager
 
     /**
      * Get page slug from page ID.
+     *
+     * The permalink is used rather than get_page_uri() so that translation
+     * plugins filtering it are taken into account. Its path carries the rewrite
+     * root (index.php/ on index permalinks), which is not part of the page path
+     * and would be prepended a second time by add_permastruct(), so it is
+     * stripped here.
      */
     public function getPageSlug(int $pageId): ?string
     {
+        /** @var \WP_Rewrite */
+        global $wp_rewrite;
+
         $pageUrl = get_permalink($pageId);
 
         if ($pageUrl === false) {
@@ -44,7 +51,19 @@ final class RewriteManager
 
         $pagePath = parse_url($pageUrl, \PHP_URL_PATH);
 
-        return \is_string($pagePath) ? trim($pagePath, '/') : null;
+        if (!\is_string($pagePath)) {
+            return null;
+        }
+
+        $pagePath = trim($pagePath, '/');
+        $root = trim($wp_rewrite->root, '/');
+
+        if ($root !== '' && str_starts_with($pagePath, $root . '/')) {
+            $pagePath = substr($pagePath, \strlen($root) + 1);
+        }
+
+        // Plain permalinks: the permalink has no path to speak of.
+        return $pagePath === '' ? null : $pagePath;
     }
 
     /**
@@ -85,96 +104,39 @@ final class RewriteManager
     }
 
     /**
-     * Add rewrite tags for a post type.
+     * Register the archive pagination rule for a post type's page.
      *
-     * Handles both standard and custom permalink structures (permastructs).
-     * For custom permastructs (e.g. from extended-cpts), we need to add a
-     * (?!page) exclusion to tags that precede %postname%/%post_id% in the
-     * structure, otherwise /page/2/ pagination URLs get incorrectly matched.
-     */
-    public function addRewriteTags(WP_Post_Type $postType): void
-    {
-        $excludePageRegex = '(?!page)';
-
-        $rewrite = $postType->rewrite;
-        $permastruct = \is_array($rewrite) ? ($rewrite['permastruct'] ?? null) : null;
-
-        if (!\is_string($permastruct)) {
-            remove_rewrite_tag("%{$postType->name}%");
-
-            $regex = $postType->hierarchical ? '(.+?)' : '([^/]+)';
-            $queryParam = $postType->hierarchical ? 'pagename' : 'name';
-
-            add_rewrite_tag(
-                "%{$postType->name}%",
-                "{$excludePageRegex}{$regex}",
-                $postType->query_var ? "{$postType->query_var}=" : "post_type={$postType->name}&{$queryParam}="
-            );
-
-            return;
-        }
-
-        // Custom permastruct: find tags before %postname%/%post_id% that need
-        // the (?!page) exclusion added to their regex.
-        $this->fixPermastructRewriteTags($permastruct, $excludePageRegex);
-    }
-
-    /**
-     * Fix rewrite tags in a custom permastruct to exclude "page" from matching.
+     * The plugin disables has_archive and serves the archive from the page, so
+     * core never generates a pagination rule for that base. When the post type
+     * is rebased on the page slug, /{page}/page/2/ is then swallowed by the
+     * single rule (/{page}/%postname%/ matches with the post name set to
+     * "page") and 404s. The same happens with a custom permastruct, wherever
+     * the tag right after the page slug is greedy enough to match "page".
      *
-     * Parses the permastruct backwards from %postname%/%post_id% and adds
-     * (?!page) to preceding tags like %category% or %author%.
+     * Registering the rule on top resolves the URL to the page itself, which
+     * is what core's generic page rule would have done without the collision.
      */
-    private function fixPermastructRewriteTags(string $permastruct, string $excludePageRegex): void
+    public function addArchivePaginationRule(string $postType): void
     {
         /** @var \WP_Rewrite */
         global $wp_rewrite;
 
-        $parts = array_reverse(explode('/', ltrim($permastruct, '/')));
+        $pageSlug = $this->getCachedPageSlug($postType);
 
-        $triggerTags = ['%postname%', '%post_id%'];
-        $replaceTags = ['%category%', '%author%'];
-        $shouldWatchNext = false;
-        $replacements = [];
-
-        foreach ($parts as $part) {
-            if (!$shouldWatchNext && !\in_array($part, $triggerTags, true)) {
-                continue;
-            }
-
-            if (!$shouldWatchNext) {
-                $shouldWatchNext = true;
-                continue;
-            }
-
-            if (!\in_array($part, $replaceTags, true)) {
-                continue;
-            }
-
-            $tagIndex = array_search($part, $wp_rewrite->rewritecode, true);
-
-            if ($tagIndex === false) {
-                continue;
-            }
-
-            if (
-                !isset($wp_rewrite->rewritereplace[$tagIndex])
-                || str_contains($wp_rewrite->rewritereplace[$tagIndex], $excludePageRegex)
-            ) {
-                continue;
-            }
-
-            $replacements[] = [
-                'tag' => $part,
-                'regex' => $excludePageRegex . $wp_rewrite->rewritereplace[$tagIndex],
-                'query' => $wp_rewrite->queryreplace[$tagIndex],
-            ];
+        if ($pageSlug === null || $pageSlug === '') {
+            return;
         }
 
-        foreach ($replacements as $replacement) {
-            remove_rewrite_tag($replacement['tag']);
-            add_rewrite_tag($replacement['tag'], $replacement['regex'], $replacement['query']);
-        }
+        add_rewrite_rule(
+            \sprintf(
+                '%s%s/%s/?([0-9]{1,})/?$',
+                $wp_rewrite->root,
+                $pageSlug,
+                $wp_rewrite->pagination_base
+            ),
+            \sprintf('index.php?pagename=%s&paged=$matches[1]', $pageSlug),
+            'top'
+        );
     }
 
     /**

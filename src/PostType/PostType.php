@@ -74,11 +74,20 @@ final class PostType
     }
 
     /**
-     * Enable pagination rules for post type.
+     * Register the archive pagination rule for a post type.
+     *
+     * Only needed when the post type is rebased on the page slug: that's the
+     * case where the single rule and the page share a base and swallow
+     * /{page}/page/2/. With the post type's own slug, core's generic page rule
+     * already resolves it.
      */
-    public function addPaginationRewriteTags(string $postType, WP_Post_Type $postTypeObject): void
+    public function addArchivePaginationRule(string $postType, WP_Post_Type $postTypeObject): void
     {
         if (!$this->api->shouldConsiderPostType($postTypeObject)) {
+            return;
+        }
+
+        if (!$this->api->shouldUsePageSlug($postType)) {
             return;
         }
 
@@ -86,7 +95,7 @@ final class PostType
             return;
         }
 
-        $this->rewriteManager->addRewriteTags($postTypeObject);
+        $this->rewriteManager->addArchivePaginationRule($postType);
     }
 
     /**

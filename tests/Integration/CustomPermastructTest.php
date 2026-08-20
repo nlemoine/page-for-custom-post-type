@@ -110,17 +110,33 @@ class CustomPermastructTest extends TestCase
         $this->assertNull($result);
     }
 
-    public function testRewriteTagsExcludePageForPagination(): void
+    public function testArchivePaginationRuleIsRegisteredWhenUseSlugEnabled(): void
     {
-        // Re-register to ensure pagination rewrite tags are set
+        update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', true);
+
         $this->reRegisterPostType(self::BOOK_POST_TYPE);
 
         global $wp_rewrite;
 
-        $bookTag = '%' . self::BOOK_POST_TYPE . '%';
-        $tagIndex = array_search($bookTag, $wp_rewrite->rewritecode, true);
+        $this->assertSame(
+            'index.php?pagename=home-for-books&paged=$matches[1]',
+            $wp_rewrite->extra_rules_top['home-for-books/page/?([0-9]{1,})/?$'] ?? null
+        );
+    }
 
-        $this->assertNotFalse($tagIndex, 'Rewrite tag for book post type should exist');
-        $this->assertStringContainsString('(?!page)', $wp_rewrite->rewritereplace[$tagIndex]);
+    public function testArchivePaginationRuleIsNotRegisteredWhenUseSlugDisabled(): void
+    {
+        update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', false);
+
+        $this->reRegisterPostType(self::BOOK_POST_TYPE);
+
+        global $wp_rewrite;
+
+        // The post type keeps its own slug, core's generic page rule already
+        // resolves /home-for-books/page/2/.
+        $this->assertArrayNotHasKey(
+            'home-for-books/page/?([0-9]{1,})/?$',
+            $wp_rewrite->extra_rules_top
+        );
     }
 }

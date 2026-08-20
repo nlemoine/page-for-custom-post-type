@@ -148,7 +148,7 @@ final class Plugin
 
         // Post type registration hooks
         add_filter('register_post_type_args', [$postType, 'updatePostTypeArgs'], 10, 2);
-        add_action('registered_post_type', [$postType, 'addPaginationRewriteTags'], 10, 2);
+        add_action('registered_post_type', [$postType, 'addArchivePaginationRule'], 10, 2);
 
         // Option lifecycle hooks (watch for each post type)
         add_action('registered_post_type', [$lifecycle, 'watchOptions'], 10, 2);

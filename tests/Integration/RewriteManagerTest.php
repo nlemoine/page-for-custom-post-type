@@ -43,6 +43,40 @@ class RewriteManagerTest extends TestCase
         $this->assertNull($slug);
     }
 
+    public function testGetPageSlugStripsIndexPermalinkRoot(): void
+    {
+        $this->set_permalink_structure('/index.php/%postname%/');
+
+        $this->assertStringContainsString(
+            '/index.php/home-for-books/',
+            (string) get_permalink($this->homeForBookId)
+        );
+
+        $this->assertSame('home-for-books', $this->rewriteManager->getPageSlug($this->homeForBookId));
+    }
+
+    public function testGetPageSlugReturnsNullWithPlainPermalinks(): void
+    {
+        $this->set_permalink_structure('');
+
+        $this->assertNull($this->rewriteManager->getPageSlug($this->homeForBookId));
+    }
+
+    public function testGetPageSlugReturnsFullPathForNestedPage(): void
+    {
+        $parentId = static::factory()->post->create([
+            'post_type' => 'page',
+            'post_name' => 'library',
+            'post_status' => 'publish',
+        ]);
+        wp_update_post([
+            'ID' => $this->homeForBookId,
+            'post_parent' => $parentId,
+        ]);
+
+        $this->assertSame('library/home-for-books', $this->rewriteManager->getPageSlug($this->homeForBookId));
+    }
+
     public function testGetCachedPageSlugCachesResult(): void
     {
         // First call computes and caches
@@ -145,24 +179,97 @@ class RewriteManagerTest extends TestCase
         $this->assertSame(self::BOOK_POST_TYPE, $firedPostType);
     }
 
-    public function testAddRewriteTagsForNonHierarchicalPostType(): void
+    public function testAddArchivePaginationRuleRegistersRuleOnTop(): void
     {
-        $postTypeObject = get_post_type_object(self::BOOK_POST_TYPE);
-        $this->assertNotNull($postTypeObject);
+        global $wp_rewrite;
 
-        $this->rewriteManager->addRewriteTags($postTypeObject);
+        $this->rewriteManager->addArchivePaginationRule(self::BOOK_POST_TYPE);
+
+        $this->assertSame(
+            'index.php?pagename=home-for-books&paged=$matches[1]',
+            $wp_rewrite->extra_rules_top['home-for-books/page/?([0-9]{1,})/?$'] ?? null
+        );
+    }
+
+    public function testAddArchivePaginationRuleUsesPaginationBase(): void
+    {
+        global $wp_rewrite;
+
+        // The pagination base is translatable, the rule must follow it.
+        $wp_rewrite->pagination_base = 'pagina';
+
+        $this->rewriteManager->addArchivePaginationRule(self::BOOK_POST_TYPE);
+
+        $this->assertArrayHasKey(
+            'home-for-books/pagina/?([0-9]{1,})/?$',
+            $wp_rewrite->extra_rules_top
+        );
+    }
+
+    public function testAddArchivePaginationRuleUsesRootWithIndexPermalinks(): void
+    {
+        $this->set_permalink_structure('/index.php/%postname%/');
 
         global $wp_rewrite;
 
-        $bookTag = '%' . self::BOOK_POST_TYPE . '%';
-        $tagIndex = array_search($bookTag, $wp_rewrite->rewritecode, true);
+        $this->assertSame('index.php/', $wp_rewrite->root);
 
-        $this->assertNotFalse($tagIndex);
-        $this->assertStringContainsString('(?!page)', $wp_rewrite->rewritereplace[$tagIndex]);
-        $this->assertStringContainsString('[^/]+', $wp_rewrite->rewritereplace[$tagIndex]);
+        $this->rewriteManager->addArchivePaginationRule(self::BOOK_POST_TYPE);
+
+        $this->assertArrayHasKey(
+            'index.php/home-for-books/page/?([0-9]{1,})/?$',
+            $wp_rewrite->extra_rules_top
+        );
     }
 
-    public function testAddRewriteTagsForHierarchicalPostType(): void
+    public function testAddArchivePaginationRuleUsesFullPathForNestedPage(): void
+    {
+        $parentId = static::factory()->post->create([
+            'post_type' => 'page',
+            'post_name' => 'library',
+            'post_status' => 'publish',
+        ]);
+        wp_update_post([
+            'ID' => $this->homeForBookId,
+            'post_parent' => $parentId,
+        ]);
+        $this->rewriteManager->clearPageSlugCache(self::BOOK_POST_TYPE);
+
+        global $wp_rewrite;
+
+        $this->rewriteManager->addArchivePaginationRule(self::BOOK_POST_TYPE);
+
+        $this->assertSame(
+            'index.php?pagename=library/home-for-books&paged=$matches[1]',
+            $wp_rewrite->extra_rules_top['library/home-for-books/page/?([0-9]{1,})/?$'] ?? null
+        );
+    }
+
+    public function testAddArchivePaginationRuleSkipsUnassignedPostType(): void
+    {
+        global $wp_rewrite;
+
+        $before = $wp_rewrite->extra_rules_top;
+
+        $this->rewriteManager->addArchivePaginationRule('nonexistent');
+
+        $this->assertSame($before, $wp_rewrite->extra_rules_top);
+    }
+
+    public function testPostTypeRewriteTagIsLeftUntouched(): void
+    {
+        global $wp_rewrite;
+
+        // The plugin used to prepend (?!page) here. WordPress strips the
+        // parentheses when it derives the attachment sub-rules from the
+        // single's match, so the tag has to stay exactly what core sets.
+        $tagIndex = array_search('%' . self::BOOK_POST_TYPE . '%', $wp_rewrite->rewritecode, true);
+
+        $this->assertNotFalse($tagIndex);
+        $this->assertSame('([^/]+)', $wp_rewrite->rewritereplace[$tagIndex]);
+    }
+
+    public function testHierarchicalPostTypeRewriteTagIsLeftUntouched(): void
     {
         register_post_type('hierarchical_cpt', [
             'public' => true,
@@ -171,76 +278,67 @@ class RewriteManagerTest extends TestCase
             'query_var' => 'hierarchical_cpt',
         ]);
 
-        $postTypeObject = get_post_type_object('hierarchical_cpt');
-        $this->assertNotNull($postTypeObject);
-
-        $this->rewriteManager->addRewriteTags($postTypeObject);
-
         global $wp_rewrite;
 
-        $tag = '%hierarchical_cpt%';
-        $tagIndex = array_search($tag, $wp_rewrite->rewritecode, true);
+        $tagIndex = array_search('%hierarchical_cpt%', $wp_rewrite->rewritecode, true);
 
         $this->assertNotFalse($tagIndex);
-        $this->assertStringContainsString('(?!page)', $wp_rewrite->rewritereplace[$tagIndex]);
-        $this->assertStringContainsString('.+?', $wp_rewrite->rewritereplace[$tagIndex]);
+        $this->assertSame('(.+?)', $wp_rewrite->rewritereplace[$tagIndex]);
 
         unregister_post_type('hierarchical_cpt');
     }
 
-    public function testAddRewriteTagsWithCustomPermastruct(): void
+    public function testGeneratedRulesKeepWorkingAttachmentSubRules(): void
     {
-        register_post_type('perma_cpt', [
-            'public' => true,
-            'publicly_queryable' => true,
-            'rewrite' => [
-                'slug' => 'perma',
-                'permastruct' => '/perma/%category%/%postname%/',
-            ],
-        ]);
+        update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', true);
 
-        $postTypeObject = get_post_type_object('perma_cpt');
+        $postTypeObject = get_post_type_object(self::BOOK_POST_TYPE);
         $this->assertNotNull($postTypeObject);
-
-        $this->rewriteManager->addRewriteTags($postTypeObject);
+        $args = get_object_vars($postTypeObject);
+        unregister_post_type(self::BOOK_POST_TYPE);
+        register_post_type(self::BOOK_POST_TYPE, $args);
 
         global $wp_rewrite;
 
-        // The %category% tag should now have the (?!page) exclusion
-        $categoryTag = '%category%';
-        $tagIndex = array_search($categoryTag, $wp_rewrite->rewritecode, true);
+        // Generate the post type rules in isolation: rules accumulate in
+        // extra_rules_top on every flush within the same process, so earlier
+        // (intact) copies would otherwise mask a broken regex.
+        $struct = $wp_rewrite->extra_permastructs[self::BOOK_POST_TYPE];
+        $rules = $wp_rewrite->generate_rewrite_rules(
+            $struct['struct'],
+            $struct['ep_mask'],
+            $struct['paged'],
+            $struct['feed'],
+            $struct['forcomments'],
+            $struct['walk_dirs'],
+            $struct['endpoints']
+        );
 
-        $this->assertNotFalse($tagIndex);
-        $this->assertStringContainsString('(?!page)', $wp_rewrite->rewritereplace[$tagIndex]);
+        foreach (array_keys($rules) as $regex) {
+            $this->assertStringNotContainsString(
+                '?!page',
+                $regex,
+                'A lookahead in the rewrite tag leaks into the generated rules'
+            );
+        }
 
-        unregister_post_type('perma_cpt');
-    }
+        $attachmentRules = array_keys(array_filter(
+            $rules,
+            static fn (string $query): bool => $query === 'index.php?attachment=$matches[1]'
+        ));
 
-    public function testAddRewriteTagsWithPermastructSkipsNonMatchingTags(): void
-    {
-        register_post_type('perma_cpt2', [
-            'public' => true,
-            'publicly_queryable' => true,
-            'rewrite' => [
-                'slug' => 'perma2',
-                // No %category% or %author% before %postname% — just a direct slug
-                'permastruct' => '/perma2/%postname%/',
-            ],
-        ]);
+        $this->assertNotEmpty($attachmentRules);
 
-        $postTypeObject = get_post_type_object('perma_cpt2');
-        $this->assertNotNull($postTypeObject);
+        $matching = array_filter(
+            $attachmentRules,
+            static fn (string $regex): bool => preg_match("#^{$regex}#", 'home-for-books/a-book/an-image') === 1
+        );
 
-        // Store original rewrite state
-        global $wp_rewrite;
-        $originalRewriteReplace = $wp_rewrite->rewritereplace;
-
-        $this->rewriteManager->addRewriteTags($postTypeObject);
-
-        // No tags should have been modified
-        $this->assertEquals($originalRewriteReplace, $wp_rewrite->rewritereplace);
-
-        unregister_post_type('perma_cpt2');
+        $this->assertNotEmpty(
+            $matching,
+            'No attachment rule matches home-for-books/a-book/an-image. Generated rules: '
+            . implode(', ', $attachmentRules)
+        );
     }
 
     public function testGetPageSlugCacheKeyFormat(): void

@@ -10,6 +10,7 @@ use n5s\PageForCustomPostType\Core\Api;
 use n5s\PageForCustomPostType\Core\RewriteManager;
 use n5s\PageForCustomPostType\Frontend\Handler;
 use n5s\PageForCustomPostType\Frontend\QueryFilter;
+use n5s\PageForCustomPostType\Frontend\SubPageFallback;
 use n5s\PageForCustomPostType\Integration\AdvancedCustomFields;
 use n5s\PageForCustomPostType\Integration\Autodescription;
 use n5s\PageForCustomPostType\Integration\Polylang;
@@ -70,6 +71,11 @@ final class Container
             QueryFilter::class => fn (): QueryFilter => new QueryFilter(
                 $this->get(Api::class),
                 $this->get(wpdb::class)
+            ),
+
+            SubPageFallback::class => fn (): SubPageFallback => new SubPageFallback(
+                $this->get(Api::class),
+                $this->get(RewriteManager::class)
             ),
 
             // Services with multiple dependencies

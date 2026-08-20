@@ -9,6 +9,7 @@ use n5s\PageForCustomPostType\Core\Api;
 use n5s\PageForCustomPostType\Core\RewriteManager;
 use n5s\PageForCustomPostType\Frontend\Handler;
 use n5s\PageForCustomPostType\Frontend\QueryFilter;
+use n5s\PageForCustomPostType\Frontend\SubPageFallback;
 use n5s\PageForCustomPostType\Integration\AdvancedCustomFields;
 use n5s\PageForCustomPostType\Integration\Autodescription;
 use n5s\PageForCustomPostType\Integration\IntegrationInterface;
@@ -132,7 +133,9 @@ final class Plugin
 
         $handler = $this->container->get(Handler::class);
         $queryFilter = $this->container->get(QueryFilter::class);
+        $subPageFallback = $this->container->get(SubPageFallback::class);
 
+        add_filter('pre_handle_404', [$subPageFallback, 'fallbackToSubPage'], 10, 2);
         add_action('parse_query', [$handler, 'withQueryProperties'], 1);
         add_filter('posts_where', [$queryFilter, 'filterPostsWhere'], 10, 2);
         add_filter('wp_nav_menu_objects', [$queryFilter, 'withCurrentAncestor'], 10, 2);

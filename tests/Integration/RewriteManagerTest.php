@@ -179,11 +179,11 @@ class RewriteManagerTest extends TestCase
         $this->assertSame(self::BOOK_POST_TYPE, $firedPostType);
     }
 
-    public function testAddArchivePaginationRuleRegistersRuleOnTop(): void
+    public function testAddArchiveRulesRegistersRuleOnTop(): void
     {
         global $wp_rewrite;
 
-        $this->rewriteManager->addArchivePaginationRule(self::BOOK_POST_TYPE);
+        $this->rewriteManager->addArchiveRules(self::BOOK_POST_TYPE);
 
         $this->assertSame(
             'index.php?pagename=home-for-books&paged=$matches[1]',
@@ -191,14 +191,44 @@ class RewriteManagerTest extends TestCase
         );
     }
 
-    public function testAddArchivePaginationRuleUsesPaginationBase(): void
+    public function testAddArchiveRulesRegistersTheFeedRules(): void
+    {
+        global $wp_rewrite;
+
+        $this->rewriteManager->addArchiveRules(self::BOOK_POST_TYPE);
+
+        $feeds = '(' . implode('|', $wp_rewrite->feeds) . ')';
+
+        $this->assertSame(
+            'index.php?pagename=home-for-books&feed=$matches[1]',
+            $wp_rewrite->extra_rules_top["home-for-books/feed/{$feeds}/?$"] ?? null
+        );
+        $this->assertSame(
+            'index.php?pagename=home-for-books&feed=$matches[1]',
+            $wp_rewrite->extra_rules_top["home-for-books/{$feeds}/?$"] ?? null
+        );
+    }
+
+    public function testAddArchiveRulesSkipsTheFeedRulesWhenAsked(): void
+    {
+        global $wp_rewrite;
+
+        $this->rewriteManager->addArchiveRules(self::BOOK_POST_TYPE, false);
+
+        $feeds = '(' . implode('|', $wp_rewrite->feeds) . ')';
+
+        $this->assertArrayNotHasKey("home-for-books/{$feeds}/?$", $wp_rewrite->extra_rules_top);
+        $this->assertArrayHasKey('home-for-books/page/?([0-9]{1,})/?$', $wp_rewrite->extra_rules_top);
+    }
+
+    public function testAddArchiveRulesUsesPaginationBase(): void
     {
         global $wp_rewrite;
 
         // The pagination base is translatable, the rule must follow it.
         $wp_rewrite->pagination_base = 'pagina';
 
-        $this->rewriteManager->addArchivePaginationRule(self::BOOK_POST_TYPE);
+        $this->rewriteManager->addArchiveRules(self::BOOK_POST_TYPE);
 
         $this->assertArrayHasKey(
             'home-for-books/pagina/?([0-9]{1,})/?$',
@@ -206,7 +236,7 @@ class RewriteManagerTest extends TestCase
         );
     }
 
-    public function testAddArchivePaginationRuleUsesRootWithIndexPermalinks(): void
+    public function testAddArchiveRulesUsesRootWithIndexPermalinks(): void
     {
         $this->set_permalink_structure('/index.php/%postname%/');
 
@@ -214,7 +244,7 @@ class RewriteManagerTest extends TestCase
 
         $this->assertSame('index.php/', $wp_rewrite->root);
 
-        $this->rewriteManager->addArchivePaginationRule(self::BOOK_POST_TYPE);
+        $this->rewriteManager->addArchiveRules(self::BOOK_POST_TYPE);
 
         $this->assertArrayHasKey(
             'index.php/home-for-books/page/?([0-9]{1,})/?$',
@@ -222,7 +252,7 @@ class RewriteManagerTest extends TestCase
         );
     }
 
-    public function testAddArchivePaginationRuleUsesFullPathForNestedPage(): void
+    public function testAddArchiveRulesUsesFullPathForNestedPage(): void
     {
         $parentId = static::factory()->post->create([
             'post_type' => 'page',
@@ -237,7 +267,7 @@ class RewriteManagerTest extends TestCase
 
         global $wp_rewrite;
 
-        $this->rewriteManager->addArchivePaginationRule(self::BOOK_POST_TYPE);
+        $this->rewriteManager->addArchiveRules(self::BOOK_POST_TYPE);
 
         $this->assertSame(
             'index.php?pagename=library/home-for-books&paged=$matches[1]',
@@ -245,13 +275,13 @@ class RewriteManagerTest extends TestCase
         );
     }
 
-    public function testAddArchivePaginationRuleSkipsUnassignedPostType(): void
+    public function testAddArchiveRulesSkipsUnassignedPostType(): void
     {
         global $wp_rewrite;
 
         $before = $wp_rewrite->extra_rules_top;
 
-        $this->rewriteManager->addArchivePaginationRule('nonexistent');
+        $this->rewriteManager->addArchiveRules('nonexistent');
 
         $this->assertSame($before, $wp_rewrite->extra_rules_top);
     }

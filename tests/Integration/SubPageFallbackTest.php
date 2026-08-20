@@ -178,9 +178,7 @@ class SubPageFallbackTest extends TestCase
 
         global $wp_query;
 
-        // The plugin turns has_archive off, so the post type has no feed rules
-        // and /feed/ lands on the attachment one as attachment=feed.
-        $this->assertMatchedRule('home-for-books/[^/]+/([^/]+)/?$');
+        $this->assertMatchedRule('home-for-books/([^/]+)/(feed|rdf|rss|rss2|atom)/?$');
         $this->assertFalse($wp_query->is_404);
         $this->assertTrue(is_feed());
         $this->assertSame($this->subPageId, get_queried_object_id());

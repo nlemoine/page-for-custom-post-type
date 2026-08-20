@@ -104,7 +104,7 @@ final class RewriteManager
     }
 
     /**
-     * Register the archive pagination rule for a post type's page.
+     * Register the archive rules for a post type's page.
      *
      * The plugin disables has_archive and serves the archive from the page, so
      * core never generates a pagination rule for that base. When the post type
@@ -113,10 +113,12 @@ final class RewriteManager
      * "page") and 404s. The same happens with a custom permastruct, wherever
      * the tag right after the page slug is greedy enough to match "page".
      *
-     * Registering the rule on top resolves the URL to the page itself, which
-     * is what core's generic page rule would have done without the collision.
+     * Registering the rules on top resolves those URLs to the page itself,
+     * which is what core's generic page rules would have done without the
+     * collision. They are the archive rules core adds for a post type with an
+     * archive, pointed at the page instead of the post type.
      */
-    public function addArchivePaginationRule(string $postType): void
+    public function addArchiveRules(string $postType, bool $withFeeds = true): void
     {
         /** @var \WP_Rewrite */
         global $wp_rewrite;
@@ -127,16 +129,46 @@ final class RewriteManager
             return;
         }
 
+        $base = $wp_rewrite->root . $pageSlug;
+        $query = \sprintf('index.php?pagename=%s', $pageSlug);
+
         add_rewrite_rule(
-            \sprintf(
-                '%s%s/%s/?([0-9]{1,})/?$',
-                $wp_rewrite->root,
-                $pageSlug,
-                $wp_rewrite->pagination_base
-            ),
-            \sprintf('index.php?pagename=%s&paged=$matches[1]', $pageSlug),
+            \sprintf('%s/%s/?([0-9]{1,})/?$', $base, $wp_rewrite->pagination_base),
+            $query . '&paged=$matches[1]',
             'top'
         );
+
+        if (!$withFeeds || $wp_rewrite->feeds === []) {
+            return;
+        }
+
+        $feeds = '(' . implode('|', $wp_rewrite->feeds) . ')';
+
+        add_rewrite_rule(\sprintf('%s/feed/%s/?$', $base, $feeds), $query . '&feed=$matches[1]', 'top');
+        add_rewrite_rule(\sprintf('%s/%s/?$', $base, $feeds), $query . '&feed=$matches[1]', 'top');
+    }
+
+    /**
+     * Restore the feed rules of a post type's permastruct.
+     *
+     * WP_Post_Type::set_props() derives rewrite['feeds'] from has_archive, and
+     * overrides an explicit value when has_archive is false, so there is no
+     * way to keep the feeds through the registration args. The flag is copied
+     * to the permastruct right before add_permastruct(), which is where it can
+     * still be put back.
+     */
+    public function restoreFeedRules(string $postType): void
+    {
+        /** @var \WP_Rewrite */
+        global $wp_rewrite;
+
+        $permastruct = $wp_rewrite->extra_permastructs[$postType] ?? null;
+
+        if (!\is_array($permastruct) || !isset($permastruct['feed'])) {
+            return;
+        }
+
+        $wp_rewrite->extra_permastructs[$postType]['feed'] = true;
     }
 
     /**

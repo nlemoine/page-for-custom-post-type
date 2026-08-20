@@ -69,6 +69,14 @@ final class Handler
         $query->is_page = false;
         $query->is_home = true;
         $query->is_posts_page = true;
+
+        // Core drops the comment feed flag once it knows the pagename is the
+        // posts page, otherwise /{page}/feed/ serves the comments of the page
+        // instead of the posts.
+        // @see https://github.com/WordPress/wordpress-develop/blob/6.9/src/wp-includes/class-wp-query.php#L1131
+        if (empty($query->query_vars['withcomments'])) {
+            $query->is_comment_feed = false;
+        }
         $query->{$this->api->getConditionalName($postType)} = true;
         // @phpstan-ignore property.notFound
         $query->{Api::QUERY_VAR_IS_PFCPT} = $postType;

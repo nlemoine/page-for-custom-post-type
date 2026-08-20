@@ -62,7 +62,9 @@ final class Container
 
             SettingsValidator::class => static fn (): SettingsValidator => new SettingsValidator(),
 
-            Migrator::class => static fn (): Migrator => new Migrator(),
+            Migrator::class => fn (): Migrator => new Migrator(
+                $this->get(RewriteManager::class)
+            ),
 
             Handler::class => fn (): Handler => new Handler(
                 $this->get(Api::class)

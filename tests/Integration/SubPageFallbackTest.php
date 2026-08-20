@@ -36,15 +36,23 @@ class SubPageFallbackTest extends TestCase
     {
         update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', true);
 
-        $postTypeObject = get_post_type_object(self::BOOK_POST_TYPE);
+        $this->reRegisterPostType(self::BOOK_POST_TYPE, $args);
+        flush_rewrite_rules();
+    }
+
+    /**
+     * @param array<string, mixed> $args
+     */
+    private function reRegisterPostType(string $postType, array $args = []): void
+    {
+        $postTypeObject = get_post_type_object($postType);
 
         if ($postTypeObject !== null) {
             $args = array_merge(get_object_vars($postTypeObject), $args);
-            unregister_post_type(self::BOOK_POST_TYPE);
+            unregister_post_type($postType);
         }
 
-        register_post_type(self::BOOK_POST_TYPE, $args);
-        flush_rewrite_rules();
+        register_post_type($postType, $args);
     }
 
     private function createSubPages(): void
@@ -438,10 +446,9 @@ class SubPageFallbackTest extends TestCase
     // Scope
     // -----------------------------------------------------------------
 
-    public function testDoesNotApplyToPostTypesWithoutPageSlug(): void
+    public function testDoesNotApplyToAnotherPostTypeSharingTheBase(): void
     {
-        // Page assigned, "use page slug" off: the post type keeps its own
-        // slug, this is plain WordPress behaviour and none of our business.
+        // A post type with no page of its own, registered on the same base.
         $this->createSubPages();
 
         register_post_type('plain_cpt', [
@@ -454,6 +461,31 @@ class SubPageFallbackTest extends TestCase
         $this->get(home_url('/home-for-books/sub-page/'))->assertNotFound();
 
         unregister_post_type('plain_cpt');
+    }
+
+    public function testDoesNotApplyToACollisionItDidNotCreate(): void
+    {
+        // A page is assigned, "use page slug" is off, and the post type
+        // happens to be registered with the page path as its own rewrite
+        // slug. The collision is there but the plugin did not create it, so
+        // plain WordPress behaviour stands: the single rule wins and the URL
+        // 404s.
+        update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', false);
+
+        $this->reRegisterPostType(self::BOOK_POST_TYPE, [
+            'rewrite' => ['slug' => 'home-for-books'],
+        ]);
+        flush_rewrite_rules();
+
+        $this->createSubPages();
+
+        // The post type really does own that base.
+        $this->assertStringStartsWith(
+            home_url('/home-for-books/'),
+            (string) get_permalink($this->bookIds[0])
+        );
+
+        $this->get(home_url('/home-for-books/sub-page/'))->assertNotFound();
     }
 
     public function testCanBeDisabledWithFilter(): void

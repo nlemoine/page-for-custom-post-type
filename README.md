@@ -56,6 +56,16 @@ Once "Use page slug as rewrite slug" is on, changing the page slug breaks every 
 
 Both only fire when the slug actually differs from the saved value, on pages assigned to a CPT with "use page slug" enabled.
 
+### Child pages of the archive page
+
+With "use page slug" on, single posts and the archive page's children share the same base, and WordPress resolves that base to the post type first: `/products/spring-sale/` is looked up as a product, and 404s if there is none, even when a `spring-sale` page exists under the archive page. The plugin serves the page when no post matches, at any depth, so nesting pages under the archive page works.
+
+A post still wins over a page with the same slug, which is WordPress's own order. To turn the fallback off and let those URLs 404:
+
+```php
+add_filter('pfcpt/fallback_to_sub_page', '__return_false');
+```
+
 ## Key differences with native CPT archives
 
 |                    | CPT archive                                                | Page for CPT                                                                                      |
@@ -103,6 +113,7 @@ $wp_query->is_{posttype}_page
 | `pfcpt/page_ids` | Modify the array of page ID / post type mappings |
 | `pfcpt/post_type_from_id/page_id` | Filter page ID resolution for a post type |
 | `pfcpt/dropdown_page_args` | Customize the page dropdown arguments in Settings |
+| `pfcpt/fallback_to_sub_page` | Whether to serve a child page of the archive page when no post matches. Receives the post type and the requested path |
 
 #### Actions
 

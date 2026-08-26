@@ -88,7 +88,7 @@ class FeedTest extends TestCase
 
         global $wp_query;
 
-        $this->assertMatchedRule('home-for-books/([^/]+)/(feed|rdf|rss|rss2|atom)/?$');
+        $this->assertMatchedRule('home-for-books/(?!page)([^/]+)/(feed|rdf|rss|rss2|atom)/?$');
         $this->assertFalse($wp_query->is_404);
         $this->assertTrue($wp_query->is_feed);
         $this->assertTrue($wp_query->is_comment_feed);
@@ -102,7 +102,7 @@ class FeedTest extends TestCase
 
         $this->get(get_permalink($this->bookIds[0]) . 'feed/rss2/');
 
-        $this->assertMatchedRule('home-for-books/([^/]+)/feed/(feed|rdf|rss|rss2|atom)/?$');
+        $this->assertMatchedRule('home-for-books/(?!page)([^/]+)/feed/(feed|rdf|rss|rss2|atom)/?$');
         $this->assertTrue(is_singular(self::BOOK_POST_TYPE));
         $this->assertSame($this->bookIds[0], get_queried_object_id());
         $this->assertSame('rss2', get_query_var('feed'));
@@ -132,7 +132,9 @@ class FeedTest extends TestCase
 
         $this->get($this->getBookHomeUrl() . 'feed/');
 
-        $this->assertMatchedRule('home-for-books/(feed|rdf|rss|rss2|atom)/?$');
+        // Matched as a single named "feed", the child page fallback resolves
+        // it back to the page.
+        $this->assertMatchedRule('home-for-books/(?!page)([^/]+)(?:/([0-9]+))?/?$');
         $this->assertIsBookArchiveFeed();
     }
 
@@ -142,7 +144,7 @@ class FeedTest extends TestCase
 
         $this->get($this->getBookHomeUrl() . 'feed/rss2/');
 
-        $this->assertMatchedRule('home-for-books/feed/(feed|rdf|rss|rss2|atom)/?$');
+        $this->assertMatchedRule('home-for-books/(?!page)([^/]+)/(feed|rdf|rss|rss2|atom)/?$');
         $this->assertSame('rss2', get_query_var('feed'));
         $this->assertIsBookArchiveFeed();
     }
@@ -153,7 +155,7 @@ class FeedTest extends TestCase
 
         $this->get($this->getBookHomeUrl() . 'rss2/');
 
-        $this->assertMatchedRule('home-for-books/(feed|rdf|rss|rss2|atom)/?$');
+        $this->assertMatchedRule('home-for-books/(?!page)([^/]+)(?:/([0-9]+))?/?$');
         $this->assertIsBookArchiveFeed();
     }
 
@@ -243,26 +245,6 @@ class FeedTest extends TestCase
         $this->get(home_url('/home-for-cars/a-car/'));
 
         $this->assertSame($carId, get_queried_object_id());
-
-        unregister_post_type('car');
-    }
-
-    public function testArchiveFeedRuleStaysOffWhenThePostTypeDisabledFeeds(): void
-    {
-        $this->registerCarPostTypeWithoutFeeds();
-
-        global $wp_rewrite;
-
-        $this->assertArrayNotHasKey(
-            'home-for-cars/(feed|rdf|rss|rss2|atom)/?$',
-            $wp_rewrite->extra_rules_top
-        );
-
-        // The pagination rule is registered all the same.
-        $this->assertArrayHasKey(
-            'home-for-cars/page/?([0-9]{1,})/?$',
-            $wp_rewrite->extra_rules_top
-        );
 
         unregister_post_type('car');
     }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace n5s\PageForCustomPostType\Core;
 
+use WP_Post_Type;
+
 /**
  * Manages rewrite rules, page slugs, and related caching.
  */
@@ -104,48 +106,92 @@ final class RewriteManager
     }
 
     /**
-     * Register the archive rules for a post type's page.
+     * Exclude the pagination base from a post type's rewrite tag.
      *
-     * The plugin disables has_archive and serves the archive from the page, so
-     * core never generates a pagination rule for that base. When the post type
-     * is rebased on the page slug, /{page}/page/2/ is then swallowed by the
-     * single rule (/{page}/%postname%/ matches with the post name set to
-     * "page") and 404s. The same happens with a custom permastruct, wherever
-     * the tag right after the page slug is greedy enough to match "page".
+     * The plugin turns has_archive off because the page is the archive, so
+     * core generates no pagination rule for that base. When the post type is
+     * rebased on the page slug, /{page}/page/2/ is then swallowed by the
+     * single rule, which matches with the post name set to the pagination
+     * base, and 404s. A lookahead on the tag keeps the single rules off it,
+     * and the page rules resolve the URL as they would anywhere else.
      *
-     * Registering the rules on top resolves those URLs to the page itself,
-     * which is what core's generic page rules would have done without the
-     * collision. They are the archive rules core adds for a post type with an
-     * archive, pointed at the page instead of the post type.
+     * It goes on the tag rather than in a rule of its own so that every rule
+     * derived from it inherits it, the copies a multilingual plugin builds by
+     * prefixing the language included. A standalone rule would carry a page
+     * path those plugins have no reason to translate, and would not be
+     * duplicated per language either.
      */
-    public function addArchiveRules(string $postType, bool $withFeeds = true): void
+    public function addRewriteTags(WP_Post_Type $postType): void
+    {
+        remove_rewrite_tag("%{$postType->name}%");
+
+        $regex = $postType->hierarchical ? '(.+?)' : '([^/]+)';
+        $queryParam = $postType->hierarchical ? 'pagename' : 'name';
+
+        add_rewrite_tag(
+            "%{$postType->name}%",
+            $this->getPaginationExclusion() . $regex,
+            $postType->query_var ? "{$postType->query_var}=" : "post_type={$postType->name}&{$queryParam}="
+        );
+    }
+
+    /**
+     * Put back the parentheses WordPress strips from the lookahead.
+     *
+     * WP_Rewrite::generate_rewrite_rules() derives the attachment sub-rules of
+     * a single from the single's own match, with
+     * str_replace(['(', ')'], '', $match) to drop the capture groups so that
+     * the attachment name is always $matches[1]. That also strips the ones of
+     * the lookahead added by addRewriteTags() and leaves a literal "?!page"
+     * behind, which matches nothing: attachment URLs under a single end up
+     * matching no rule at all and 404.
+     *
+     * Put the lookahead back, still without a capture group so the indexes
+     * WordPress computed for those rules stay valid. This is filtered on a
+     * single post type's rules, so every regex here comes from our own tag.
+     *
+     * @param array<string, string> $rules
+     * @return array<string, string>
+     */
+    public function restorePaginationExclusion(array $rules): array
+    {
+        $exclusion = $this->getPaginationExclusion();
+        $mangled = str_replace(['(', ')'], '', $exclusion);
+
+        // Skip an exclusion that is still intact: it contains the mangled form.
+        $pattern = '/(?<!\()' . preg_quote($mangled, '/') . '/';
+
+        $restored = [];
+
+        foreach ($rules as $regex => $query) {
+            $fixed = preg_replace($pattern, $exclusion, $regex);
+
+            // Never restore onto a regex that already exists, that would drop
+            // a rule.
+            if (!\is_string($fixed) || isset($rules[$fixed]) || isset($restored[$fixed])) {
+                $restored[$regex] = $query;
+
+                continue;
+            }
+
+            $restored[$fixed] = $query;
+        }
+
+        return $restored;
+    }
+
+    /**
+     * The lookahead keeping a post name from matching the pagination base.
+     *
+     * The base is translatable, so it is read from WP_Rewrite rather than
+     * hardcoded, the way core builds its own pagination rules.
+     */
+    private function getPaginationExclusion(): string
     {
         /** @var \WP_Rewrite */
         global $wp_rewrite;
 
-        $pageSlug = $this->getCachedPageSlug($postType);
-
-        if ($pageSlug === null || $pageSlug === '') {
-            return;
-        }
-
-        $base = $wp_rewrite->root . $pageSlug;
-        $query = \sprintf('index.php?pagename=%s', $pageSlug);
-
-        add_rewrite_rule(
-            \sprintf('%s/%s/?([0-9]{1,})/?$', $base, $wp_rewrite->pagination_base),
-            $query . '&paged=$matches[1]',
-            'top'
-        );
-
-        if (!$withFeeds || $wp_rewrite->feeds === []) {
-            return;
-        }
-
-        $feeds = '(' . implode('|', $wp_rewrite->feeds) . ')';
-
-        add_rewrite_rule(\sprintf('%s/feed/%s/?$', $base, $feeds), $query . '&feed=$matches[1]', 'top');
-        add_rewrite_rule(\sprintf('%s/%s/?$', $base, $feeds), $query . '&feed=$matches[1]', 'top');
+        return \sprintf('(?!%s)', $wp_rewrite->pagination_base);
     }
 
     /**

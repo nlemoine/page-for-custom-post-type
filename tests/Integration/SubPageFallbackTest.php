@@ -122,7 +122,7 @@ class SubPageFallbackTest extends TestCase
 
         global $wp_query;
 
-        $this->assertMatchedRule('home-for-books/([^/]+)(?:/([0-9]+))?/?$');
+        $this->assertMatchedRule('home-for-books/(?!page)([^/]+)(?:/([0-9]+))?/?$');
         $this->assertFalse($wp_query->is_404);
         $this->assertTrue(is_page());
         $this->assertSame($this->subPageId, get_queried_object_id());
@@ -138,7 +138,7 @@ class SubPageFallbackTest extends TestCase
         global $wp_query;
 
         // Matched as attachment=deeper without the fallback.
-        $this->assertMatchedRule('home-for-books/[^/]+/([^/]+)/?$');
+        $this->assertMatchedRule('home-for-books/(?!page)[^/]+/([^/]+)/?$');
         $this->assertFalse($wp_query->is_404);
         $this->assertTrue(is_page());
         $this->assertSame($this->deeperPageId, get_queried_object_id());
@@ -152,7 +152,7 @@ class SubPageFallbackTest extends TestCase
         $this->get(get_permalink($this->deeperPageId))->assertOk();
 
         // The greedy tag of a hierarchical post type swallows the whole depth.
-        $this->assertMatchedRule('home-for-books/(.+?)(?:/([0-9]+))?/?$');
+        $this->assertMatchedRule('home-for-books/(?!page)(.+?)(?:/([0-9]+))?/?$');
         $this->assertTrue(is_page());
         $this->assertSame($this->deeperPageId, get_queried_object_id());
     }
@@ -171,7 +171,7 @@ class SubPageFallbackTest extends TestCase
 
         global $wp_query;
 
-        $this->assertMatchedRule('home-for-books/([^/]+)(?:/([0-9]+))?/?$');
+        $this->assertMatchedRule('home-for-books/(?!page)([^/]+)(?:/([0-9]+))?/?$');
         $this->assertFalse($wp_query->is_404);
         $this->assertSame($this->subPageId, get_queried_object_id());
         $this->assertSame(2, (int) get_query_var('page'));
@@ -186,7 +186,7 @@ class SubPageFallbackTest extends TestCase
 
         global $wp_query;
 
-        $this->assertMatchedRule('home-for-books/([^/]+)/(feed|rdf|rss|rss2|atom)/?$');
+        $this->assertMatchedRule('home-for-books/(?!page)([^/]+)/(feed|rdf|rss|rss2|atom)/?$');
         $this->assertFalse($wp_query->is_404);
         $this->assertTrue(is_feed());
         $this->assertSame($this->subPageId, get_queried_object_id());
@@ -201,7 +201,7 @@ class SubPageFallbackTest extends TestCase
 
         global $wp_query;
 
-        $this->assertMatchedRule('home-for-books/([^/]+)/embed/?$');
+        $this->assertMatchedRule('home-for-books/(?!page)([^/]+)/embed/?$');
         $this->assertFalse($wp_query->is_404);
         $this->assertTrue(is_embed());
         $this->assertSame($this->subPageId, get_queried_object_id());
@@ -216,7 +216,7 @@ class SubPageFallbackTest extends TestCase
 
         global $wp_query;
 
-        $this->assertMatchedRule('home-for-books/([^/]+)/comment-page-([0-9]{1,})/?$');
+        $this->assertMatchedRule('home-for-books/(?!page)([^/]+)/comment-page-([0-9]{1,})/?$');
         $this->assertFalse($wp_query->is_404);
         $this->assertTrue(is_page());
         $this->assertSame($this->subPageId, get_queried_object_id());
@@ -238,7 +238,7 @@ class SubPageFallbackTest extends TestCase
 
         $this->get(get_permalink($this->bookIds[0]) . 'embed/');
 
-        $this->assertMatchedRule('home-for-books/([^/]+)/embed/?$');
+        $this->assertMatchedRule('home-for-books/(?!page)([^/]+)/embed/?$');
         $this->assertTrue(is_embed());
         $this->assertTrue(is_singular(self::BOOK_POST_TYPE));
         $this->assertSame($this->bookIds[0], get_queried_object_id());
@@ -251,7 +251,7 @@ class SubPageFallbackTest extends TestCase
 
         $this->get(get_permalink($this->bookIds[0]) . 'comment-page-2/');
 
-        $this->assertMatchedRule('home-for-books/([^/]+)/comment-page-([0-9]{1,})/?$');
+        $this->assertMatchedRule('home-for-books/(?!page)([^/]+)/comment-page-([0-9]{1,})/?$');
         $this->assertTrue(is_singular(self::BOOK_POST_TYPE));
         $this->assertSame($this->bookIds[0], get_queried_object_id());
         $this->assertSame(2, (int) get_query_var('cpage'));
@@ -266,7 +266,7 @@ class SubPageFallbackTest extends TestCase
 
         $this->get(get_attachment_link($attachmentId) . 'embed/');
 
-        $this->assertMatchedRule('home-for-books/[^/]+/([^/]+)/embed/?$');
+        $this->assertMatchedRule('home-for-books/(?!page)[^/]+/([^/]+)/embed/?$');
         $this->assertTrue(is_attachment());
         $this->assertTrue(is_embed());
         $this->assertSame($attachmentId, get_queried_object_id());
@@ -281,7 +281,7 @@ class SubPageFallbackTest extends TestCase
 
         $this->get(get_attachment_link($attachmentId) . 'feed/');
 
-        $this->assertMatchedRule('home-for-books/[^/]+/([^/]+)/(feed|rdf|rss|rss2|atom)/?$');
+        $this->assertMatchedRule('home-for-books/(?!page)[^/]+/([^/]+)/(feed|rdf|rss|rss2|atom)/?$');
         $this->assertTrue(is_attachment());
         $this->assertTrue(is_feed());
         $this->assertSame($attachmentId, get_queried_object_id());
@@ -296,7 +296,7 @@ class SubPageFallbackTest extends TestCase
 
         $this->get(get_attachment_link($attachmentId) . 'comment-page-2/');
 
-        $this->assertMatchedRule('home-for-books/[^/]+/([^/]+)/comment-page-([0-9]{1,})/?$');
+        $this->assertMatchedRule('home-for-books/(?!page)[^/]+/([^/]+)/comment-page-([0-9]{1,})/?$');
         $this->assertTrue(is_attachment());
         $this->assertSame($attachmentId, get_queried_object_id());
         $this->assertSame(2, (int) get_query_var('cpage'));

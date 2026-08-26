@@ -74,14 +74,14 @@ final class PostType
     }
 
     /**
-     * Register the archive rules for a post type.
+     * Keep the post type rules off the pagination base.
      *
      * Only needed when the post type is rebased on the page slug: that's the
-     * case where the post type rules and the page share a base, and swallow
-     * /{page}/page/2/ and /{page}/feed/. With the post type's own slug, core's
-     * generic page rules already resolve them.
+     * case where the post type rules and the page share a base, so that
+     * /{page}/page/2/ is matched as a single. With the post type's own slug
+     * there is no collision and core's rules already resolve it.
      */
-    public function addArchiveRules(string $postType, WP_Post_Type $postTypeObject): void
+    public function excludePaginationBase(string $postType, WP_Post_Type $postTypeObject): void
     {
         if (!$this->api->shouldConsiderPostType($postTypeObject)) {
             return;
@@ -95,7 +95,15 @@ final class PostType
             return;
         }
 
-        $this->rewriteManager->addArchiveRules($postType, $this->wantsFeeds($postType));
+        $this->rewriteManager->addRewriteTags($postTypeObject);
+
+        // Before the multilingual plugins duplicate the rules per language,
+        // so that both copies come out of a regex that works.
+        add_filter(
+            "{$postType}_rewrite_rules",
+            [$this->rewriteManager, 'restorePaginationExclusion'],
+            5
+        );
     }
 
     /**

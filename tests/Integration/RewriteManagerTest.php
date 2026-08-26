@@ -7,6 +7,7 @@ namespace n5s\PageForCustomPostType\Tests\Integration;
 use n5s\PageForCustomPostType\Core\Api;
 use n5s\PageForCustomPostType\Core\RewriteManager;
 use n5s\PageForCustomPostType\Tests\Fixtures\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class RewriteManagerTest extends TestCase
 {
@@ -179,127 +180,39 @@ class RewriteManagerTest extends TestCase
         $this->assertSame(self::BOOK_POST_TYPE, $firedPostType);
     }
 
-    public function testAddArchiveRulesRegistersRuleOnTop(): void
+    public function testAddRewriteTagsExcludesThePaginationBase(): void
     {
         global $wp_rewrite;
 
-        $this->rewriteManager->addArchiveRules(self::BOOK_POST_TYPE);
+        $postTypeObject = get_post_type_object(self::BOOK_POST_TYPE);
+        $this->assertNotNull($postTypeObject);
 
-        $this->assertSame(
-            'index.php?pagename=home-for-books&paged=$matches[1]',
-            $wp_rewrite->extra_rules_top['home-for-books/page/?([0-9]{1,})/?$'] ?? null
-        );
-    }
+        $this->rewriteManager->addRewriteTags($postTypeObject);
 
-    public function testAddArchiveRulesRegistersTheFeedRules(): void
-    {
-        global $wp_rewrite;
-
-        $this->rewriteManager->addArchiveRules(self::BOOK_POST_TYPE);
-
-        $feeds = '(' . implode('|', $wp_rewrite->feeds) . ')';
-
-        $this->assertSame(
-            'index.php?pagename=home-for-books&feed=$matches[1]',
-            $wp_rewrite->extra_rules_top["home-for-books/feed/{$feeds}/?$"] ?? null
-        );
-        $this->assertSame(
-            'index.php?pagename=home-for-books&feed=$matches[1]',
-            $wp_rewrite->extra_rules_top["home-for-books/{$feeds}/?$"] ?? null
-        );
-    }
-
-    public function testAddArchiveRulesSkipsTheFeedRulesWhenAsked(): void
-    {
-        global $wp_rewrite;
-
-        $this->rewriteManager->addArchiveRules(self::BOOK_POST_TYPE, false);
-
-        $feeds = '(' . implode('|', $wp_rewrite->feeds) . ')';
-
-        $this->assertArrayNotHasKey("home-for-books/{$feeds}/?$", $wp_rewrite->extra_rules_top);
-        $this->assertArrayHasKey('home-for-books/page/?([0-9]{1,})/?$', $wp_rewrite->extra_rules_top);
-    }
-
-    public function testAddArchiveRulesUsesPaginationBase(): void
-    {
-        global $wp_rewrite;
-
-        // The pagination base is translatable, the rule must follow it.
-        $wp_rewrite->pagination_base = 'pagina';
-
-        $this->rewriteManager->addArchiveRules(self::BOOK_POST_TYPE);
-
-        $this->assertArrayHasKey(
-            'home-for-books/pagina/?([0-9]{1,})/?$',
-            $wp_rewrite->extra_rules_top
-        );
-    }
-
-    public function testAddArchiveRulesUsesRootWithIndexPermalinks(): void
-    {
-        $this->set_permalink_structure('/index.php/%postname%/');
-
-        global $wp_rewrite;
-
-        $this->assertSame('index.php/', $wp_rewrite->root);
-
-        $this->rewriteManager->addArchiveRules(self::BOOK_POST_TYPE);
-
-        $this->assertArrayHasKey(
-            'index.php/home-for-books/page/?([0-9]{1,})/?$',
-            $wp_rewrite->extra_rules_top
-        );
-    }
-
-    public function testAddArchiveRulesUsesFullPathForNestedPage(): void
-    {
-        $parentId = static::factory()->post->create([
-            'post_type' => 'page',
-            'post_name' => 'library',
-            'post_status' => 'publish',
-        ]);
-        wp_update_post([
-            'ID' => $this->homeForBookId,
-            'post_parent' => $parentId,
-        ]);
-        $this->rewriteManager->clearPageSlugCache(self::BOOK_POST_TYPE);
-
-        global $wp_rewrite;
-
-        $this->rewriteManager->addArchiveRules(self::BOOK_POST_TYPE);
-
-        $this->assertSame(
-            'index.php?pagename=library/home-for-books&paged=$matches[1]',
-            $wp_rewrite->extra_rules_top['library/home-for-books/page/?([0-9]{1,})/?$'] ?? null
-        );
-    }
-
-    public function testAddArchiveRulesSkipsUnassignedPostType(): void
-    {
-        global $wp_rewrite;
-
-        $before = $wp_rewrite->extra_rules_top;
-
-        $this->rewriteManager->addArchiveRules('nonexistent');
-
-        $this->assertSame($before, $wp_rewrite->extra_rules_top);
-    }
-
-    public function testPostTypeRewriteTagIsLeftUntouched(): void
-    {
-        global $wp_rewrite;
-
-        // The plugin used to prepend (?!page) here. WordPress strips the
-        // parentheses when it derives the attachment sub-rules from the
-        // single's match, so the tag has to stay exactly what core sets.
         $tagIndex = array_search('%' . self::BOOK_POST_TYPE . '%', $wp_rewrite->rewritecode, true);
 
         $this->assertNotFalse($tagIndex);
-        $this->assertSame('([^/]+)', $wp_rewrite->rewritereplace[$tagIndex]);
+        $this->assertSame('(?!page)([^/]+)', $wp_rewrite->rewritereplace[$tagIndex]);
     }
 
-    public function testHierarchicalPostTypeRewriteTagIsLeftUntouched(): void
+    public function testAddRewriteTagsFollowsThePaginationBase(): void
+    {
+        global $wp_rewrite;
+
+        // The base is translatable, the lookahead must follow it.
+        $wp_rewrite->pagination_base = 'pagina';
+
+        $postTypeObject = get_post_type_object(self::BOOK_POST_TYPE);
+        $this->assertNotNull($postTypeObject);
+
+        $this->rewriteManager->addRewriteTags($postTypeObject);
+
+        $tagIndex = array_search('%' . self::BOOK_POST_TYPE . '%', $wp_rewrite->rewritecode, true);
+
+        $this->assertSame('(?!pagina)([^/]+)', $wp_rewrite->rewritereplace[$tagIndex]);
+    }
+
+    public function testAddRewriteTagsKeepsTheHierarchicalRegex(): void
     {
         register_post_type('hierarchical_cpt', [
             'public' => true,
@@ -308,14 +221,77 @@ class RewriteManagerTest extends TestCase
             'query_var' => 'hierarchical_cpt',
         ]);
 
+        $postTypeObject = get_post_type_object('hierarchical_cpt');
+        $this->assertNotNull($postTypeObject);
+
+        $this->rewriteManager->addRewriteTags($postTypeObject);
+
         global $wp_rewrite;
 
         $tagIndex = array_search('%hierarchical_cpt%', $wp_rewrite->rewritecode, true);
 
-        $this->assertNotFalse($tagIndex);
-        $this->assertSame('(.+?)', $wp_rewrite->rewritereplace[$tagIndex]);
+        $this->assertSame('(?!page)(.+?)', $wp_rewrite->rewritereplace[$tagIndex]);
 
         unregister_post_type('hierarchical_cpt');
+    }
+
+    /**
+     * @param array<string, string> $rules
+     * @param array<string, string> $expected
+     */
+    #[DataProvider('mangledRulesProvider')]
+    public function testRestorePaginationExclusion(array $rules, array $expected): void
+    {
+        $this->assertSame($expected, $this->rewriteManager->restorePaginationExclusion($rules));
+    }
+
+    /**
+     * @return iterable<string, array{array<string, string>, array<string, string>}>
+     */
+    public static function mangledRulesProvider(): iterable
+    {
+        yield 'stripped parentheses' => [
+            ['books/?!page[^/]+/([^/]+)/?$' => 'index.php?attachment=$matches[1]'],
+            ['books/(?!page)[^/]+/([^/]+)/?$' => 'index.php?attachment=$matches[1]'],
+        ];
+
+        yield 'stripped parentheses, hierarchical' => [
+            ['books/?!page.+?/attachment/([^/]+)/?$' => 'index.php?attachment=$matches[1]'],
+            ['books/(?!page).+?/attachment/([^/]+)/?$' => 'index.php?attachment=$matches[1]'],
+        ];
+
+        yield 'an intact exclusion is left alone' => [
+            ['books/(?!page)([^/]+)/?$' => 'index.php?book=$matches[1]'],
+            ['books/(?!page)([^/]+)/?$' => 'index.php?book=$matches[1]'],
+        ];
+
+        yield 'an unrelated rule is left alone' => [
+            ['(.?.+?)/page/?([0-9]{1,})/?$' => 'index.php?pagename=$matches[1]&paged=$matches[2]'],
+            ['(.?.+?)/page/?([0-9]{1,})/?$' => 'index.php?pagename=$matches[1]&paged=$matches[2]'],
+        ];
+    }
+
+    public function testRestorePaginationExclusionNeverDropsACollidingRule(): void
+    {
+        $rules = [
+            'books/?!page[^/]+/([^/]+)/?$' => 'index.php?attachment=$matches[1]',
+            'books/(?!page)[^/]+/([^/]+)/?$' => 'index.php?attachment=$matches[1]&custom=1',
+        ];
+
+        $this->assertSame($rules, $this->rewriteManager->restorePaginationExclusion($rules));
+    }
+
+    public function testRestorePaginationExclusionKeepsRuleOrder(): void
+    {
+        $rules = [
+            'books/?!page[^/]+/([^/]+)/?$' => 'index.php?attachment=$matches[1]',
+            'books/(?!page)([^/]+)/?$' => 'index.php?book=$matches[1]',
+        ];
+
+        $this->assertSame([
+            'books/(?!page)[^/]+/([^/]+)/?$',
+            'books/(?!page)([^/]+)/?$',
+        ], array_keys($this->rewriteManager->restorePaginationExclusion($rules)));
     }
 
     public function testGeneratedRulesKeepWorkingAttachmentSubRules(): void
@@ -344,11 +320,15 @@ class RewriteManagerTest extends TestCase
             $struct['endpoints']
         );
 
+        // WordPress strips the parentheses of the lookahead when it derives
+        // the attachment sub-rules; this is what the plugin filters back.
+        $rules = $this->rewriteManager->restorePaginationExclusion($rules);
+
         foreach (array_keys($rules) as $regex) {
             $this->assertStringNotContainsString(
-                '?!page',
+                '/?!page',
                 $regex,
-                'A lookahead in the rewrite tag leaks into the generated rules'
+                'A stripped lookahead is left in the generated rules'
             );
         }
 

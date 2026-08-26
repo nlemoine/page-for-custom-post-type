@@ -103,8 +103,8 @@ class ArchivePaginationTest extends TestCase
 
         $this->get(home_url('/home-for-books/page/2/'));
 
-        // The rule the plugin registers, not core's generic page rule.
-        $this->assertMatchedRule('home-for-books/page/?([0-9]{1,})/?$');
+        // The post type rules step aside, core's page rule resolves it.
+        $this->assertMatchedRule('(.?.+?)/page/?([0-9]{1,})/?$');
         $this->assertIsBookArchivePageTwo();
     }
 
@@ -148,7 +148,7 @@ class ArchivePaginationTest extends TestCase
 
         $this->get($permalink);
 
-        $this->assertMatchedRule('home-for-books/[^/]+/([^/]+)/?$');
+        $this->assertMatchedRule('home-for-books/(?!page)[^/]+/([^/]+)/?$');
         $this->assertTrue(is_attachment());
         $this->assertSame($attachmentId, get_queried_object_id());
     }
@@ -164,7 +164,7 @@ class ArchivePaginationTest extends TestCase
             get_post_field('post_name', $this->bookIds[0])
         )));
 
-        $this->assertMatchedRule('home-for-books/[^/]+/attachment/([^/]+)/?$');
+        $this->assertMatchedRule('home-for-books/(?!page)[^/]+/attachment/([^/]+)/?$');
         $this->assertTrue(is_attachment());
         $this->assertSame($attachmentId, get_queried_object_id());
     }
@@ -181,7 +181,7 @@ class ArchivePaginationTest extends TestCase
 
         $this->get(get_attachment_link($attachmentId));
 
-        $this->assertMatchedRule('home-for-books/(.+?)(?:/([0-9]+))?/?$');
+        $this->assertMatchedRule('home-for-books/(?!page)(.+?)(?:/([0-9]+))?/?$');
         $this->assertTrue(is_attachment());
         $this->assertSame($attachmentId, get_queried_object_id());
     }
@@ -222,6 +222,7 @@ class ArchivePaginationTest extends TestCase
 
         $this->get($permalink);
 
+        // No option, no lookahead on the tag, so nothing to repair either.
         $this->assertMatchedRule('books/[^/]+/([^/]+)/?$');
         $this->assertTrue(is_attachment());
         $this->assertSame($attachmentId, get_queried_object_id());
@@ -415,7 +416,7 @@ class ArchivePaginationTest extends TestCase
 
         $this->get(home_url('/home-for-books/pagina/2/'));
 
-        $this->assertMatchedRule('home-for-books/pagina/?([0-9]{1,})/?$');
+        $this->assertMatchedRule('(.?.+?)/pagina/?([0-9]{1,})/?$');
         $this->assertIsBookArchivePageTwo();
     }
 

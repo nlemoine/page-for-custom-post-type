@@ -110,7 +110,7 @@ class CustomPermastructTest extends TestCase
         $this->assertNull($result);
     }
 
-    public function testArchivePaginationRuleIsRegisteredWhenUseSlugEnabled(): void
+    public function testPaginationBaseIsExcludedWhenUseSlugEnabled(): void
     {
         update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', true);
 
@@ -118,13 +118,13 @@ class CustomPermastructTest extends TestCase
 
         global $wp_rewrite;
 
-        $this->assertSame(
-            'index.php?pagename=home-for-books&paged=$matches[1]',
-            $wp_rewrite->extra_rules_top['home-for-books/page/?([0-9]{1,})/?$'] ?? null
-        );
+        $tagIndex = array_search('%' . self::BOOK_POST_TYPE . '%', $wp_rewrite->rewritecode, true);
+
+        $this->assertNotFalse($tagIndex);
+        $this->assertStringContainsString('(?!page)', $wp_rewrite->rewritereplace[$tagIndex]);
     }
 
-    public function testArchivePaginationRuleIsNotRegisteredWhenUseSlugDisabled(): void
+    public function testPaginationBaseIsNotExcludedWhenUseSlugDisabled(): void
     {
         update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', false);
 
@@ -132,11 +132,10 @@ class CustomPermastructTest extends TestCase
 
         global $wp_rewrite;
 
-        // The post type keeps its own slug, core's generic page rule already
-        // resolves /home-for-books/page/2/.
-        $this->assertArrayNotHasKey(
-            'home-for-books/page/?([0-9]{1,})/?$',
-            $wp_rewrite->extra_rules_top
-        );
+        // The post type keeps its own slug, there is no collision to avoid.
+        $tagIndex = array_search('%' . self::BOOK_POST_TYPE . '%', $wp_rewrite->rewritecode, true);
+
+        $this->assertNotFalse($tagIndex);
+        $this->assertStringNotContainsString('(?!page)', $wp_rewrite->rewritereplace[$tagIndex]);
     }
 }

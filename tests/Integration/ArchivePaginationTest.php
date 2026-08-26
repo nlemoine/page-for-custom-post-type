@@ -299,6 +299,25 @@ class ArchivePaginationTest extends TestCase
         $this->assertIsBookArchivePageTwo();
     }
 
+    public function testArchivePaginationWithACategoryPermastruct(): void
+    {
+        // The tag right after the page slug is greedy enough to match the
+        // pagination base, and it is not the post type's own, so the lookahead
+        // cannot reach it. The child page fallback resolves it instead.
+        $this->enableUseSlug();
+
+        add_permastruct(
+            self::BOOK_POST_TYPE,
+            'home-for-books/%category%/%' . self::BOOK_POST_TYPE . '%',
+            ['with_front' => false]
+        );
+        flush_rewrite_rules();
+
+        $this->get(home_url('/home-for-books/page/2/'));
+
+        $this->assertIsBookArchivePageTwo();
+    }
+
     public function testSingleWithCustomPermastruct(): void
     {
         $this->enableUseSlugWithPermastruct();

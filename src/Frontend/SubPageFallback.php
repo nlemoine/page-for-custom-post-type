@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace n5s\PageForCustomPostType\Frontend;
 
 use n5s\PageForCustomPostType\Core\Api;
-use n5s\PageForCustomPostType\Core\RewriteManager;
 use WP;
 use WP_MatchesMapRegex;
 use WP_Post;
@@ -42,8 +41,7 @@ use WP_Query;
 final class SubPageFallback
 {
     public function __construct(
-        private readonly Api $api,
-        private readonly RewriteManager $rewriteManager
+        private readonly Api $api
     ) {
     }
 
@@ -70,7 +68,20 @@ final class SubPageFallback
             return $preempt;
         }
 
-        $postType = $this->getPostTypeFromRequest($request);
+        // The page rules already won, there is nothing to undo.
+        if (!empty($wp->query_vars['pagename'])) {
+            return $preempt;
+        }
+
+        $match = $this->matchPageRules($request);
+
+        if ($match === null) {
+            return $preempt;
+        }
+
+        [$pageQueryVars, $page] = $match;
+
+        $postType = $this->getPostTypeForPage($page);
 
         if ($postType === null) {
             return $preempt;
@@ -87,12 +98,6 @@ final class SubPageFallback
             return $preempt;
         }
 
-        $pageQueryVars = $this->matchPageRules($request);
-
-        if ($pageQueryVars === null) {
-            return $preempt;
-        }
-
         $wp->query_vars = $this->replaceMatchedQueryVars($wp->query_vars, $wp->matched_query, $pageQueryVars);
         $query->query($wp->query_vars);
 
@@ -101,18 +106,25 @@ final class SubPageFallback
     }
 
     /**
-     * Get the post type whose page the request is nested under.
+     * Get the post type the found page belongs to, as its page or below it.
+     *
+     * Walking the page's ancestors rather than comparing the request to a page
+     * path is what makes this work whatever the URL carries. A multilingual
+     * plugin in directory mode leaves its language segment in the request, and
+     * the page path it resolves to is per language anyway.
      */
-    private function getPostTypeFromRequest(string $request): ?string
+    private function getPostTypeForPage(WP_Post $page): ?string
     {
-        foreach (array_keys($this->api->getPageIds()) as $postType) {
-            if (!$this->api->shouldUsePageSlug($postType)) {
-                continue;
-            }
+        $pageIds = $this->api->getPageIds();
 
-            $pageSlug = $this->rewriteManager->getCachedPageSlug($postType);
+        // The page itself counts: /{page}/feed/ is matched as a single too,
+        // and resolves back to the page.
+        $candidates = array_merge([$page->ID], get_post_ancestors($page));
 
-            if ($pageSlug === null || !str_starts_with($request, $pageSlug . '/')) {
+        foreach ($candidates as $ancestorId) {
+            $postType = array_search($ancestorId, $pageIds, true);
+
+            if (!\is_string($postType) || !$this->api->shouldUsePageSlug($postType)) {
                 continue;
             }
 
@@ -128,7 +140,7 @@ final class SubPageFallback
      * Mirrors what WP::parse_request() does with verbose page rules: run the
      * rules in order, and skip a match whose page doesn't exist.
      *
-     * @return array<string, mixed>|null
+     * @return array{0: array<string, mixed>, 1: WP_Post}|null
      */
     private function matchPageRules(string $request): ?array
     {
@@ -166,7 +178,7 @@ final class SubPageFallback
                 continue;
             }
 
-            return $pageQueryVars;
+            return [$pageQueryVars, $page];
         }
 
         return null;

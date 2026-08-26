@@ -76,8 +76,7 @@ final class Container
             ),
 
             SubPageFallback::class => fn (): SubPageFallback => new SubPageFallback(
-                $this->get(Api::class),
-                $this->get(RewriteManager::class)
+                $this->get(Api::class)
             ),
 
             // Services with multiple dependencies

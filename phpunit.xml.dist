@@ -10,6 +10,11 @@
     </testsuite>
     <testsuite name="plugin-integration">
       <directory suffix="Test.php">./tests/Integration/Integration</directory>
+      <!-- Boots Polylang in directory mode, which is process-wide state: own suite, own process. -->
+      <exclude>./tests/Integration/Integration/PolylangRoutingTest.php</exclude>
+    </testsuite>
+    <testsuite name="polylang-routing">
+      <file>./tests/Integration/Integration/PolylangRoutingTest.php</file>
     </testsuite>
   </testsuites>
   <source>

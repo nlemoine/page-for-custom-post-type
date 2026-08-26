@@ -110,17 +110,32 @@ class CustomPermastructTest extends TestCase
         $this->assertNull($result);
     }
 
-    public function testRewriteTagsExcludePageForPagination(): void
+    public function testPaginationBaseIsExcludedWhenUseSlugEnabled(): void
     {
-        // Re-register to ensure pagination rewrite tags are set
+        update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', true);
+
         $this->reRegisterPostType(self::BOOK_POST_TYPE);
 
         global $wp_rewrite;
 
-        $bookTag = '%' . self::BOOK_POST_TYPE . '%';
-        $tagIndex = array_search($bookTag, $wp_rewrite->rewritecode, true);
+        $tagIndex = array_search('%' . self::BOOK_POST_TYPE . '%', $wp_rewrite->rewritecode, true);
 
-        $this->assertNotFalse($tagIndex, 'Rewrite tag for book post type should exist');
+        $this->assertNotFalse($tagIndex);
         $this->assertStringContainsString('(?!page)', $wp_rewrite->rewritereplace[$tagIndex]);
+    }
+
+    public function testPaginationBaseIsNotExcludedWhenUseSlugDisabled(): void
+    {
+        update_option('page_for_' . self::BOOK_POST_TYPE . '_use_slug', false);
+
+        $this->reRegisterPostType(self::BOOK_POST_TYPE);
+
+        global $wp_rewrite;
+
+        // The post type keeps its own slug, there is no collision to avoid.
+        $tagIndex = array_search('%' . self::BOOK_POST_TYPE . '%', $wp_rewrite->rewritecode, true);
+
+        $this->assertNotFalse($tagIndex);
+        $this->assertStringNotContainsString('(?!page)', $wp_rewrite->rewritereplace[$tagIndex]);
     }
 }

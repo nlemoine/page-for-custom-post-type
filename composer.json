@@ -98,7 +98,12 @@
         "test:autodescription": "PLUGINS=autodescription phpunit --testsuite=unit,integration,plugin-integration",
         "test:core": "phpunit --testsuite=unit,integration",
         "test:coverage": "php -d pcov.enabled=1 phpunit --testsuite=unit,integration --coverage-text",
-        "test:polylang": "PLUGINS=polylang phpunit --testsuite=unit,integration,plugin-integration",
+        "test:polylang": [
+            "@test:polylang:suites",
+            "@test:polylang:routing"
+        ],
+        "test:polylang:routing": "PLUGINS=polylang phpunit --testsuite=polylang-routing",
+        "test:polylang:suites": "PLUGINS=polylang phpunit --testsuite=unit,integration,plugin-integration",
         "test:unit": "phpunit --testsuite=unit",
         "test:wordpress-seo": "PLUGINS=wordpress-seo phpunit --testsuite=unit,integration,plugin-integration",
         "test:wpml": "PLUGINS=wpml phpunit --testsuite=unit,integration,plugin-integration"

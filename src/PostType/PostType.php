@@ -74,9 +74,48 @@ final class PostType
     }
 
     /**
-     * Enable pagination rules for post type.
+     * Keep the post type rules off the pagination base.
+     *
+     * Only needed when the post type is rebased on the page slug: that's the
+     * case where the post type rules and the page share a base, so that
+     * /{page}/page/2/ is matched as a single. With the post type's own slug
+     * there is no collision and core's rules already resolve it.
      */
-    public function addPaginationRewriteTags(string $postType, WP_Post_Type $postTypeObject): void
+    public function excludePaginationBase(string $postType, WP_Post_Type $postTypeObject): void
+    {
+        if (!$this->api->shouldConsiderPostType($postTypeObject)) {
+            return;
+        }
+
+        if (!$this->api->shouldUsePageSlug($postType)) {
+            return;
+        }
+
+        if (!$this->api->getPageIdFromPostType($postType, false)) {
+            return;
+        }
+
+        $this->rewriteManager->addRewriteTags($postTypeObject);
+
+        // Before the multilingual plugins duplicate the rules per language,
+        // so that both copies come out of a regex that works.
+        add_filter(
+            "{$postType}_rewrite_rules",
+            [$this->rewriteManager, 'restorePaginationExclusion'],
+            5
+        );
+    }
+
+    /**
+     * Restore the feed rules that turning the native archive off takes away.
+     *
+     * The plugin forces has_archive off because the page is the archive, and
+     * WP_Post_Type::set_props() derives rewrite['feeds'] from it. Serving the
+     * archive from a page is no reason for the post type to lose the feed of
+     * each of its posts, so they are put back unless the post type was
+     * registered with feeds explicitly turned off.
+     */
+    public function restoreFeedRules(string $postType, WP_Post_Type $postTypeObject): void
     {
         if (!$this->api->shouldConsiderPostType($postTypeObject)) {
             return;
@@ -86,7 +125,26 @@ final class PostType
             return;
         }
 
-        $this->rewriteManager->addRewriteTags($postTypeObject);
+        if (!$this->wantsFeeds($postType)) {
+            return;
+        }
+
+        $this->rewriteManager->restoreFeedRules($postType);
+    }
+
+    /**
+     * Whether feeds were asked for, before the plugin touched the args.
+     */
+    private function wantsFeeds(string $postType): bool
+    {
+        $originalArgs = $this->getOriginalArgs($postType);
+        $rewrite = $originalArgs['rewrite'] ?? null;
+
+        if (!\is_array($rewrite) || !isset($rewrite['feeds'])) {
+            return true;
+        }
+
+        return (bool) $rewrite['feeds'];
     }
 
     /**
